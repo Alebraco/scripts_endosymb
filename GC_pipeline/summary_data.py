@@ -1,17 +1,22 @@
 #!/usr/bin/env python3
-from delta_matrix import delta_matrix
 from metadata_gcsize import genome_gcsize
-from gc_codon_dict import gc_codon_dict
+from delta_matrix import delta_matrix
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import seaborn as sns
 import pandas as pd
 import numpy as np
-import math
 import os
 import sys
 import json
+
+from gc_utils import (
+    titles,
+    group_names,
+    load_or_compute,
+    genome_gcsize_json_path,
+)
 
 if len(sys.argv) != 4:
     print(f'Usage: {sys.argv[0]} <group> <matrix_type> <sp/all>')
@@ -21,55 +26,22 @@ group = sys.argv[1]
 type = sys.argv[2] 
 crit = sys.argv[3]
 
-titles = {
-    'distance': 'Patristic Distance',
-    'size': 'ΔGenome Size',
-    'gc_genome': 'Genome ΔGC%',
-    'gc_third': '4D Site ΔGC%', 
-    'gc_all': 'Core ΔGC%'
-}
+allowed = {'size', 'gc_genome'}
+if type not in allowed:
+    print(f'Error: matrix_type must be one of {allowed}.')
+    sys.exit(1)
 
-group_names = {
-    'endosymb+relatives': 'Endosymbionts and Free-Living Relatives',
-    'relatives_only': 'Free-Living Relatives Only',
-    'endosymb_only': 'Endosymbionts Only'
-}
-
-gc_json = f'gc_codon_data_{group}.json'
-genome_json = f'gcsize_genome_{group}.json'
-
-def load_or_compute(filename, compute_function, *args, **kwargs):
-    """Load data from file if exists, otherwise compute and save."""
-    if os.path.isfile(filename):
-        with open(filename, 'r') as f:
-            return json.load(f)
-    else:
-        data = compute_function(*args, **kwargs)
-        with open(filename, 'w') as f:
-            json.dump(data, f)
-        return data
+genome_json = genome_gcsize_json_path(group)
 
 #gc_dataset = load_or_compute(gc_json, gc_codon_dict, group)
 genome_dataset = load_or_compute(genome_json, genome_gcsize, group)
 print('All data has been loaded')
 
-if type in ['size', 'gc_genome']:
-    matrix = delta_matrix(genome_dataset, type)
-else:
-    matrix = delta_matrix(gc_dataset, type)
+matrix = delta_matrix(genome_dataset, type)
 print(f'Created {type} matrix.')
 
-
 if crit == 'sp':
-    # n = len(os.listdir(group))
-    # ncols = int(math.sqrt(n))
-    # nrows = n // ncols + (n % ncols > 0)
-
-    # plt.figure(figsize = (5 * ncols, 4 * nrows))
-    # plt.suptitle(f'{titles[type]} across {group_names[group]}', fontsize=16, y=0.98)
-
     all_data = []
-    # plotnum = 1
     for species in matrix.keys():
         sp_name = ' '.join(species.split('_endosymbiont')[0].split('_'))
         print(f'>Processing {species}:')
@@ -89,20 +61,18 @@ if crit == 'sp':
         for value in sp_values:
             all_data.append({'species':sp_name, 'value': value})
         
-        # plt.subplot(nrows, ncols, plotnum)
-        # sns.boxplot(data = sp_values)
-        # plotnum += 1
     df = pd.DataFrame(all_data)
     df_summary = df.groupby('species')['value'].agg(['std', 'var']).reset_index()
     df_summary.to_csv(f'variation_{group}_{type}.csv', index = False)
 
     plt.figure(figsize=(12,8))
     sns.boxplot(data = df, y = 'species', x ='value', fliersize=3)
-    # plt.tight_layout(rect=[0, 0, 1, 0.96])
     plt.title(f'{titles[type]}\nAcross {group_names[group]}')
     plt.xlabel(f'{titles[type]}')
     if type == 'size':
-        plt.gca().xaxis.set_major_formatter(plt.FuncFormatter(lambda x, p: f'{x/1e6:.1f} Mb'))
+        plt.gca().xaxis.set_major_formatter(
+            plt.FuncFormatter(lambda x, p: f'{x/1e6:.1f} Mb')
+            )
     plt.tight_layout()
     plt.savefig(f'sp_{type}_{group}.pdf')
     plt.close()
@@ -131,6 +101,8 @@ elif crit == 'all':
     plt.title(f'{titles[type]}\n{group_names[group]}', fontsize=14)
     plt.xlabel(f'{titles[type]}')
     if type == 'size':
-        plt.gca().xaxis.set_major_formatter(plt.FuncFormatter(lambda x, p: f'{x/1e6:.1f} Mb'))
+        plt.gca().xaxis.set_major_formatter(
+            plt.FuncFormatter(lambda x, p: f'{x/1e6:.1f} Mb')
+            )
     plt.savefig(f'all_{type}_{group}.pdf')
     plt.close()

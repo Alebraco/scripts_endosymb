@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 
-from Bio import SeqIO
+from calculate_gc import calculate_gc_content
+from gc_utils import gc_codon_json_path
 from Bio.SeqRecord import SeqRecord
 from Bio.Seq import Seq
-from calculate_gc import calculate_gc_content
+from Bio import SeqIO
 import os
 import json
 
@@ -18,14 +19,14 @@ def gc_codon_dict(group, save_to_file = True):
         save_to_file (boolean): Saves dictionary as json file
     '''
     fourfold_codons = {
-        "GCT", "GCC", "GCA", "GCG",   # Ala
-        "CGT", "CGC", "CGA", "CGG",   # Arg
-        "GGT", "GGC", "GGA", "GGG",   # Gly
-        "CCT", "CCC", "CCA", "CCG",   # Pro
-        "ACT", "ACC", "ACA", "ACG",   # Thr
-        "GTT", "GTC", "GTA", "GTG",   # Val
-        "CTT", "CTC", "CTA", "CTG",   # Leu
-        "TCT", "TCC", "TCA", "TCG"    # Ser
+        'GCT', 'GCC', 'GCA', 'GCG',   # Ala
+        'CGT', 'CGC', 'CGA', 'CGG',   # Arg
+        'GGT', 'GGC', 'GGA', 'GGG',   # Gly
+        'CCT', 'CCC', 'CCA', 'CCG',   # Pro
+        'ACT', 'ACC', 'ACA', 'ACG',   # Thr
+        'GTT', 'GTC', 'GTA', 'GTG',   # Val
+        'CTT', 'CTC', 'CTA', 'CTG',   # Leu
+        'TCT', 'TCC', 'TCA', 'TCG'    # Ser
     }
     gc_data = {}
     output_dir = os.path.join(group, 'third_sites')
@@ -40,12 +41,12 @@ def gc_codon_dict(group, save_to_file = True):
 
         records_list = []
         alignment_gc = {}
-        id_list = []
 
         for rec in SeqIO.parse(path, 'fasta'):
             third_sites_degen = []
 
-            for i in range(0, len(rec.seq), 3): # Iterate over codon positions 
+            # Iterate over codon positions 
+            for i in range(0, len(rec.seq), 3): 
                 codon = str(rec.seq[i:i+3]) # Retrieve each codon sequence
                 if codon in fourfold_codons: # Check if codon is fourfold degenerate
                     third_sites_degen.append(codon[2]) # Append only third base
@@ -55,7 +56,6 @@ def gc_codon_dict(group, save_to_file = True):
             seq_str = ''.join(third_sites_degen) # Concatenate the nucleotides for each record (ID)
             new_rec = SeqRecord(Seq(seq_str), id = rec.id) # Convert to SeqRecord object
             records_list.append(new_rec) # Append SeqRecord to records list
-            id_list.append(rec.id) # Append record ID to ID list
 
             # Calculate GC content
             gc_third = calculate_gc_content(new_rec.seq)
@@ -67,11 +67,14 @@ def gc_codon_dict(group, save_to_file = True):
             }
         gc_data[species_name] = alignment_gc
 
-        with open(out_path, 'w') as output: # Write all records at once, for each file
+        # Write all records at once, for this species
+        with open(out_path, 'w') as output: 
             SeqIO.write(records_list, output, 'fasta')
 
     if save_to_file:
-        with open(f'files/gc_codon_{group}.json', 'w') as save:
+        out_json = gc_codon_json_path(group)
+        os.makedirs(os.path.dirname(out_json) or ".", exist_ok=True)
+        with open(out_json, 'w') as save:
             json.dump(gc_data, save)
     return gc_data
 

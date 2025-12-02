@@ -13,7 +13,7 @@ import matplotlib.pyplot as plt
 
 from delta_matrix import delta_matrix
 from distance_matrix import distance_matrix
-from metadata_gcsize import genome_gcsize
+from GC_pipeline.metadata_gcsize import genome_gcsize
 
 # Calculates (Delta / Max Size of Pair) / Patristic Distance
 # Percentage change in metric per unit of evolutionary divergence
