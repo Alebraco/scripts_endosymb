@@ -16,12 +16,12 @@ from gc_utils import (
     genome_gcsize_json_path,
 )
 
-if len(sys.argv) < 2:
-    print(f'Usage: {sys.argv[0]} <type>')
+if len(sys.argv) < 3:
+    print(f'Usage: {sys.argv[0]} <type> <mean/all>')
     sys.exit(1)
 
 mat_type = sys.argv[1]
-mean = True
+mean = sys.argv[2] == 'mean'
 allowed = {'size', 'gc_genome'}
 if mat_type not in allowed:
     print(f"Error: Supported types are: {', '.join(allowed)}")
@@ -30,7 +30,7 @@ if mat_type not in allowed:
 all_data = []
 
 for group in group_names.keys():
-    genome_json = f'gcsize_genome_{group}.json'
+    genome_json = genome_gcsize_json_path(group)
 
     genome_dataset = load_or_compute(genome_json, genome_gcsize, group)
 
