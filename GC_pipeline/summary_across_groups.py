@@ -1,17 +1,20 @@
 #!/usr/bin/env python3
 from delta_matrix import delta_matrix
 from metadata_gcsize import genome_gcsize
-from gc_codon_dict import gc_codon_dict
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import seaborn as sns
 import pandas as pd
 import numpy as np
-import math
-import os
 import sys
-import json
+
+from gc_utils import (
+    titles,
+    group_names,
+    load_or_compute,
+    genome_gcsize_json_path,
+)
 
 if len(sys.argv) < 2:
     print(f'Usage: {sys.argv[0]} <matrix_type> <all(default)/mean>')
@@ -20,51 +23,24 @@ if len(sys.argv) < 2:
 type = sys.argv[1]
 mean = False
 delta = False
-if len(sys.argv) <= 3:
-    if sys.argv[2] == 'mean':
-        mean = True
+if len(sys.argv) <= 3 and sys.argv[2] == 'mean':
+    mean = True
 
-
-titles = {
-    'distance': 'Patristic Distance',
-    'size': 'ΔGenome Size',
-    'gc_genome': 'Genome ΔGC%',
-    'gc_third': '4D Site ΔGC%', 
-    'gc_all': 'Core ΔGC%'
-}
-
-group_names = {
-    'endosymb+relatives': 'Endosymbionts and Free-Living Relatives',
-    'relatives_only': 'Free-Living Relatives Only',
-    'endosymb_only': 'Endosymbionts Only'
-}
-
-def load_or_compute(filename, compute_function, *args, **kwargs):
-    """Load data from file if exists, otherwise compute and save."""
-    if os.path.isfile(filename):
-        with open(filename, 'r') as f:
-            return json.load(f)
-    else:
-        data = compute_function(*args, **kwargs)
-        with open(filename, 'w') as f:
-            json.dump(data, f)
-        return data
+allowed = {'size', 'gc_genome'}
+if type not in allowed:
+    print(f'Error: matrix_type must be one of {allowed}')
+    sys.exit(1)
 
 all_data = []
 for group in group_names.keys():
-    gc_json = f'gc_codon_data_{group}.json'
-    genome_json = f'gcsize_genome_{group}.json'
+    genome_json = genome_gcsize_json_path(group)
 
     genome_dataset = load_or_compute(genome_json, genome_gcsize, group)
     print('All data has been loaded')
 
-    if type in ['size', 'gc_genome']:
-        matrix = delta_matrix(genome_dataset, type)
-    else:
-        matrix = delta_matrix(gc_dataset, type)
+    matrix = delta_matrix(genome_dataset, type)
     print(f'Created {type} matrix.')
 
-    all_values = []
     for species in matrix.keys():
         sp_name = ' '.join(species.split('_endosymbiont')[0].split('_'))
         print(f'>Processing {species}:')
@@ -149,9 +125,17 @@ else:
     }
     
     plt.figure(figsize=(12,24))
-    sns.boxplot(data = df, x = 'value', y = 'species', hue  = 'group', 
-        palette=group_colors,hue_order = list(group_colors.keys()),
-        fliersize=2, dodge = True, gap = 0.1)
+    sns.boxplot(
+        data = df, 
+        x = 'value', 
+        y = 'species', 
+        hue  = 'group', 
+        palette=group_colors,
+        hue_order = list(group_colors.keys()),
+        fliersize=2, 
+        dodge = True, 
+        gap = 0.1
+    )
 
     plt.title(f'{titles[type]}\nAcross Groups')
     plt.xlabel(f'{titles[type]}')
@@ -163,7 +147,6 @@ else:
     plt.close()
 
     # Look for outliers in the endosymbionts group
-
     endosymb_data = df[df['group'] == 'Endosymbionts Only']
     Q1 = endosymb_data['value'].quantile(0.25)
     Q3 = endosymb_data['value'].quantile(0.75)
