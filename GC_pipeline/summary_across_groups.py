@@ -55,7 +55,6 @@ for group in group_names.keys():
     gc_json = f'gc_codon_data_{group}.json'
     genome_json = f'gcsize_genome_{group}.json'
 
-    #gc_dataset = load_or_compute(gc_json, gc_codon_dict, group)
     genome_dataset = load_or_compute(genome_json, genome_gcsize, group)
     print('All data has been loaded')
 
