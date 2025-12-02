@@ -5,7 +5,7 @@ def calculate_gc_content(seq):
     args: 
         seq (str): nucleotide sequence
     '''
-    s = str(seq).upper()
+    seq = str(seq).upper()
     gc_count = seq.count('G') + seq.count('C')
     total_length = seq.count('G') + seq.count('C') + seq.count('A') + seq.count('T')
     if total_length > 0:

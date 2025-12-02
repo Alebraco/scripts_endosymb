@@ -15,6 +15,6 @@ def matrix_correlation(x_df, y_df):
     if len(x_df) < 3:
         return None
 
-    correlation, p_value, n = mantel(x_df, y_df, method='pearson', permutations=10000)
+    correlation, p_value, n = mantel(x_df, y_df, method='spearman', permutations=10000)
     p_value_rounded = round(p_value, 4)
     return correlation, p_value_rounded, n

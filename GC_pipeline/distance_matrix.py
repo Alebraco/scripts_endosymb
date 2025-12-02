@@ -11,7 +11,7 @@ def distance_matrix(group):
     '''
     
     dist_matrices = {}
-    tree_dir = os.path.join(group,'dna_tree_results/')
+    tree_dir = os.path.join(group,'dna_tree_results')
     
     print(f'Starting distance matrix computation for {group}')
     print(f'Processing trees in {tree_dir}')
@@ -21,7 +21,7 @@ def distance_matrix(group):
     print(f'Found {species_number} species directories')
     
     i = 1
-    for sp in os.listdir(tree_dir):
+    for sp in species_list:
         print(f'{i}/{species_number} Processing {sp}') 
         start_time = time.time()
         tree_path = os.path.join(tree_dir, sp, f'{sp}.treefile')
@@ -29,8 +29,11 @@ def distance_matrix(group):
         if not os.path.exists(tree_path):
             print(f'No tree file found for {sp} at {tree_path}.')
             continue
-
-        tree = Phylo.read(tree_path, "newick")
+        try:
+            tree = Phylo.read(tree_path, "newick")
+        except Exception as e:
+            print(f'Error reading tree for {sp}: {e}')
+            continue
         terminals = tree.get_terminals()
         print(f'{len(terminals)} terminals were found.')
 

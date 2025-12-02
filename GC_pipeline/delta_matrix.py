@@ -3,11 +3,12 @@ import os
 import json
 import pandas as pd
 import numpy as np
+from gc_utils import files_dir
 
-def delta_matrix(data, type, save_to_file = False, filename = f'dmatrix_{type}.json'):
+def delta_matrix(data, mat_type, save_to_file = False, filename = None):
     '''Create a delta matrix
     args:
-        data(dict): nested dictionary {species: {id: type}}
+        data(dict): nested dictionary {species: {id: mat_type}}
         save_to_file(boolean)
         filename(str)
     output:
@@ -15,7 +16,10 @@ def delta_matrix(data, type, save_to_file = False, filename = f'dmatrix_{type}.j
     '''
     delta_matrices = {}
 
-    if save_to_file and os.path.isfile(filename):
+
+    if save_to_file:
+        if filename is None:
+            filename = os.path.join(files_dir, f'dmatrix_{mat_type}.json')
         try:
             with open(filename, 'r') as save:
                 delta_matrices_data = json.load(save)
@@ -29,9 +33,9 @@ def delta_matrix(data, type, save_to_file = False, filename = f'dmatrix_{type}.j
 
 
 
-    for sp, data in data.items():
-        ids = list(data.keys())
-        gc_values = [data[id][type] for id in ids]
+    for sp, dataset in data.items():
+        ids = list(dataset.keys())
+        gc_values = [dataset[acc][mat_type] for acc in ids]
 
         dims = len(ids)
         if dims < 2: 
