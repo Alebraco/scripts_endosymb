@@ -23,11 +23,11 @@ if len(sys.argv) != 4:
     sys.exit(1)
 
 group = sys.argv[1]
-type = sys.argv[2] 
+mat_type = sys.argv[2] 
 crit = sys.argv[3]
 
 allowed = {'size', 'gc_genome'}
-if type not in allowed:
+if mat_type not in allowed:
     print(f'Error: matrix_type must be one of {allowed}.')
     sys.exit(1)
 
@@ -37,8 +37,8 @@ genome_json = genome_gcsize_json_path(group)
 genome_dataset = load_or_compute(genome_json, genome_gcsize, group)
 print('All data has been loaded')
 
-matrix = delta_matrix(genome_dataset, type)
-print(f'Created {type} matrix.')
+matrix = delta_matrix(genome_dataset, mat_type)
+print(f'Created {mat_type} matrix.')
 
 if crit == 'sp':
     all_data = []
@@ -63,18 +63,18 @@ if crit == 'sp':
         
     df = pd.DataFrame(all_data)
     df_summary = df.groupby('species')['value'].agg(['std', 'var']).reset_index()
-    df_summary.to_csv(f'variation_{group}_{type}.csv', index = False)
+    df_summary.to_csv(f'variation_{group}_{mat_type}.csv', index = False)
 
     plt.figure(figsize=(12,8))
     sns.boxplot(data = df, y = 'species', x ='value', fliersize=3)
-    plt.title(f'{titles[type]}\nAcross {group_names[group]}')
-    plt.xlabel(f'{titles[type]}')
-    if type == 'size':
+    plt.title(f'{titles[mat_type]}\nAcross {group_names[group]}')
+    plt.xlabel(f'{titles[mat_type]}')
+    if mat_type == 'size':
         plt.gca().xaxis.set_major_formatter(
             plt.FuncFormatter(lambda x, p: f'{x/1e6:.1f} Mb')
             )
     plt.tight_layout()
-    plt.savefig(f'sp_{type}_{group}.pdf')
+    plt.savefig(f'sp_{mat_type}_{group}.pdf')
     plt.close()
 
 elif crit == 'all':
@@ -98,11 +98,11 @@ elif crit == 'all':
     
     plt.figure()
     sns.boxplot(data = all_values)
-    plt.title(f'{titles[type]}\n{group_names[group]}', fontsize=14)
-    plt.xlabel(f'{titles[type]}')
-    if type == 'size':
+    plt.title(f'{titles[mat_type]}\n{group_names[group]}', fontsize=14)
+    plt.xlabel(f'{titles[mat_type]}')
+    if mat_type == 'size':
         plt.gca().xaxis.set_major_formatter(
             plt.FuncFormatter(lambda x, p: f'{x/1e6:.1f} Mb')
             )
-    plt.savefig(f'all_{type}_{group}.pdf')
+    plt.savefig(f'all_{mat_type}_{group}.pdf')
     plt.close()

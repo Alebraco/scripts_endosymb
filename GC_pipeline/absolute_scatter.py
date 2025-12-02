@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 from metadata_gcsize import genome_gcsize
-from delta_matrix import delta_matrix
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
@@ -37,7 +36,7 @@ for group in group_names.keys():
     data_dict = {}
     for sp, genomes in genome_dataset.items():
         sp_name = ' '.join(sp.split('_endosymbiont')[0].split('_'))
-        data_dict = {genome:data.get(type, 0) for genome,data in genomes.items()}
+        data_dict = {genome:data.get(mat_type, 0) for genome,data in genomes.items()}
         if not mean:
             for value in data_dict.values():
                 all_data.append({'group': group_names[group], 'value': value, 'species': sp_name})
@@ -81,7 +80,7 @@ else:
     plt.rcParams.update({'font.size': 15})
 
     pivot_df = df.pivot_table(index='species', columns='group', values='value').reset_index()
-    pivot_df.to_csv(f'mean_abs{type}.csv', index = False)
+    pivot_df.to_csv(f'mean_abs{mat_type}.csv', index = False)
     plt.figure(figsize=(10,8))
     sns.scatterplot(
         data = pivot_df, 
@@ -99,12 +98,12 @@ else:
     plt.ylim(common_min, common_max)
 
     plt.axline((0, 0), slope=1, color='red', linestyle='--', linewidth=1, label='y=x')
-    plt.title(f'Mean {titles[type]}\nEndoymbionts vs Free-Living Relatives')
+    plt.title(f'Mean {titles[mat_type]}\nEndoymbionts vs Free-Living Relatives')
     plt.xlabel('Endosymbionts')
     plt.ylabel('Free-Living Relatives')
-    if type == 'size':
+    if mat_type == 'size':
         plt.gca().xaxis.set_major_formatter(plt.FuncFormatter(lambda x, p: f'{x/1e6:.1f} Mb'))
         plt.gca().yaxis.set_major_formatter(plt.FuncFormatter(lambda x, p: f'{x/1e6:.1f} Mb'))
     plt.tight_layout()
-    plt.savefig(f'scatter_mean_abs{type}.pdf')
+    plt.savefig(f'scatter_mean_abs{mat_type}.pdf')
     plt.close()

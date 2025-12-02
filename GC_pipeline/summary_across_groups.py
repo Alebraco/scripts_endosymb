@@ -17,17 +17,14 @@ from gc_utils import (
 )
 
 if len(sys.argv) < 2:
-    print(f'Usage: {sys.argv[0]} <matrix_type> <all(default)/mean>')
+    print(f'Usage: {sys.argv[0]} <matrix_type> <all/mean>')
     sys.exit(1)
 
-type = sys.argv[1]
-mean = False
-delta = False
-if len(sys.argv) <= 3 and sys.argv[2] == 'mean':
-    mean = True
+mat_type = sys.argv[1]
+mean = sys.argv[2].lower() == 'mean'
 
 allowed = {'size', 'gc_genome'}
-if type not in allowed:
+if mat_type not in allowed:
     print(f'Error: matrix_type must be one of {allowed}')
     sys.exit(1)
 
@@ -38,8 +35,8 @@ for group in group_names.keys():
     genome_dataset = load_or_compute(genome_json, genome_gcsize, group)
     print('All data has been loaded')
 
-    matrix = delta_matrix(genome_dataset, type)
-    print(f'Created {type} matrix.')
+    matrix = delta_matrix(genome_dataset, mat_type)
+    print(f'Created {mat_type} matrix.')
 
     for species in matrix.keys():
         sp_name = ' '.join(species.split('_endosymbiont')[0].split('_'))
@@ -77,25 +74,24 @@ print('--Summary Statistics--')
 summary_table = df.groupby('group')['value'].agg(['min', 'mean', 'median', 'max', 'std', 'count']).round(4)
 print(summary_table)
 if mean:
-    summary_table.to_csv(f'mean{type}_groups_stats.csv')
+    summary_table.to_csv(f'mean{mat_type}_groups_stats.csv')
 
     #Boxplots, only produced when using mean values
     plt.figure(figsize=(12,8))
     sns.boxplot(data = df, x = 'group', y = 'value', fliersize=2)
-    plt.title(f'{titles[type]}\nAcross Groups')
-    plt.ylabel(f'{titles[type]}')
-    if type == 'size':
+    plt.title(f'{titles[mat_type]}\nAcross Groups')
+    plt.ylabel(f'{titles[mat_type]}')
+    if mat_type == 'size':
         plt.gca().yaxis.set_major_formatter(plt.FuncFormatter(lambda x, p: f'{x/1e6:.1f} Mb'))
     plt.tight_layout()
     if mean:
-        plt.savefig(f'all_{type}_boxplot-mean.pdf')
+        plt.savefig(f'all_{mat_type}_boxplot-mean.pdf')
     else:
-        plt.savefig(f'all_{type}_boxplot.pdf')
+        plt.savefig(f'all_{mat_type}_boxplot.pdf')
     plt.close()
 
 else:
-    summary_table.to_csv(f'{type}_groups_stats.csv')
-
+    summary_table.to_csv(f'{mat_type}_groups_stats.csv')
     order_list = [
     'Endosymbionts and Free-Living Relatives',
     'Endosymbionts Only',
@@ -106,13 +102,13 @@ else:
 
     plt.figure(figsize=(12,8))
     sns.violinplot(data = df, x = 'group', y = 'value', inner = 'box', cut = 0, order = order_list)
-    plt.title(f'{titles[type]} - Distribution Across Groups')
+    plt.title(f'{titles[mat_type]} - Distribution Across Groups')
     plt.xlabel('Group')
-    plt.ylabel(f'{titles[type]}')
-    if type == 'size':
+    plt.ylabel(f'{titles[mat_type]}')
+    if mat_type == 'size':
         plt.gca().yaxis.set_major_formatter(plt.FuncFormatter(lambda x, p: f'{x/1e6:.1f} Mb'))
     plt.tight_layout()
-    plt.savefig(f'all_{type}_violin.pdf')
+    plt.savefig(f'all_{mat_type}_violin.pdf')
     plt.close()
 
     #Produce boxplots of all species together, different color coding for groups
@@ -137,13 +133,13 @@ else:
         gap = 0.1
     )
 
-    plt.title(f'{titles[type]}\nAcross Groups')
-    plt.xlabel(f'{titles[type]}')
-    if type == 'size':
+    plt.title(f'{titles[mat_type]}\nAcross Groups')
+    plt.xlabel(f'{titles[mat_type]}')
+    if mat_type == 'size':
         plt.gca().xaxis.set_major_formatter(plt.FuncFormatter(lambda x, p: f'{x/1e6:.1f} Mb'))
     plt.legend(fontsize='small', loc='upper right')
     plt.tight_layout()
-    plt.savefig(f'all_{type}_sp_group.pdf')
+    plt.savefig(f'all_{mat_type}_sp_group.pdf')
     plt.close()
 
     # Look for outliers in the endosymbionts group
