@@ -276,17 +276,15 @@ def run_mutation_analysis():
     """
 
     all_data = []
-    # sites_threshold = 0
+    sites_threshold = 100
 
     for group, group_name in group_names.items():
-        i = 1
         input_dir = os.path.join(group, 'third_sites')
         if not os.path.exists(input_dir):
             print(f"Warning: Directory {input_dir} not found. Skipping.")
             continue
 
         sp_list = os.listdir(input_dir)
-        sp_num = len(sp_list)
         for species in sp_list:
             try:
                 sp_name = species.split('concatenate_')[1].split('.fasta')[0].replace('_',' ').replace(' endosymbiont', '')
@@ -299,11 +297,12 @@ def run_mutation_analysis():
                 continue
             
             aln = list(SeqIO.parse(sp_path, 'fasta'))
-            print(f'({i}/{sp_num}) Processing {sp_name}')
+            print(f'Processing {sp_name}')
 
-            # aln_length = next((len(record.seq) for record in aln if len(record.seq) > 0), 0)
-            # if aln_length <= sites_threshold:
-            #     continue
+            count = polymorphism_total(aln)
+            if count < sites_threshold:
+                print(f'  Skipping {sp_name}: only {count} polymorphic sites found (threshold: {sites_threshold}).')
+                continue
 
             pairs = combinations(aln, 2)
 
@@ -335,19 +334,18 @@ def run_mutation_analysis():
 
                     rates2 = calculate_rates(group_name, sp_name, seq2, seq1)
                     all_data.append(rates2)
-            i += 1
     final_df = pd.DataFrame(all_data)
     final_df.to_csv(output_csv, index = False)
 
 if __name__ == '__main__':
-    # if os.path.exists(output_csv):
-    run_diagnostic()
-        # df = load_data(output_csv)
-        # plot_distributions(df)
-        # plot_species_grid(df)
-    # else:
-    #     print('File not found, run mutation analysis first.')
-    #     run_mutation_analysis()
-    #     df = load_data(output_csv)
-    #     plot_distributions(df)
-    #     plot_species_grid(df)
+    if os.path.exists(output_csv):
+        run_diagnostic()  
+        df = load_data(output_csv)
+        plot_distributions(df)
+        plot_species_grid(df)
+    else:
+        print('File not found, run mutation analysis first.')
+        run_mutation_analysis()
+        df = load_data(output_csv)
+        plot_distributions(df)
+        plot_species_grid(df)

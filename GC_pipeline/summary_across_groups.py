@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 from delta_matrix import delta_matrix
-from GC_pipeline.metadata_gcsize import genome_gcsize
+from metadata_gcsize import genome_gcsize
 from gc_codon_dict import gc_codon_dict
 import matplotlib
 matplotlib.use("Agg")

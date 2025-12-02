@@ -26,6 +26,13 @@ titles = {
     "gc_all": "Core ΔGC%",
 }
 
+abs_titles = {
+    'size': 'Genome Size',
+    'gc_genome': 'Genome GC%',
+    'gc_third': '4D Site GC%', 
+    'gc_all': 'Core GC%'
+}
+
 group_names = {
     "endosymb+relatives": "Endosymbionts and Free-Living Relatives",
     "relatives_only": "Free-Living Relatives Only",

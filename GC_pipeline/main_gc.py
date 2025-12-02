@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
-from gc_codon_dict import gc_codon_dict
 from delta_matrix import delta_matrix
 from distance_matrix import distance_matrix
-from GC_pipeline.metadata_gcsize import genome_gcsize
+from metadata_gcsize import genome_gcsize
 from matrix_correlation import matrix_correlation
 from scipy.stats import spearmanr
 import numpy as np
@@ -12,12 +11,19 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import seaborn as sns
 import os
-import json
 import sys
-import pickle
+
+from gc_utils import (
+    titles,
+    group_names,
+    load_or_compute,
+    load_or_compute_pickle,
+    genome_gcsize_json_path,
+    files_dir,
+)
 
 if len(sys.argv) != 5:
-    print('Usage: main.py <group> <matrix1_type> <matrix2_type> <mean/matrix>')
+    print('Usage: main_gc.py <group> <matrix1_type> <matrix2_type> <mean/matrix>')
     sys.exit(1)
 if '/' in sys.argv[1]:
     print('Defined group must be a string, not a folder.')
@@ -28,48 +34,18 @@ matrix1_type = sys.argv[2]
 matrix2_type = sys.argv[3]
 mode = sys.argv[4]
 
-# Update these when adding new species
-gc_json = f'files/gc_codon_data_{group}.json'
-genome_json = f'files/gcsize_genome_{group}.json'
-distance_pkl = f'files/distances_{group}.pkl'
+allowed = {"distance", "size", "gc_genome"}
 
-titles = {
-    'distance': 'Patristic Distance',
-    'size': 'ΔGenome Size',
-    'gc_genome': 'Genome ΔGC%',
-    'gc_third': '4D Site ΔGC%', 
-    'gc_all': 'Core ΔGC%'
-}
-group_names = {
-    'endosymb+relatives': 'Endosymbionts and Free-Living Relatives',
-    'relatives_only': 'Free-Living Relatives Only',
-    'endosymb_only': 'Endosymbionts Only'
-}
 
-def load_or_compute(filename, compute_function, *args, **kwargs):
-    """Load data from file if exists, otherwise compute and save."""
-    if os.path.isfile(filename):
-        with open(filename, 'r') as f:
-            return json.load(f)
-    else:
-        data = compute_function(*args, **kwargs)
-        with open(filename, 'w') as f:
-            json.dump(data, f)
-        return data
+if matrix1_type not in allowed or matrix2_type not in allowed:
+    print(f"Error: Supported matrix types are: {', '.join(allowed)}")
+    sys.exit(1)
 
-def load_or_compute_pickle(filename, compute_function, *args, **kwargs):
-    if os.path.isfile(filename):
-        with open(filename, 'rb') as f:
-            return pickle.load(f)
-    else:
-        data = compute_function(*args, **kwargs)
-        with open(filename, 'wb') as f:
-            pickle.dump(data, f)
-        return data
-
+genome_json = genome_gcsize_json_path(group)
+distance_pkl = os.path.join(files_dir, f'distances_{group}.pkl')
 
 def align_matrices(mat1, mat2):
-    """Align two symmetric matrices to common genomes"""
+    '''Align two symmetric matrices to common genomes'''
     common_genomes = sorted(set(mat1.index) & set(mat2.index))
     
     if len(common_genomes) < 2:
@@ -89,8 +65,6 @@ def distance_scatterplot(x_df, y_df, species, correlation, p_value):
 
         
     scatter = plt.scatter(x, y, c=y, alpha=0.6) #cmap='inferno'
-    # plt.colorbar(scatter, label='ΔGC value')
-
     sns.regplot(x=x, y=y, scatter=False, color="red")
     plt.xlabel(titles[matrix1_type] if matrix1_type != 'distance' else titles[matrix2_type])
     plt.ylabel(titles[matrix2_type] if matrix2_type != 'distance' else titles[matrix1_type])
@@ -102,18 +76,18 @@ def distance_scatterplot(x_df, y_df, species, correlation, p_value):
         ha = 'left', va = 'top', transform=plt.gca().transAxes
     )
 
-#gc_dataset = load_or_compute(gc_json, gc_codon_dict, group)
 genome_dataset = load_or_compute(genome_json, genome_gcsize, group)
 print('All data has been loaded.')
 
 matrices = {}
-for type in [matrix1_type, matrix2_type]:
-    if type == 'distance':
+for t in [matrix1_type, matrix2_type]:
+    if t == 'distance':
         matrices['distance'] = load_or_compute_pickle(distance_pkl, distance_matrix, group)
-    elif type in ['size', 'gc_genome']:
-        matrices[type] = delta_matrix(genome_dataset, type)
+    elif t in ['size', 'gc_genome']:
+        matrices[t] = delta_matrix(genome_dataset, t)
     else:
-        matrices[type] = delta_matrix(gc_dataset, type)
+        print(f'Unsupported matrix type: {t}')
+
 print(f'Created {matrix1_type} and {matrix2_type} matrices.')
 
 n_species = len(matrices[matrix1_type])
@@ -124,9 +98,9 @@ c = 1
 results = {}
 
 if mode == 'matrix':
-    plt.figure(figsize=(5*6, 4*7))
+    plt.figure(figsize=(5 * 6, 4 * 7))
 elif mode == 'mean':
-    plt.figure(figsize=(8,8))
+    plt.figure(figsize=(8, 8))
 for species in matrices[matrix1_type].keys(): 
     print(f'Processing {species}')
     if species in matrices[matrix2_type]:
@@ -158,6 +132,7 @@ for species in matrices[matrix1_type].keys():
             plt.subplot(nrows, ncols, c)
             distance_scatterplot(mat1, mat2, species, correlation, p_value)
             c += 1
+            
 if mode == 'mean':
     plt.rcParams.update({'font.size': 11})
     df = pd.DataFrame.from_dict(results, orient = 'index')
