@@ -76,7 +76,7 @@ if mean is False:
     plt.savefig(f'all_abs{mat_type}_sp_group.pdf')
     plt.close()
 else:
-#When mean = True, plot mean genome size of endosymb_only vs. endosymb+relatives
+#When mean = True, plot mean of endosymb_only vs. endosymb+relatives
     plt.rcParams.update({'font.size': 15})
 
     pivot_df = df.pivot_table(index='species', columns='group', values='value').reset_index()

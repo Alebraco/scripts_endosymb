@@ -1,12 +1,11 @@
 #!/usr/bin/env python3
 
 import os
-import sys
 from itertools import combinations
-from Bio import AlignIO, SeqIO
+from Bio import SeqIO
 import pandas as pd
 import matplotlib
-matplotlib.use("Agg")
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
@@ -107,15 +106,11 @@ def calculate_rates(group_name, species, ancestor, descendant):
     if GC_sites != 0:
         r_GC_to_AT = GC_AT / GC_sites
     else:
-        print('No GC sites in the ancestor')
-        print('AT->GC rate was set to NA.')
         r_GC_to_AT = np.nan
 
     if AT_sites != 0:
         r_AT_to_GC = AT_GC / AT_sites
     else:
-        print('No AT sites in the ancestor')
-        print('AT->GC rate was set to NA.')
         r_AT_to_GC = np.nan
     
     return {
@@ -127,7 +122,7 @@ def calculate_rates(group_name, species, ancestor, descendant):
             'rAT->GC': r_AT_to_GC,
             }
 
-def plot_distributions(df):
+def plot_distributions(df, plot_type = 'kde'):
     '''
     Plots histograms side-by-side and summary boxplot 
     '''
@@ -136,30 +131,54 @@ def plot_distributions(df):
     fig, axes = plt.subplots(1, 2, figsize=(16, 7), sharey=True)
     plt.suptitle('Comparison of Mutational Spectra by Group', fontsize=16, y=0.98)
 
-    # Histograms
-    for ax, mut in zip(axes, mutation_types):
-        sns.histplot(data = median_df,
-                    x = mut, 
-                    hue = 'Group', 
-                    palette = group_colors,
-                    hue_order = list(group_colors.keys()),
-                    element = 'step',
-                    fill = True,
-                    alpha = 0.5,
-                    ax=ax,
-                    bins = 50,
-                    stat = "probability",
-                    common_norm = False,
-                    legend = (ax == axes[0])
-        )
-        ax.set_title(f'{mut} Rate Distributions')
-        ax.set_xlabel(f'Rate ({mut})')
-    
-    axes[0].set_ylabel('Probability') 
-    plt.tight_layout()
-    plt.savefig(f'spectrum_kde.pdf')
-    plt.close()
-    print('Saved spectrum_kde.pdf')
+    if plot_type != 'kde':
+        # Histograms
+        for ax, mut in zip(axes, mutation_types):
+            sns.histplot(data = median_df,
+                        x = mut, 
+                        hue = 'Group', 
+                        palette = group_colors,
+                        hue_order = list(group_colors.keys()),
+                        element = 'step',
+                        fill = True,
+                        alpha = 0.5,
+                        ax=ax,
+                        bins = 50,
+                        stat = 'probability',
+                        common_norm = False,
+                        legend = (ax == axes[0])
+            )
+            ax.set_title(f'{mut} Rate Distributions')
+            ax.set_xlabel(f'Rate ({mut})')        
+            ax.set_xlim(0, 1)
+        axes[0].set_ylabel('Probability') 
+        plt.tight_layout()
+        plt.savefig(f'spectrum_hist.pdf')
+        plt.close()
+        print('Saved spectrum_hist.pdf')
+    else:
+        # KDE plots
+        for ax, mut in zip(axes, mutation_types):
+            sns.kdeplot(data = median_df,
+                        x = mut, 
+                        hue = 'Group', 
+                        palette = group_colors,
+                        hue_order = list(group_colors.keys()),
+                        clip=(0, 1),
+                        fill = True,
+                        alpha = 0.5,
+                        ax=ax,
+                        common_norm = False,
+                        legend = (ax == axes[0])
+            )
+            ax.set_title(f'{mut} Rate Distributions')
+            ax.set_xlabel(f'Rate ({mut})')        
+            ax.set_xlim(0, 1)
+        axes[0].set_ylabel('Density') 
+        plt.tight_layout()
+        plt.savefig(f'spectrum_kde.pdf')
+        plt.close()
+        print('Saved spectrum_kde.pdf')
 
     # Boxplot
     df_melted = median_df.melt(
@@ -187,11 +206,11 @@ def plot_distributions(df):
     print('Saved spectrum_boxplot.pdf')
 
 def plot_species_grid(df):
-    """
+    '''
     Generates a grid of histogram plots for each species in the CSV.
     Only plots if species are shared by both groups.
     Produces two files: one for GC->AT rates and one for AT->GC rates.
-    """
+    '''
 
     # Include only species present in both groups
     group1 = set(df[df['Group'] == 'Endosymbiont-Relative Pairs']['Species'])
@@ -200,7 +219,7 @@ def plot_species_grid(df):
     df = df[df['Species'].isin(common_species)].copy()
     print(f'Plotting {len(common_species)} species shared by both groups.')
 
-    sns.set_style("whitegrid")
+    sns.set_style('whitegrid')
     
     for mut in mutation_types:
         safe_name = mut.replace('→', '_').replace('r', '')
@@ -208,8 +227,8 @@ def plot_species_grid(df):
     
         grid = sns.FacetGrid(
             df, 
-            col="Species", 
-            hue="Group",
+            col='Species', 
+            hue='Group',
             palette = group_colors,
             hue_order = list(group_colors.keys()),
             col_wrap=7,
@@ -230,7 +249,7 @@ def plot_species_grid(df):
         
         grid.savefig(output)
         plt.close()
-        print(f"Saved {output}")
+        print(f'Saved {output}')
 
 def run_diagnostic():
     print('Running diagnostic...')
@@ -270,18 +289,19 @@ def run_diagnostic():
     df.to_csv('diagnostic.csv', index = False)
 
 def run_mutation_analysis():
-    """
+    '''
     Main analysis logic. Parses FASTA files, calculates rates,
     saves to CSV, and generates plots.
-    """
+    '''
 
     all_data = []
     sites_threshold = 100
 
     for group, group_name in group_names.items():
+        print(f'Processing {group_name}')
         input_dir = os.path.join(group, 'third_sites')
         if not os.path.exists(input_dir):
-            print(f"Warning: Directory {input_dir} not found. Skipping.")
+            print(f'Warning: Directory {input_dir} not found. Skipping.')
             continue
 
         sp_list = os.listdir(input_dir)
@@ -297,7 +317,7 @@ def run_mutation_analysis():
                 continue
             
             aln = list(SeqIO.parse(sp_path, 'fasta'))
-            print(f'Processing {sp_name}')
+            print(f'>Processing {sp_name}')
 
             count = polymorphism_total(aln)
             if count < sites_threshold:
@@ -339,7 +359,7 @@ def run_mutation_analysis():
 
 if __name__ == '__main__':
     if os.path.exists(output_csv):
-        run_diagnostic()  
+        # run_diagnostic()  
         df = load_data(output_csv)
         plot_distributions(df)
         plot_species_grid(df)

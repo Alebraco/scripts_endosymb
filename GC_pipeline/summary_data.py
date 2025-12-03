@@ -33,7 +33,6 @@ if mat_type not in allowed:
 
 genome_json = genome_gcsize_json_path(group)
 
-#gc_dataset = load_or_compute(gc_json, gc_codon_dict, group)
 genome_dataset = load_or_compute(genome_json, genome_gcsize, group)
 print('All data has been loaded')
 

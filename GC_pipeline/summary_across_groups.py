@@ -16,7 +16,7 @@ from gc_utils import (
     genome_gcsize_json_path,
 )
 
-if len(sys.argv) < 2:
+if len(sys.argv) < 3:
     print(f'Usage: {sys.argv[0]} <matrix_type> <all/mean>')
     sys.exit(1)
 
@@ -84,10 +84,7 @@ if mean:
     if mat_type == 'size':
         plt.gca().yaxis.set_major_formatter(plt.FuncFormatter(lambda x, p: f'{x/1e6:.1f} Mb'))
     plt.tight_layout()
-    if mean:
-        plt.savefig(f'all_{mat_type}_boxplot-mean.pdf')
-    else:
-        plt.savefig(f'all_{mat_type}_boxplot.pdf')
+    plt.savefig(f'all_{mat_type}_boxplot-mean.pdf')
     plt.close()
 
 else:
@@ -130,7 +127,7 @@ else:
         hue_order = list(group_colors.keys()),
         fliersize=2, 
         dodge = True, 
-        gap = 0.1
+        gap = 0.1,
     )
 
     plt.title(f'{titles[mat_type]}\nAcross Groups')

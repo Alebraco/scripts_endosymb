@@ -13,7 +13,15 @@ import matplotlib.pyplot as plt
 
 from delta_matrix import delta_matrix
 from distance_matrix import distance_matrix
-from GC_pipeline.metadata_gcsize import genome_gcsize
+from metadata_gcsize import genome_gcsize
+
+from gc_utils import (
+    titles,
+    group_names,
+    load_or_compute,
+    load_or_compute_pickle,
+    genome_gcsize_json_path,
+)
 
 # Calculates (Delta / Max Size of Pair) / Patristic Distance
 # Percentage change in metric per unit of evolutionary divergence
@@ -23,32 +31,11 @@ if len(sys.argv) != 2:
     sys.exit(1)
 matrix_type = sys.argv[1]
 
-def load_or_compute(filename, compute_function, *args, **kwargs):
-    if os.path.isfile(filename):
-        with open(filename, 'r') as f: return json.load(f)
-    else:
-        data = compute_function(*args, **kwargs)
-        with open(filename, 'w') as f: json.dump(data, f)
-        return data
+allowed = {'size', 'gc_genome'}
+if matrix_type not in allowed:
+    print(f"Error: Supported types are: {', '.join(allowed)}")
+    sys.exit(1)
 
-def load_or_compute_pickle(filename, compute_function, *args, **kwargs):
-    if os.path.isfile(filename):
-        with open(filename, 'rb') as f: return pickle.load(f)
-    else:
-        data = compute_function(*args, **kwargs)
-        with open(filename, 'wb') as f: pickle.dump(data, f)
-        return data
-
-titles = {
-    'distance': 'Patristic Distance',
-    'size': 'ΔGenome Size',
-    'gc_genome': 'Genome ΔGC%',
-}
-group_names = {
-    'endosymb+relatives': 'Endosymbionts and Free-Living Relatives',
-    'relatives_only': 'Free-Living Relatives Only',
-    'endosymb_only': 'Endosymbionts Only'
-}
 group_colors = {
     'Endosymbionts and Free-Living Relatives' : '#1f77b4',
     'Endosymbionts Only' : '#ff7f0e',
@@ -60,9 +47,8 @@ metric = titles[matrix_type]
 
 for group in group_names.keys():
     print(f'>Processing {group}:')
-    gc_json = f'files/gc_codon_data_{group}.json'
-    genome_json = f'files/gcsize_genome_{group}.json'
-    distance_pkl = f'files/distances_{group}.pkl'
+    genome_json = genome_gcsize_json_path(group)
+    distance_pkl = os.path.join('files', f'distances_{group}.pkl')
 
     genome_dataset = load_or_compute(genome_json, genome_gcsize, group)
     genome_matrices = delta_matrix(genome_dataset, matrix_type)
@@ -87,7 +73,7 @@ for group in group_names.keys():
             id2 = ids[index2]
             
             if group == 'endosymb+relatives':
-                if ('genomic' in id1) == ('genomic' in id2):
+                if ('_genomic' in id1) == ('_genomic' in id2):
                     continue
             
             distance = distance_data.loc[id1, id2]
