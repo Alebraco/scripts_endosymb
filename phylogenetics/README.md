@@ -8,7 +8,7 @@ This directory contains scripts for phylogenetic analysis, multiple sequence ali
 Wrapper for MUSCLE multiple sequence alignment on core genes.
 - **Input**: Core gene protein sequences from `core/` directory
 - **Output**: Aligned sequences in FASTA format (_aln.faa)
-- **Method**: MUSCLE super5 algorithm
+- **Method**: MUSCLE5 super5 iterative refinement algorithm
 - **Dependencies**: MUSCLE v5+
 - **Usage**: `python3 muscle.py <group>`
 

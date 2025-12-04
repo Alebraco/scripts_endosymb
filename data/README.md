@@ -35,10 +35,10 @@ Parse BLAST results and identify related species (non-endosymbionts).
 - **Dependencies**: subprocess, awk
 
 ### gb2assm.py
-Convert GenBank accession IDs to assembly accession IDs via NCBI Entrez.
+Convert GenBank nucleotide accessions to RefSeq assembly accessions via NCBI Entrez.
 - **Input**: GenBank accession IDs from BLAST results
 - **Output**: RefSeq assembly accessions with percent identity mapping
-- **Function**: Links nucleotide records to assembly database entries
+- **Function**: Links nucleotide records to assembly database entries using NCBI Entrez
 - **Dependencies**: BioPython (Entrez), time (rate limiting)
 - **Rate Limit**: 0.3 seconds between API calls
 
