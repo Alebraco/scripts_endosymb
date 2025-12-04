@@ -1,8 +1,12 @@
 #!/usr/bin/env python3
-from delta_matrix import delta_matrix
-from distance_matrix import distance_matrix
-from metadata_gcsize import genome_gcsize
-from matrix_correlation import matrix_correlation
+import sys
+import os
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'analysis'))
+
+from gc_delta_matrix import delta_matrix
+from gc_distance_matrix import distance_matrix
+from gc_metadata_size import genome_gcsize
+from gc_matrix_correlation import matrix_correlation
 from scipy.stats import spearmanr
 import numpy as np
 import pandas as pd
@@ -10,8 +14,6 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import seaborn as sns
-import os
-import sys
 
 from gc_utils import (
     titles,
@@ -23,7 +25,7 @@ from gc_utils import (
 )
 
 if len(sys.argv) != 5:
-    print('Usage: main_gc.py <group> <matrix1_type> <matrix2_type> <mean/matrix>')
+    print('Usage: gc_main_analysis.py <group> <matrix1_type> <matrix2_type> <mean/matrix>')
     sys.exit(1)
 if '/' in sys.argv[1]:
     print('Defined group must be a string, not a folder.')

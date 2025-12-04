@@ -1,0 +1,22 @@
+# Python dependencies for endosymbiont genomics analysis scripts
+
+# Core scientific computing
+numpy>=1.20.0
+pandas>=1.3.0
+scipy>=1.7.0
+
+# Bioinformatics
+biopython>=1.79
+scikit-bio>=0.5.7
+
+# Plotting and visualization
+matplotlib>=3.4.0
+seaborn>=0.11.0
+
+# Genome annotation utilities
+gffutils>=0.11.0
+
+# Additional utilities (if needed)
+# uncomment as required for specific analyses
+# pysam>=0.19.0
+# bcbio-gff>=0.6.0

@@ -10,7 +10,9 @@ with open(dataset_path, 'r') as f:
     dataset_dict = json.load(f)
 existing_gcfs = set(sum(dataset_dict.values(), []))
 
-Entrez.email = 'alekey039@hotmail.com'
+Entrez.email = os.environ.get('ENTREZ_EMAIL', 'your-email@example.com')
+if Entrez.email == 'your-email@example.com':
+    print('Warning: Using default email. Set ENTREZ_EMAIL environment variable with your email.')
 
 related_sp = 'related_species/'
 for sp in os.listdir(related_sp):

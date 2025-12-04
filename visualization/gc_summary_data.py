@@ -1,15 +1,17 @@
 #!/usr/bin/env python3
-from metadata_gcsize import genome_gcsize
-from delta_matrix import delta_matrix
+import os
+import sys
+import json
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'analysis'))
+
+from gc_metadata_size import genome_gcsize
+from gc_delta_matrix import delta_matrix
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import seaborn as sns
 import pandas as pd
 import numpy as np
-import os
-import sys
-import json
 
 from gc_utils import (
     titles,

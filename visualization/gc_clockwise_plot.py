@@ -3,6 +3,7 @@ import pickle
 import sys
 import os
 import json
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'analysis'))
 
 import pandas as pd
 import numpy as np
@@ -11,9 +12,9 @@ matplotlib.use("Agg")
 import seaborn as sns
 import matplotlib.pyplot as plt
 
-from delta_matrix import delta_matrix
-from distance_matrix import distance_matrix
-from metadata_gcsize import genome_gcsize
+from gc_delta_matrix import delta_matrix
+from gc_distance_matrix import distance_matrix
+from gc_metadata_size import genome_gcsize
 
 from gc_utils import (
     titles,

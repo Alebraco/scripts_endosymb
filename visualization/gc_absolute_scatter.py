@@ -1,12 +1,15 @@
 #!/usr/bin/env python3
-from metadata_gcsize import genome_gcsize
+import sys
+import os
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'analysis'))
+
+from gc_metadata_size import genome_gcsize
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import seaborn as sns
 import pandas as pd
 import numpy as np
-import sys
 
 from gc_utils import (
     abs_titles as titles,
@@ -42,7 +45,7 @@ for group in group_names.keys():
                 all_data.append({'group': group_names[group], 'value': value, 'species': sp_name})
         else:
             value = np.mean(list(data_dict.values()))
-        all_data.append({'group': group_names[group], 'value': value, 'species': sp_name})
+            all_data.append({'group': group_names[group], 'value': value, 'species': sp_name})
 
 df = pd.DataFrame(all_data)
 group_colors = {
