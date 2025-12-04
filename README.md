@@ -37,28 +37,28 @@ Research scripts for endosymbiont genomics analysis, including endosymbiont iden
 │
 ├── analysis/            # Genomic analysis and statistics
 │   ├── gc_calculate.py            # Calculate GC content
-│   ├── delta_matrix.py
-│   ├── distance_matrix.py
-│   ├── gc_calculate.py
-│   ├── gc_codon_dict.py
-│   ├── gcsize_dict.py
-│   ├── utils.py
-│   ├── igs_lengths.py           # Analyze intergenic spacer lengths
-│   ├── igs_plots.py             # Generate IGS visualization plots
-│   ├── spectrum.py              # Analyze mutation/substitution spectra
-│   ├── percid_distribution.py   # Percent identity distributions
-│   ├── pid_calculation.py       # Calculate percent identity
-│   ├── run_*.sh                 # Various wrappers for python scripts
-│   ├── run_transposase.sh       # Transposase Workflow
-│   └── run_pseudo.sh            # PseudoFinder Workflow
+│   ├── delta_matrix.py            # Create pairwise difference matrices
+│   ├── distance_matrix.py         # Extract phylogenetic distances from trees
+│   ├── gc_codon_dict.py           # Compute fourfold degenerate GC content
+│   ├── gcsize_dict.py             # Compute genome size and GC content
+│   ├── matrix_correlation.py      # Mantel test correlations between matrices
+│   ├── utils.py                   # Utility functions and path helpers
+│   ├── igs_lengths.py             # Analyze intergenic spacer lengths
+│   ├── igs_plots.py               # Generate IGS visualization plots
+│   ├── spectrum.py                # Analyze mutation/substitution spectra
+│   ├── percid_distribution.py     # Percent identity distributions
+│   ├── pid_calculation.py         # Calculate percent identity
+│   ├── run_*.sh                   # Various wrappers for python scripts
+│   ├── run_transposase.sh         # Transposase Workflow
+│   └── run_pseudo.sh              # PseudoFinder Workflow
 │
 ├── visualization/       # Data visualization
-│   ├── absolute_scatter.py      
-│   ├── clockwise_plot.py
-│   ├── main_analysis.py
-│   ├── summary_across_groups.py
-│   ├── summary_data.py
-│   └── variation_plot.py        # Plot genetic variation
+│   ├── absolute_scatter.py        # Scatter plots for GC/size across groups
+│   ├── clockwise_plot.py          # Normalized metric changes vs. divergence
+│   ├── main_analysis.py           # Comprehensive correlation analysis plots
+│   ├── summary_across_groups.py   # Compare delta values across groups
+│   ├── summary_data.py            # Group-specific summary plots
+│   └── variation_plot.py          # Plot genetic variation
 │
 └── legacy_*/            # Legacy script collections (preserved for reference)
     └── legacy_brccluster_scripts/
