@@ -146,7 +146,7 @@ def plot_distributions(df, plot_type = 'kde'):
                         bins = 50,
                         stat = 'probability',
                         common_norm = False,
-                        legend = (ax == axes[0])
+                        legend = (ax == axes[1])
             )
             ax.set_title(f'{mut} Rate Distributions')
             ax.set_xlabel(f'Rate ({mut})')        
@@ -169,7 +169,7 @@ def plot_distributions(df, plot_type = 'kde'):
                         alpha = 0.5,
                         ax=ax,
                         common_norm = False,
-                        legend = (ax == axes[0])
+                        legend = (ax == axes[1])
             )
             ax.set_title(f'{mut} Rate Distributions')
             ax.set_xlabel(f'Rate ({mut})')        
