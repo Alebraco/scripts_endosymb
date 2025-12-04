@@ -13,7 +13,8 @@ Core utility for calculating GC content from sequences.
 Compute genome-wide size and GC content metadata.
 - **Function**: `genome_gcsize(group)` - Process genomes and compute metrics
 - **Input**: Genome FASTA files from group directories (endosymb_only, endosymb+relatives, relatives_only)
-- **Output**: JSON file with nested dictionary {species: {accession: {size, gc_genome}}}
+- **Output**: JSON file with nested dictionary {species: {genome_filename: {size, gc_genome}}}
+- **Note**: Keys are genome filenames without .fna extension, not necessarily accession IDs
 - **Dependencies**: BioPython (SeqIO), gc_calculate.py
 
 ### gc_codon_dict.py

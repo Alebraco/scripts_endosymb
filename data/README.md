@@ -45,9 +45,9 @@ Convert GenBank accession IDs to assembly accession IDs via NCBI Entrez.
 Download candidate genome metadata and filter by quality criteria.
 - **Input**: Assembly accession lists from `related_species/`
 - **Output**: Filtered genome summary TSV files
-- **Filters**: Minimum genome size (2.5 Mbp by default)
+- **Filters**: Minimum genome size (default: 2,500,000 bp)
 - **Dependencies**: NCBI datasets CLI tool
-- **Configuration**: SLURM batch system
+- **Configuration**: SLURM batch system (2 days runtime, 10GB memory)
 
 ### unzip_candidates.sh
 Unzip downloaded genome datasets and extract FASTA files.
