@@ -45,7 +45,7 @@ for group in group_names.keys():
                 all_data.append({'group': group_names[group], 'value': value, 'species': sp_name})
         else:
             value = np.mean(list(data_dict.values()))
-        all_data.append({'group': group_names[group], 'value': value, 'species': sp_name})
+            all_data.append({'group': group_names[group], 'value': value, 'species': sp_name})
 
 df = pd.DataFrame(all_data)
 group_colors = {
