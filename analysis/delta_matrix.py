@@ -3,7 +3,7 @@ import os
 import json
 import pandas as pd
 import numpy as np
-from gc_utils import files_dir
+from utils import files_dir
 
 def delta_matrix(data, mat_type, save_to_file = False, filename = None):
     '''Create a delta matrix

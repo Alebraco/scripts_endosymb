@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 from gc_calculate import calculate_gc_content
-from gc_utils import gc_codon_json_path
+from utils import gc_codon_json_path
 from Bio.SeqRecord import SeqRecord
 from Bio.Seq import Seq
 from Bio import SeqIO
