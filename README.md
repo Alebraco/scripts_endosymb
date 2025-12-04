@@ -69,7 +69,6 @@ This repository contains bioinformatics scripts developed for analyzing endosymb
 │   └── unzip_candidates.sh      # Extract candidate genome archives
 │
 └── legacy_*/            # Legacy script collections (preserved for reference)
-    ├── legacy_GCSize_pipeline/
     └── legacy_brccluster_scripts/
 ```
 

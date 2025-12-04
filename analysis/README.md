@@ -9,6 +9,48 @@ Calculate GC content statistics from aligned sequences.
 - **Usage**: `python3 gc_content.py <alignment_file>`
 - **Output**: Min, average, and max GC% statistics
 
+### GC Content Pipeline Scripts
+
+#### gc_calculate.py
+Core utility for calculating GC content from sequences.
+- **Function**: `calculate_gc_content(seq)` - Returns GC percentage
+- **Use case**: Imported by other GC analysis scripts
+
+#### gc_codon_dict.py
+Create dictionaries of GC content for codon analysis.
+- **Function**: Computes fourfold degenerate and overall GC content
+- **Input**: Core gene alignment concatenates
+- **Output**: JSON file with GC content data
+
+#### gc_metadata_size.py
+Compute genome-wide size and GC content metadata.
+- **Function**: `genome_gcsize(group)` - Process genomes and compute metrics
+- **Input**: Genome FASTA files
+- **Output**: JSON with genome size and GC% per genome
+
+#### gc_delta_matrix.py
+Create delta matrices for GC content variation analysis.
+- **Function**: `delta_matrix(data, mat_type)` - Compute pairwise differences
+- **Input**: Nested dictionary with species and genome data
+- **Output**: Delta matrices for statistical analysis
+
+#### gc_distance_matrix.py
+Create phylogenetic distance matrices from trees.
+- **Function**: `distance_matrix(group)` - Extract patristic distances
+- **Input**: Phylogenetic trees (Newick format)
+- **Output**: Distance matrices (CSV)
+
+#### gc_matrix_correlation.py
+Compute correlations between distance matrices.
+- **Function**: `matrix_correlation(x_df, y_df)` - Mantel test
+- **Method**: Spearman correlation with 10,000 permutations
+- **Output**: Correlation coefficient, p-value, sample size
+
+#### gc_utils.py
+Utility functions for the GC content analysis pipeline.
+- **Contains**: Title mappings, group names, JSON helpers, file paths
+- **Use case**: Imported by all GC pipeline scripts
+
 ## Intergenic Spacer (IGS) Analysis
 
 ### igs_lengths.py

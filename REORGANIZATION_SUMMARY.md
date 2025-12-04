@@ -197,4 +197,47 @@ Consider adding:
 
 ---
 
+## Update: GC Pipeline Integration
+
+### Additional Changes (December 2024)
+
+Following user feedback, the GCSize_pipeline scripts have been fully integrated into the main repository structure:
+
+**Scripts Reorganized:**
+- **Plotting scripts** (5 files) → `visualization/gc_*.py`
+  - `gc_absolute_scatter.py` - Absolute scatter plots
+  - `gc_clockwise_plot.py` - Clockwise correlation plots  
+  - `gc_main_analysis.py` - Main GC analysis with comprehensive plotting
+  - `gc_summary_across_groups.py` - Cross-group summary plots
+  - `gc_summary_data.py` - Summary data visualization
+
+- **Analysis/utility scripts** (7 files) → `analysis/gc_*.py`
+  - `gc_calculate.py` - Core GC calculation utility
+  - `gc_codon_dict.py` - Codon-level GC analysis
+  - `gc_delta_matrix.py` - Delta matrix computation
+  - `gc_distance_matrix.py` - Phylogenetic distance matrices
+  - `gc_matrix_correlation.py` - Matrix correlation (Mantel test)
+  - `gc_metadata_size.py` - Genome size and GC metadata
+  - `gc_utils.py` - Shared utilities for GC pipeline
+
+**Key Changes:**
+- All scripts renamed with `gc_` prefix for clarity
+- Import statements updated to reflect new locations
+- Visualization scripts now import from `../analysis/` directory
+- `legacy_GCSize_pipeline/` directory removed (fully integrated)
+- Only `legacy_brccluster_scripts/` remains as legacy
+- Updated documentation in README files
+- Added `scikit-bio` dependency for Mantel test
+
+**Migration Path:**
+```bash
+# Old (legacy):
+python3 legacy_GCSize_pipeline/main_gc.py
+
+# New (organized):
+python3 visualization/gc_main_analysis.py
+```
+
+---
+
 **Result**: A research repository that follows professional software development standards while maintaining all functionality and backward compatibility.

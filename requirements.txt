@@ -7,6 +7,7 @@ scipy>=1.7.0
 
 # Bioinformatics
 biopython>=1.79
+scikit-bio>=0.5.7
 
 # Plotting and visualization
 matplotlib>=3.4.0
