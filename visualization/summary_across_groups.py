@@ -3,8 +3,8 @@ import sys
 import os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'analysis'))
 
-from gc_delta_matrix import delta_matrix
-from gc_metadata_size import genome_gcsize
+from delta_matrix import delta_matrix
+from gcsize_dict import genome_gcsize
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
@@ -12,7 +12,7 @@ import seaborn as sns
 import pandas as pd
 import numpy as np
 
-from gc_utils import (
+from utils import (
     titles,
     group_names,
     load_or_compute,

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 from gc_calculate import calculate_gc_content
-from gc_utils import genome_gcsize_json_path
+from utils import genome_gcsize_json_path
 from Bio import SeqIO
 import json
 import os

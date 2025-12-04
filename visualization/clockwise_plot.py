@@ -12,11 +12,11 @@ matplotlib.use("Agg")
 import seaborn as sns
 import matplotlib.pyplot as plt
 
-from gc_delta_matrix import delta_matrix
-from gc_distance_matrix import distance_matrix
-from gc_metadata_size import genome_gcsize
+from delta_matrix import delta_matrix
+from distance_matrix import distance_matrix
+from gcsize_dict import genome_gcsize
 
-from gc_utils import (
+from utils import (
     titles,
     group_names,
     load_or_compute,
