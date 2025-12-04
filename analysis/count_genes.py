@@ -6,7 +6,7 @@ import sys
 
 data = []
 if len(sys.argv) != 2:
-    print('Usage: script.py <group>'
+    print('Usage: script.py <group>')
     sys.exit(1)
 main_dir = os.path.join(sys.argv[1],'core')
 for sp in os.listdir(main_dir):

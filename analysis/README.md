@@ -22,7 +22,7 @@ Generate visualization plots for IGS analysis.
 - **Output**: Box plots and scatter plots (PDF format)
 - **Dependencies**: matplotlib, seaborn
 
-### run_igs.py
+### run_igs.sh
 Batch workflow for IGS analysis.
 
 ## Gene Counting
@@ -115,7 +115,7 @@ python3 count_genes.py
 ./count_core.sh
 
 # Run complete workflows
-./run_igs.py
+./run_igs.sh
 ./run_percid.sh
 ./run_spectrum.sh
 ```
