@@ -7,7 +7,7 @@ This directory contains scripts for generating plots and visualizations of genom
 ### absolute_scatter.py
 Generate absolute scatter plots for GC content and genome size across groups.
 - **Usage**: `python3 absolute_scatter.py <type> <mean/all>`
-- **Input**: Genome metadata (GC content or size) from analysis/gcsize_dict.py
+- **Input**: JSON files with genome metadata created by analysis/gcsize_dict.py
 - **Output**: Scatter plots comparing endosymbionts vs. relatives (PDF format)
 - **Types**: 'gc_genome' for GC content, 'size' for genome size
 - **Dependencies**: matplotlib, seaborn, pandas, numpy
@@ -15,7 +15,7 @@ Generate absolute scatter plots for GC content and genome size across groups.
 ### clockwise_plot.py
 Generate clockwise correlation plots for GC and genome size changes vs. phylogenetic distance.
 - **Usage**: `python3 clockwise_plot.py <matrix_type>`
-- **Input**: Delta matrices and phylogenetic distances
+- **Input**: Delta matrices computed using analysis/delta_matrix.py and phylogenetic distances from analysis/distance_matrix.py
 - **Output**: Clockwise plots showing normalized metric changes per unit divergence
 - **Function**: Calculates (Delta / Max Size of Pair) / Patristic Distance
 - **Types**: 'gc_genome' or 'size'

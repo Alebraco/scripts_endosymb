@@ -22,8 +22,8 @@ Batch workflow for running MUSCLE alignments on all species groups.
 
 ### backtranslate.py
 Backtranslate protein alignments to nucleotide sequences.
-- **Input**: Protein alignments from `core_alignments/` and CDS from `cds/`
-- **Output**: Backtranslated DNA alignments in `backtranslated/` directory
+- **Input**: Protein alignments from `{group}/core_alignments/` and CDS from `{group}/cds/`
+- **Output**: Backtranslated DNA alignments in `{group}/backtranslated/` directory
 - **Function**: Maps aligned protein sequences back to original CDS nucleotide sequences
 - **Usage**: `python3 backtranslate.py <group>`
 - **Dependencies**: regex for parsing protein IDs

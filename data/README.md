@@ -5,10 +5,11 @@ This directory contains scripts for identifying, retrieving, and processing endo
 ## Scripts
 
 ### genus.py
-Filter and select endosymbiont species from bacterial genome metadata.
+Filter bacterial genomes and identify endosymbionts based on metadata and quality criteria.
 - **Input**: `genome_metadata.tsv` with genome metadata from NCBI
-- **Output**: Filtered list of endosymbiont species with quality metrics
-- **Filters**: CheckM completeness > 85%, contamination < 10%, genome size outliers
+- **Output**: Filtered list of genomes including endosymbionts and genome size/gene ratio outliers
+- **Filters**: CheckM completeness > 85%, contamination < 10%; identifies genome size outliers (30% below median)
+- **Function**: Identifies endosymbionts by name and detects outliers within each genus
 - **Dependencies**: pandas, numpy
 
 ### extract_16S.sh
