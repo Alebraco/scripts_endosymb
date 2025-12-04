@@ -13,7 +13,7 @@
 source ~/miniconda3/etc/profile.d/conda.sh
 conda activate bakta
 outdir="bakta_results"
-genome_dir="candidate_genomes"
+genome_dir="merged_candidates"
 
 # counter=0
 # total=$(find $genome_dir -type f -name *.fna | wc -l)

@@ -1,4 +1,6 @@
 #!/bin/bash
+
+# Change group name as needed
 group="relatives_only"
 parent_dir="$group/proteins/"
 species=($(find $parent_dir -maxdepth 1 -mindepth 1 -type d))

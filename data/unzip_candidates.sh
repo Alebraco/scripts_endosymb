@@ -5,5 +5,3 @@ for file in candidate_genomes/*/*.zip; do
 	mkdir -p $outdir
 	unzip -j $file "ncbi_dataset/data/*/*.fna" -d $outdir  
 done
-
-
