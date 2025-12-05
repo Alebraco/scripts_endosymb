@@ -2,54 +2,56 @@
 
 This directory contains scripts for genomic analysis and statistics.
 
-## GC Content Analysis
+## GC Content and Genome Size Analysis
 
-### gc_content.py
-Calculate GC content statistics from aligned sequences.
-- **Usage**: `python3 gc_content.py <alignment_file>`
-- **Output**: Min, average, and max GC% statistics
-
-### GC Content Pipeline Scripts
-
-#### gc_calculate.py
+### gc_calculate.py
 Core utility for calculating GC content from sequences.
 - **Function**: `calculate_gc_content(seq)` - Returns GC percentage
 - **Use case**: Imported by other GC analysis scripts
 
-#### gc_codon_dict.py
+### gcsize_dict.py
+Compute genome-wide size and GC content metadata.
+- **Function**: `genome_gcsize(group)` - Process genomes and compute metrics
+- **Input**: Genome FASTA files from group directories (endosymb_only, endosymb+relatives, relatives_only)
+- **Output**: JSON file with nested dictionary {species: {genome_filename: {size, gc_genome}}}
+- **Note**: Keys are genome filenames without .fna extension, not necessarily accession IDs
+- **Dependencies**: BioPython (SeqIO), gc_calculate.py
+
+### gc_codon_dict.py
 Create dictionaries of GC content for codon analysis.
 - **Function**: Computes fourfold degenerate and overall GC content
 - **Input**: Core gene alignment concatenates
 - **Output**: JSON file with GC content data
 
-#### gc_metadata_size.py
-Compute genome-wide size and GC content metadata.
-- **Function**: `genome_gcsize(group)` - Process genomes and compute metrics
-- **Input**: Genome FASTA files
-- **Output**: JSON with genome size and GC% per genome
+### delta_matrix.py
+Create delta matrices for pairwise differences in genomic metrics.
+- **Function**: `delta_matrix(data, mat_type)` - Compute absolute pairwise differences
+- **Input**: Nested dictionary {species: {genome_id: metric_value}}
+- **Output**: Symmetric delta matrix (pandas DataFrame) for each species
+- **Use case**: Calculate pairwise differences in GC content or genome size
+- **Dependencies**: pandas, numpy
 
-#### gc_delta_matrix.py
-Create delta matrices for GC content variation analysis.
-- **Function**: `delta_matrix(data, mat_type)` - Compute pairwise differences
-- **Input**: Nested dictionary with species and genome data
-- **Output**: Delta matrices for statistical analysis
-
-#### gc_distance_matrix.py
+### distance_matrix.py
 Create phylogenetic distance matrices from trees.
 - **Function**: `distance_matrix(group)` - Extract patristic distances
-- **Input**: Phylogenetic trees (Newick format)
-- **Output**: Distance matrices (CSV)
+- **Input**: Phylogenetic trees in Newick format from dna_tree_results/
+- **Output**: Distance matrices (pandas DataFrame) for each species
+- **Method**: Computes pairwise patristic distances between all terminals
+- **Dependencies**: BioPython (Phylo), pandas
 
-#### gc_matrix_correlation.py
-Compute correlations between distance matrices.
-- **Function**: `matrix_correlation(x_df, y_df)` - Mantel test
+### matrix_correlation.py
+Compute correlations between two distance matrices.
+- **Function**: `matrix_correlation(x_df, y_df)` - Mantel test between matrices
 - **Method**: Spearman correlation with 10,000 permutations
-- **Output**: Correlation coefficient, p-value, sample size
+- **Output**: Tuple of (correlation coefficient, p-value, sample size)
+- **Minimum**: Requires at least 3 genomes per species
+- **Dependencies**: scikit-bio (mantel test)
 
-#### gc_utils.py
-Utility functions for the GC content analysis pipeline.
-- **Contains**: Title mappings, group names, JSON helpers, file paths
-- **Use case**: Imported by all GC pipeline scripts
+### utils.py
+Utility functions for the analysis pipeline.
+- **Contains**: Title mappings, group names, JSON I/O helpers, file paths
+- **Functions**: `load_or_compute()`, `load_or_compute_pickle()`, path helpers
+- **Use case**: Imported by all analysis and visualization scripts
 
 ## Intergenic Spacer (IGS) Analysis
 
