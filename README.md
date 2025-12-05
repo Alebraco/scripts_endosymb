@@ -22,7 +22,7 @@ Research scripts for endosymbiont genomics analysis, including endosymbiont iden
 │   └── merge_dirs.sh            # Create new group (endosymb+relatives)
 │
 ├── phylogenetics/       # Phylogenetic analysis
-│   ├── corecruncher.sh         # Get core genes (modify for each group)
+│   ├── corecruncher.sh          # Get core genes (modify for each group)
 │   ├── muscle.py                # MUSCLE alignment wrapper
 │   ├── backtranslate.py         # Backtranslate protein alignments to nucleotide
 │   ├── concatenate.py           # Concatenate aligned sequences

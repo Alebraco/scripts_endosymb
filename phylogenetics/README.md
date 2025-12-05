@@ -26,7 +26,6 @@ Backtranslate protein alignments to nucleotide sequences.
 - **Output**: Backtranslated DNA alignments in `{group}/backtranslated/` directory
 - **Function**: Maps aligned protein sequences back to original CDS nucleotide sequences
 - **Usage**: `python3 backtranslate.py <group>`
-- **Dependencies**: regex for parsing protein IDs
 
 ### run_backtranslate.sh
 Batch workflow for backtranslating aligned protein sequences.
@@ -58,7 +57,6 @@ Build phylogenetic trees from DNA sequence concatenates.
 - **Input**: Concatenated DNA alignments from `dna_concatenates/`
 - **Output**: Phylogenetic trees in Newick format (.treefile)
 - **Model**: GTR+G with 1000 bootstrap replicates
-- **Configuration**: LSF batch system array jobs
 
 ## Core Genome Analysis
 
@@ -96,32 +94,5 @@ Count and summarize core gene hits from pairwise comparisons.
 - **Usage**: `python3 count_hits.py <group>`
 - **Dependencies**: pandas
 
-## Typical Workflow
-
-```bash
-# 1. Identify core genes
-bsub < corecruncher.sh
-
-# 2. Align core genes
-./run_muscle.sh endosymb_only
-
-# 3. Backtranslate to DNA
-./run_backtranslate.sh endosymb_only
-
-# 4. Concatenate alignments
-./run_concatenate.sh endosymb_only
-
-# 5. Build phylogenetic trees
-bsub < dnatree.sh
-
-# 6. Count core genes and hits
-./count_core.sh
-python3 count_hits.py endosymb_only
-```
-
 ## Notes
-
-- Scripts are configured for HPC environments with LSF batch system
-- Adjust resource requirements (-R, -W) based on dataset size
-- Tree building can be computationally intensive for large datasets
-- Core gene identification requires USEARCH or CoreCruncher installed
+- Core gene identification requires USEARCH and CoreCruncher installed
