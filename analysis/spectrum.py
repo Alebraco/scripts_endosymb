@@ -368,9 +368,9 @@ def rate_plot(df):
     '''
     df_pivot = df.pivot_table(index = 'Species', 
                               columns = 'Group', 
-                              values = ['rGC->AT', 'rAT->GC'], 
+                              values = mutation_types, 
                               aggfunc = 'median').dropna()
-    for mut, mut_label in mut_map.items():
+    for mut in mutation_types:
         relative_rates = df_pivot[(mut, 'Free-Living Control Pairs')]
         endosymbiont_rates = df_pivot[(mut, 'Endosymbiont Control Pairs')]
         plt.figure(figsize=(8,8))
@@ -379,12 +379,13 @@ def rate_plot(df):
                         line_kws={'color':'red', 'label':'Linear fit (shift)'})
         
         plt.axline((0, 0), slope=1, color='gray', linestyle='--', linewidth=1, label='y=x (No shift)')
-        plt.title(f'{mut_label.replace("r","")} Median Rate Shift\nEndosymbionts vs Free-Living Relatives', fontsize=16)
+        
+        plt.title(f'{mut.replace("r","")} Median Rate Shift\nEndosymbionts vs Free-Living Relatives', fontsize=16)
         plt.legend()
         plt.tight_layout()
         plt.xlabel('Free-Living Relatives')
         plt.ylabel('Endosymbionts')
-        plt.savefig(os.path.join(plot_dir, f'rate_shift_{mut_label.replace("→","_")}.pdf'))
+        plt.savefig(os.path.join(plot_dir, f'rate_shift_{mut.replace("→","_")}.pdf'))
         plt.close()
 
 if __name__ == '__main__':
