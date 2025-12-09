@@ -136,5 +136,5 @@ elif matrix_type == 'gc_genome':
     plt.xlabel(f'Log Ratio: {titles[matrix_type]} / Substitution')
 plt.ylabel('Proportion')
 plt.tight_layout()
-plt.savefig(os.path.join('ratio_plots', f'all_{matrix_type}_ratio_hist.pdf'))
+plt.savefig(os.path.join('plots', 'ratio_plots', f'all_{matrix_type}_ratio_hist.pdf'))
 plt.close()

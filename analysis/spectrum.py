@@ -11,6 +11,11 @@ import numpy as np
 import seaborn as sns
 
 output_csv = 'spectrum_rates.csv'
+data_dir = 'files'
+csv_path = os.path.join(data_dir, output_csv)
+plot_dir = os.path.join('plots', 'spectrum_plots')
+os.makedirs(plot_dir, exist_ok=True)
+os.makedirs(data_dir, exist_ok=True)
 
 group_colors = {
 'Endosymbiont-Relative Pairs' : '#1f77b4',
@@ -153,7 +158,7 @@ def plot_distributions(df, plot_type = 'kde'):
             ax.set_xlim(0, 1)
         axes[0].set_ylabel('Probability') 
         plt.tight_layout()
-        plt.savefig(f'spectrum_hist.pdf')
+        plt.savefig(os.path.join(plot_dir, 'spectrum_hist.pdf'))
         plt.close()
         print('Saved spectrum_hist.pdf')
     else:
@@ -176,7 +181,7 @@ def plot_distributions(df, plot_type = 'kde'):
             ax.set_xlim(0, 1)
         axes[0].set_ylabel('Density') 
         plt.tight_layout()
-        plt.savefig(f'spectrum_kde.pdf')
+        plt.savefig(os.path.join(plot_dir, 'spectrum_kde.pdf'))
         plt.close()
         print('Saved spectrum_kde.pdf')
 
@@ -201,7 +206,7 @@ def plot_distributions(df, plot_type = 'kde'):
     plt.xlabel('Group')
     plt.ylabel('Rate')
     plt.tight_layout()
-    plt.savefig(f'spectrum_boxplot.pdf')
+    plt.savefig(os.path.join(plot_dir, 'spectrum_boxplot.pdf'))
     plt.close()
     print('Saved spectrum_boxplot.pdf')
 
@@ -247,7 +252,7 @@ def plot_species_grid(df):
         grid.set(xlim=(0, 1))
         grid.figure.suptitle(f'{mut} Mutation Rate Distributions by Species', fontsize=18, y =1.02)
         
-        grid.savefig(output)
+        grid.savefig(os.path.join(plot_dir, output))
         plt.close()
         print(f'Saved {output}')
 
@@ -286,7 +291,7 @@ def run_diagnostic():
                                })
 
     df = pd.DataFrame(total_sites)
-    df.to_csv('diagnostic.csv', index = False)
+    df.to_csv(os.path.join(data_dir, 'diagnostic.csv'), index = False)
 
 def run_mutation_analysis():
     '''
@@ -355,17 +360,43 @@ def run_mutation_analysis():
                     rates2 = calculate_rates(group_name, sp_name, seq2, seq1)
                     all_data.append(rates2)
     final_df = pd.DataFrame(all_data)
-    final_df.to_csv(output_csv, index = False)
+    final_df.to_csv(csv_path, index = False)
+
+def rate_plot(df):
+    '''
+    Regression plots comparing rates between control groups to determine mutation rate shifts by species.
+    '''
+    df_pivot = df.pivot_table(index = 'Species', 
+                              columns = 'Group', 
+                              values = ['rGC->AT', 'rAT->GC'], 
+                              aggfunc = 'median').dropna()
+    for mut in mutation_types:
+        relative_rates = df_pivot[(mut, 'Free-Living Control Pairs')]
+        endosymbiont_rates = df_pivot[(mut, 'Endosymbiont Control Pairs')]
+        plt.figure(figsize=(8,8))
+        sns.regplot(x = relative_rates, 
+                        y = endosymbiont_rates,
+                        line_kws={'color':'red', 'label':'Linear fit (shift)'})
+        
+        plt.axline((0, 0), slope=1, color='gray', linestyle='--', linewidth=1, label='y=x (No shift)')
+        plt.title(f'{mut.replace("r","")} Median Rate Shift\nEndosymbionts vs Free-Living Relatives', fontsize=16)
+        plt.legend()
+        plt.tight_layout()
+        plt.xlabel('Free-Living Relatives')
+        plt.ylabel('Endosymbionts')
+        plt.savefig(os.path.join(plot_dir, f'rate_shift_{mut.replace("→","_")}.pdf'))
+        plt.close()
 
 if __name__ == '__main__':
-    if os.path.exists(output_csv):
+    if os.path.exists(csv_path):
         # run_diagnostic()  
-        df = load_data(output_csv)
+        df = load_data(csv_path)
         plot_distributions(df)
         plot_species_grid(df)
+        rate_plot(df)
     else:
         print('File not found, run mutation analysis first.')
         run_mutation_analysis()
-        df = load_data(output_csv)
+        df = load_data(csv_path)
         plot_distributions(df)
         plot_species_grid(df)
