@@ -362,7 +362,7 @@ def run_mutation_analysis():
     final_df = pd.DataFrame(all_data)
     final_df.to_csv(csv_path, index = False)
 
-def rate_plot(df):
+def rate_shift_plot(df):
     '''
     Regression plots comparing rates between control groups to determine mutation rate shifts by species.
     '''
@@ -378,8 +378,8 @@ def rate_plot(df):
                         y = endosymbiont_rates)
         
         plt.axline((0, 0), slope=1, color='gray', linestyle='--', linewidth=1, label='y=x (No shift)')
-        plt.xlim(0,1)
-        plt.ylim(0,1)
+        plt.xlim(-0.05,1.05)
+        plt.ylim(-0.05,1.05)
 
         plt.title(f'{mut.replace("r","")} Median Rate Shift\nEndosymbionts vs Free-Living Relatives', fontsize=16)
         plt.legend()
@@ -395,7 +395,7 @@ if __name__ == '__main__':
         df = load_data(csv_path)
         plot_distributions(df)
         plot_species_grid(df)
-        rate_plot(df)
+        rate_shift_plot(df)
     else:
         print('File not found, run mutation analysis first.')
         run_mutation_analysis()
