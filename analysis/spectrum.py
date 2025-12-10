@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import os
+from adjustText import adjust_text
 from itertools import combinations
 from Bio import SeqIO
 import pandas as pd
@@ -380,6 +381,23 @@ def rate_shift_plot(df):
         plt.axline((0, 0), slope=1, color='gray', linestyle='--', linewidth=1, label='y=x (No shift)')
         plt.xlim(-0.05,1.05)
         plt.ylim(-0.05,1.05)
+
+        texts = []
+        species_names = df_pivot.index.tolist()
+        for i, species in enumerate(species_names):
+            x = relative_rates.iloc[i]
+            y = endosymbiont_rates.iloc[i]          
+            
+            t = plt.text(x, y, 
+                         species, 
+                         fontsize=8, 
+                         alpha=0.7)
+            texts.append(t)
+
+        adjust_text(texts, 
+                    arrowprops=dict(arrowstyle="-", color='black', lw=0.5, alpha=0.5),
+                    force_points=(0.2, 0.5)
+                   )
 
         plt.title(f'{mut.replace("r","")} Median Rate Shift\nEndosymbionts vs Free-Living Relatives', fontsize=16)
         plt.legend()
