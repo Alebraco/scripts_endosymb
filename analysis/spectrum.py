@@ -395,7 +395,7 @@ def rate_shift_plot(df):
             texts.append(t)
 
         adjust_text(texts, 
-                    arrowprops=dict(arrowstyle="-", color='black', lw=0.5, alpha=0.5),
+                    arrowprops=dict(arrowstyle="-", color='black', lw=0.5, alpha=0.5, shrinkA = 10),
                     force_points=(0.2, 0.5)
                    )
 
