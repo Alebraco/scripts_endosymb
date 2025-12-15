@@ -464,14 +464,6 @@ def rate_shift_plot(df):
                               aggfunc='median').dropna()
 
     for mut in mutation_types:
-        
-        missing_dist = [sp for i, sp in enumerate(current_data.index) if np.isnan(current_distances[i])]
-        if missing_dist:
-            print(f"[{mut}] Species with labels but NO dots (missing distance): {missing_dist}")
-        
-        # Check if coordinates themselves have issues
-        print(f"[{mut}] X range: {relative_rates.min():.2f}-{relative_rates.max():.2f}")
-        print(f"[{mut}] Y range: {endosymbiont_rates.min():.2f}-{endosymbiont_rates.max():.2f}")
 
         plt.figure(figsize=(8, 8))
         current_data = df_pivot[mut].dropna()
@@ -480,6 +472,13 @@ def rate_shift_plot(df):
         endosymbiont_rates = current_data[('Endosymbiont Control Pairs')]
         
         current_distances = [species_distances.get(sp, np.nan) for sp in current_data.index]
+
+        missing_dist = [sp for i, sp in enumerate(current_data.index) if np.isnan(current_distances[i])]
+        if missing_dist:
+            print(f"[{mut}] Species with labels but NO dots (missing distance): {missing_dist}")
+        
+        print(f"[{mut}] X range: {relative_rates.min():.2f}-{relative_rates.max():.2f}")
+        print(f"[{mut}] Y range: {endosymbiont_rates.min():.2f}-{endosymbiont_rates.max():.2f}")
         
         scatter = plt.scatter(x=relative_rates, 
                               y=endosymbiont_rates,
