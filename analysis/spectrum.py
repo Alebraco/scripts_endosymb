@@ -476,8 +476,9 @@ def rate_shift_plot(df):
         scatter = plt.scatter(x=relative_rates, 
                               y=endosymbiont_rates,
                               c=current_distances,
-                              cmap='viridis',
-                              s=50,
+                              cmap='magma',
+                              edgecolors='white',
+                              s=60,
                               alpha=0.7,
                               label='Species')
         
@@ -489,13 +490,17 @@ def rate_shift_plot(df):
             texts.append(t)
             
         cbar = plt.colorbar(scatter)
-        cbar.set_label('Median Genetic Distance\n(Endosymbiont-Relative Pairs)', rotation=270, labelpad=15)
+        cbar.set_label('Median Genetic Distance\n(Endosymbiont-Relative Pairs)', rotation=270, labelpad=25)
         
         plt.axline((0, 0), slope=1, color='gray', linestyle='--', linewidth=1, label='y=x (No shift)')
         plt.xlim(-0.05, 1.05)
         plt.ylim(-0.05, 1.05)
         
-        adjust_text(texts, arrowprops=dict(arrowstyle="-", color='black', lw=0.5, alpha=0.7))
+        adjust_text(texts, 
+            only_move={'points':'y', 'texts':'y'}, 
+            force_points=0.2, 
+            expand_points=(1.5, 1.5),
+            arrowprops=dict(arrowstyle="", color='black', lw=0.5, alpha=0.5))
 
         plt.title(f'{mut.replace("r","")} Median Rate Shift\nEndosymbionts vs Free-Living Relatives', fontsize=16)
         plt.xlabel('Free-Living Relatives')
