@@ -11,6 +11,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
 
+from distance_matrix import distance_matrix
 from utils import files_dir, load_or_compute_pickle
 
 output_csv = 'spectrum_rates.csv'
