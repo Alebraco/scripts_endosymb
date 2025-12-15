@@ -11,16 +11,25 @@
 source ~/.bashrc
 conda activate /usr/local/usrapps/metastrain/asoneto/tree
 
-FILES=(endosymb+relatives/dna_concatenates/*.fasta \
-	endosymb_only/dna_concatenates/*.fasta \
-	relatives_only/dna_concatenates/*.fasta)
+ROOT="/rs1/researchers/l/ljbobay/asoneto/endosymb"
+FILES=($ROOT/endosymb+relatives/dna_concatenates/*.fasta \
+	$ROOT/endosymb_only/dna_concatenates/*.fasta \
+	$ROOT/relatives_only/dna_concatenates/*.fasta)
 CONCATENATE=${FILES[$((LSB_JOBINDEX - 1))]}
 TREE_DIR=dna_tree_results
 GROUP=$(basename $(dirname $(dirname $CONCATENATE)))
 SPECIES=$(basename $CONCATENATE .fasta)
 SPECIES=${SPECIES#concatenate_}
 
-OUTDIR="$GROUP/$TREE_DIR/$SPECIES"
+echo "Processing Job Index: $LSB_JOBINDEX"
+echo "Target File: $CONCATENATE"
+
+if [[ ! -f "$CONCATENATE" ]]; then
+    echo "ERROR: The file $CONCATENATE cannot be found by the script."
+    exit 1
+fi
+
+OUTDIR="$ROOT/$GROUP/$TREE_DIR/$SPECIES"
 TREEFILE="$OUTDIR/${SPECIES}.treefile"
 
 if [[ -f "$TREEFILE" ]]; then
