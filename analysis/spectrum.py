@@ -473,13 +473,6 @@ def rate_shift_plot(df):
         
         current_distances = [species_distances.get(sp, np.nan) for sp in current_data.index]
 
-        missing_dist = [sp for i, sp in enumerate(current_data.index) if np.isnan(current_distances[i])]
-        if missing_dist:
-            print(f"[{mut}] Species with labels but NO dots (missing distance): {missing_dist}")
-        
-        print(f"[{mut}] X range: {relative_rates.min():.2f}-{relative_rates.max():.2f}")
-        print(f"[{mut}] Y range: {endosymbiont_rates.min():.2f}-{endosymbiont_rates.max():.2f}")
-        
         scatter = plt.scatter(x=relative_rates, 
                               y=endosymbiont_rates,
                               c=current_distances,
@@ -505,11 +498,13 @@ def rate_shift_plot(df):
         plt.ylim(-0.05, 1.05)
         
         adjust_text(texts, 
-            only_move={'points':'y', 'texts':'y'}, 
-            force_points=0.2,
-            force_text=1.0, 
+            only_move={'points':'y', 'texts':'xy'}, 
+            force_points=0.1,
+            force_text=2.0, 
             expand_points=(1.1, 1.1),
-            expand_text=(1.2, 1.2),
+            expand_text=(1.5, 1.5),
+            autoalign='y',
+            add_objects=[scatter]
             )
 
         plt.title(f'{mut.replace("r","")} Median Rate Shift\nEndosymbionts vs Free-Living Relatives', fontsize=16)
