@@ -20,15 +20,20 @@ GROUP=$(basename $(dirname $(dirname $CONCATENATE)))
 SPECIES=$(basename $CONCATENATE .fasta)
 SPECIES=${SPECIES#concatenate_}
 
-
 OUTDIR="$GROUP/$TREE_DIR/$SPECIES"
 mkdir -p $OUTDIR
 
-SEQS=$(grep -c '>' $CONCATENATE)
+TEMP_FASTA="$OUTDIR/${SPECIES}_tmp.fasta"
+seqkit seq -g 0.5 "$CONCATENATE" > "$TEMP_FASTA"
+
+SEQS=$(grep -c '>' "$TEMP_FASTA")
+
 if [[ $SEQS -gt 3 ]]; then
-	iqtree -s $CONCATENATE -m GTR+G -bb 1000 -T 4 -pre "$OUTDIR/$SPECIES"
+	iqtree -s $TEMP_FASTA -m GTR+G -bb 1000 -T 4 -pre "$OUTDIR/$SPECIES"
 elif [[ $SEQS -le 2 ]]; then
-	echo "Skipping $CONCATENATE, not enough sequences to compare."
+	echo "Skipping $SPECIES, only $SEQS sequences to compare."
 else
-	iqtree -s $CONCATENATE -m GTR+G -T 4 -pre "$OUTDIR/$SPECIES"
+	iqtree -s $TEMP_FASTA -m GTR+G -T 4 -pre "$OUTDIR/$SPECIES"
 fi
+
+rm "$TEMP_FASTA"
