@@ -470,7 +470,6 @@ def rate_shift_plot(df):
         relative_rates = current_data[('Free-Living Control Pairs')]
         endosymbiont_rates = current_data[('Endosymbiont Control Pairs')]
         
-        # We need to align distances with the species present in the pivot table
         current_distances = [species_distances.get(sp, np.nan) for sp in current_data.index]
         
         scatter = plt.scatter(x=relative_rates, 
@@ -499,12 +498,11 @@ def rate_shift_plot(df):
         
         adjust_text(texts, 
             only_move={'points':'y', 'texts':'xy'}, 
-            force_points=0.3,
-            force_text=0.5, 
-            expand_points=(1.8, 1.8),
+            force_points=0.2,
+            force_text=1.0, 
+            expand_points=(1.1, 1.1),
             expand_text=(1.2, 1.2),
-            add_objects=texts,
-            arrowprops=dict(arrowstyle="-", color='black', lw=0.5, alpha=0.3, zorder = 1))
+            autoalign='y')
 
         plt.title(f'{mut.replace("r","")} Median Rate Shift\nEndosymbionts vs Free-Living Relatives', fontsize=16)
         plt.xlabel('Free-Living Relatives')
