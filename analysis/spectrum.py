@@ -442,11 +442,11 @@ def rate_shift_plot(df):
                         )
     
     species_distances = {}
-    for species_key, distance_matrix in distance_matrices.items():
+    for species_key, matrix in distance_matrices.items():
         sp_name = species_key.replace('_endosymbiont', '').replace('_', ' ')
         
-        i, j = np.triu_indices_from(distance_matrix, k=1)
-        ids = distance_matrix.index.tolist()
+        i, j = np.triu_indices_from(matrix, k=1)
+        ids = matrix.index.tolist()
         
         dist_list = []
         for index1, index2 in zip(i, j):
@@ -454,7 +454,7 @@ def rate_shift_plot(df):
             # Only compare across endosymbiont-relative pairs
             if ('_genomic' in id1) == ('_genomic' in id2):
                 continue
-            dist_list.append(distance_matrix.loc[id1, id2])
+            dist_list.append(matrix.loc[id1, id2])
         
         species_distances[sp_name] = np.median(dist_list)
 
