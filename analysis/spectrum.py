@@ -11,6 +11,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
 
+from utils import files_dir, load_or_compute_pickle
+
 output_csv = 'spectrum_rates.csv'
 data_dir = 'files'
 csv_path = os.path.join(data_dir, output_csv)
@@ -367,6 +369,7 @@ def rate_shift_plot(df):
     '''
     Regression plots comparing rates between control groups to determine mutation rate shifts by species.
     '''
+    distance_matrices = load_or_compute_pickle(os.path.join(files_dir, 'distances_endosymb+relatives.pkl'))
     df_pivot = df.pivot_table(index = 'Species', 
                               columns = 'Group', 
                               values = mutation_types, 
@@ -374,36 +377,127 @@ def rate_shift_plot(df):
     for mut in mutation_types:
         relative_rates = df_pivot[(mut, 'Free-Living Control Pairs')]
         endosymbiont_rates = df_pivot[(mut, 'Endosymbiont Control Pairs')]
-        plt.figure(figsize=(8,8))
-        sns.scatterplot(x = relative_rates, 
-                        y = endosymbiont_rates)
-        
-        plt.axline((0, 0), slope=1, color='gray', linestyle='--', linewidth=1, label='y=x (No shift)')
-        plt.xlim(-0.05,1.05)
-        plt.ylim(-0.05,1.05)
 
-        texts = []
-        species_names = df_pivot.index.tolist()
-        for i, species in enumerate(species_names):
-            x = relative_rates.iloc[i]
-            y = endosymbiont_rates.iloc[i]          
+    texts = []
+    median_distance = []
+    for species_key, distance_matrix in distance_matrices.items():
+            sp_name = species_key.replace('_endosymbiont', '').replace('_', ' ')
+            dist_list = []
+            distance_data = distance_matrix
+            i,j = np.triu_indices_from(distance_data, k=1)
+            ids = distance_data.index.tolist()
+
+            for index1, index2 in zip(i, j):
+                id1 = ids[index1]
+                id2 = ids[index2]
+                if ('_genomic' in id1) == ('_genomic' in id2):
+                    continue
+                dist_list.append(distance_data.loc[id1, id2])
+
+            median_distance.append(np.median(dist_list))
+            x = relative_rates.loc[sp_name]
+            y = endosymbiont_rates.loc[sp_name]     
             
             t = plt.text(x, y, 
-                         species, 
+                         sp_name, 
                          fontsize=8, 
                          alpha=0.7)
             texts.append(t)
 
-        adjust_text(texts, 
-                    arrowprops=dict(arrowstyle="-", color='black', lw=0.5, alpha=0.5, shrinkA = 10),
-                    force_points=(0.2, 0.5)
-                   )
+    plt.figure(figsize=(8,8))
+    scatter = plt.scatter(x = relative_rates, 
+                    y = endosymbiont_rates,
+                    c = median_distance,
+                    cmap = 'viridis',
+                    s = 50,
+                    alpha = 0.7,
+                    label = 'Species')
+    cbar = plt.colorbar(scatter)
+    cbar.set_label('Median Genetic Distance\n(Endosymbiont-Relative Pairs)', rotation=270, labelpad=15)
+    
+    plt.axline((0, 0), slope=1, color='gray', linestyle='--', linewidth=1, label='y=x (No shift)')
+    plt.xlim(-0.05,1.05)
+    plt.ylim(-0.05,1.05)
+    adjust_text(texts, 
+                arrowprops=dict(arrowstyle="-", color='black', lw=0.5, alpha=0.7, shrinkA = 10),
+                )
+
+    plt.title(f'{mut.replace("r","")} Median Rate Shift\nEndosymbionts vs Free-Living Relatives', fontsize=16)
+    plt.legend()
+    plt.tight_layout()
+    plt.xlabel('Free-Living Relatives')
+    plt.ylabel('Endosymbionts')
+    plt.savefig(os.path.join(plot_dir, f'rate_shift_{mut.replace("→","_")}.pdf'))
+    plt.close()
+
+def rate_shift_plot(df):
+    '''
+    Regression plots comparing rates between control groups to determine mutation rate shifts by species.
+    '''
+    distance_matrices = load_or_compute_pickle(os.path.join(files_dir, 'distances_endosymb+relatives.pkl'))
+    
+    species_distances = {}
+    for species_key, distance_matrix in distance_matrices.items():
+        sp_name = species_key.replace('_endosymbiont', '').replace('_', ' ')
+        
+        i, j = np.triu_indices_from(distance_matrix, k=1)
+        ids = distance_matrix.index.tolist()
+        
+        dist_list = []
+        for index1, index2 in zip(i, j):
+            id1, id2 = ids[index1], ids[index2]
+            # Only compare across endosymbiont-relative pairs
+            if ('_genomic' in id1) == ('_genomic' in id2):
+                continue
+            dist_list.append(distance_matrix.loc[id1, id2])
+        
+        species_distances[sp_name] = np.median(dist_list)
+
+    df_pivot = df.pivot_table(index='Species', 
+                              columns='Group', 
+                              values=mutation_types, 
+                              aggfunc='median').dropna()
+
+    for mut in mutation_types:
+        plt.figure(figsize=(8, 8))
+        
+        relative_rates = df_pivot[(mut, 'Free-Living Control Pairs')]
+        endosymbiont_rates = df_pivot[(mut, 'Endosymbiont Control Pairs')]
+        
+        # We need to align distances with the species present in the pivot table
+        plot_species = df_pivot.index
+        current_distances = [species_distances.get(sp, np.nan) for sp in plot_species]
+        
+        scatter = plt.scatter(x=relative_rates, 
+                              y=endosymbiont_rates,
+                              c=current_distances,
+                              cmap='viridis',
+                              s=50,
+                              alpha=0.7,
+                              label='Species')
+        
+        texts = []
+        for sp_name in plot_species:
+            x_val = relative_rates.loc[sp_name]
+            y_val = endosymbiont_rates.loc[sp_name]
+            t = plt.text(x_val, y_val, sp_name, fontsize=8, alpha=0.7)
+            texts.append(t)
+            
+        cbar = plt.colorbar(scatter)
+        cbar.set_label('Median Genetic Distance\n(Endosymbiont-Relative Pairs)', rotation=270, labelpad=15)
+        
+        plt.axline((0, 0), slope=1, color='gray', linestyle='--', linewidth=1, label='y=x (No shift)')
+        plt.xlim(-0.05, 1.05)
+        plt.ylim(-0.05, 1.05)
+        
+        adjust_text(texts, arrowprops=dict(arrowstyle="-", color='black', lw=0.5, alpha=0.7))
 
         plt.title(f'{mut.replace("r","")} Median Rate Shift\nEndosymbionts vs Free-Living Relatives', fontsize=16)
-        plt.legend()
-        plt.tight_layout()
         plt.xlabel('Free-Living Relatives')
         plt.ylabel('Endosymbionts')
+        plt.legend()
+        plt.tight_layout()
+        
         plt.savefig(os.path.join(plot_dir, f'rate_shift_{mut.replace("→","_")}.pdf'))
         plt.close()
 
