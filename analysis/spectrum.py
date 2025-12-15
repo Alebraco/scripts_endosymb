@@ -464,6 +464,15 @@ def rate_shift_plot(df):
                               aggfunc='median').dropna()
 
     for mut in mutation_types:
+        
+        missing_dist = [sp for i, sp in enumerate(current_data.index) if np.isnan(current_distances[i])]
+        if missing_dist:
+            print(f"[{mut}] Species with labels but NO dots (missing distance): {missing_dist}")
+        
+        # Check if coordinates themselves have issues
+        print(f"[{mut}] X range: {relative_rates.min():.2f}-{relative_rates.max():.2f}")
+        print(f"[{mut}] Y range: {endosymbiont_rates.min():.2f}-{endosymbiont_rates.max():.2f}")
+
         plt.figure(figsize=(8, 8))
         current_data = df_pivot[mut].dropna()
         
@@ -497,12 +506,12 @@ def rate_shift_plot(df):
         plt.ylim(-0.05, 1.05)
         
         adjust_text(texts, 
-            only_move={'points':'y', 'texts':'xy'}, 
+            only_move={'points':'y', 'texts':'y'}, 
             force_points=0.2,
             force_text=1.0, 
             expand_points=(1.1, 1.1),
             expand_text=(1.2, 1.2),
-            autoalign='y')
+            )
 
         plt.title(f'{mut.replace("r","")} Median Rate Shift\nEndosymbionts vs Free-Living Relatives', fontsize=16)
         plt.xlabel('Free-Living Relatives')
