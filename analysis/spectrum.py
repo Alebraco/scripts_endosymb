@@ -477,7 +477,7 @@ def rate_shift_plot(df):
                               y=endosymbiont_rates,
                               c=current_distances,
                               cmap='magma',
-                              edgecolors='white',
+                              edgecolors='black',
                               s=60,
                               alpha=0.7,
                               label='Species')
