@@ -499,9 +499,9 @@ def rate_shift_plot(df):
         
         adjust_text(texts, 
             only_move={'points':'y', 'texts':'xy'}, 
-            force_points=0.1,
+            force_points=0.03,
             force_text=2.0, 
-            expand_points=(1.1, 1.1),
+            expand_points=(2.1, 2.1),
             expand_text=(1.5, 1.5),
             autoalign='y',
             add_objects=[scatter]
