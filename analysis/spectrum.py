@@ -465,13 +465,13 @@ def rate_shift_plot(df):
 
     for mut in mutation_types:
         plt.figure(figsize=(8, 8))
+        current_data = df_pivot[mut].dropna()
         
-        relative_rates = df_pivot[(mut, 'Free-Living Control Pairs')]
-        endosymbiont_rates = df_pivot[(mut, 'Endosymbiont Control Pairs')]
+        relative_rates = current_data[('Free-Living Control Pairs')]
+        endosymbiont_rates = current_data[('Endosymbiont Control Pairs')]
         
         # We need to align distances with the species present in the pivot table
-        plot_species = df_pivot.index
-        current_distances = [species_distances.get(sp, np.nan) for sp in plot_species]
+        current_distances = [species_distances.get(sp, np.nan) for sp in current_data.index]
         
         scatter = plt.scatter(x=relative_rates, 
                               y=endosymbiont_rates,
@@ -479,14 +479,15 @@ def rate_shift_plot(df):
                               cmap='magma',
                               edgecolors='black',
                               s=60,
-                              alpha=0.7,
+                              alpha=0.8,
+                              zorder=2,
                               label='Species')
         
         texts = []
-        for sp_name in plot_species:
+        for sp_name in current_data.index:
             x_val = relative_rates.loc[sp_name]
             y_val = endosymbiont_rates.loc[sp_name]
-            t = plt.text(x_val, y_val, sp_name, fontsize=8, alpha=0.7)
+            t = plt.text(x_val, y_val, sp_name, fontsize=8, alpha=0.8, zorder = 3)
             texts.append(t)
             
         cbar = plt.colorbar(scatter)
@@ -497,10 +498,13 @@ def rate_shift_plot(df):
         plt.ylim(-0.05, 1.05)
         
         adjust_text(texts, 
-            only_move={'points':'y', 'texts':'y'}, 
-            force_points=0.2, 
-            expand_points=(1.5, 1.5),
-            arrowprops=dict(arrowstyle="-", color='black', lw=0.5, alpha=0.3))
+            only_move={'points':'y', 'texts':'xy'}, 
+            force_points=0.3,
+            force_text=0.5, 
+            expand_points=(1.8, 1.8),
+            expand_text=(1.2, 1.2),
+            add_objects=texts,
+            arrowprops=dict(arrowstyle="-", color='black', lw=0.5, alpha=0.3, zorder = 1))
 
         plt.title(f'{mut.replace("r","")} Median Rate Shift\nEndosymbionts vs Free-Living Relatives', fontsize=16)
         plt.xlabel('Free-Living Relatives')
