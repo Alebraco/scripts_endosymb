@@ -434,7 +434,11 @@ def rate_shift_plot(df):
     '''
     Regression plots comparing rates between control groups to determine mutation rate shifts by species.
     '''
-    distance_matrices = load_or_compute_pickle(os.path.join(files_dir, 'distances_endosymb+relatives.pkl'))
+    distance_matrices = load_or_compute_pickle(
+                        os.path.join(files_dir, 'distances_endosymb+relatives.pkl'),
+                        distance_matrix,
+                        'endosymb+relatives'
+                        )
     
     species_distances = {}
     for species_key, distance_matrix in distance_matrices.items():
