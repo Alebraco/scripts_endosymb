@@ -28,9 +28,9 @@ if [[ -f "$TREEFILE" ]]; then
     exit 0
 fi
 
-mkdir -p $OUTDIR
+mkdir -p $OUTDIR/TEMP_FILES
 
-TEMP_FASTA="$OUTDIR/${SPECIES}_tmp.fasta"
+TEMP_FASTA="$OUTDIR/TEMP_FILES/${SPECIES}_tmp.fasta"
 seqkit seq -g 0.5 "$CONCATENATE" > "$TEMP_FASTA"
 
 SEQS=$(grep -c '>' "$TEMP_FASTA")
@@ -42,5 +42,3 @@ elif [[ $SEQS -le 2 ]]; then
 else
 	iqtree -s $TEMP_FASTA -m GTR+G -T 4 -pre "$OUTDIR/$SPECIES"
 fi
-
-rm "$TEMP_FASTA"
