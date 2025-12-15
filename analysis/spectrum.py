@@ -500,7 +500,7 @@ def rate_shift_plot(df):
             only_move={'points':'y', 'texts':'y'}, 
             force_points=0.2, 
             expand_points=(1.5, 1.5),
-            arrowprops=dict(arrowstyle="", color='black', lw=0.5, alpha=0.5))
+            arrowprops=dict(arrowstyle="-", color='black', lw=0.5, alpha=0))
 
         plt.title(f'{mut.replace("r","")} Median Rate Shift\nEndosymbionts vs Free-Living Relatives', fontsize=16)
         plt.xlabel('Free-Living Relatives')
