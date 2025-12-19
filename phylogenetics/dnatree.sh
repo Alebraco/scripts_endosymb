@@ -40,7 +40,7 @@ fi
 mkdir -p $OUTDIR/TEMP_FILES
 
 TEMP_FASTA="$OUTDIR/TEMP_FILES/${SPECIES}_tmp.fasta"
-seqkit seq -g 0.5 "$CONCATENATE" > "$TEMP_FASTA"
+trimal -in "$CONCATENATE" -out "$TEMP_FASTA" -fasta -seqoverlap 50 -resoverlap 0.5
 
 SEQS=$(grep -c '>' "$TEMP_FASTA")
 
