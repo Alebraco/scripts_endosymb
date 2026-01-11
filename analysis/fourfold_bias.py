@@ -23,7 +23,7 @@ for group in groups:
                 if prefix in fourfold_families.keys() and third_base in 'ACGT':
                     aa = fourfold_families[prefix]
                     counts[aa][third_base] += 1
-        print(f'--- Results for {species} ---')
+        print(f'--- Results for {species} in {group} ---')
         total_gc4 = 0
         total_count = 0
 
@@ -40,6 +40,7 @@ for group in groups:
         if total_count > 0:
             overall_gc4 = round((total_gc4 / total_count) * 100, 2)
             print(f'Overall GC4: {overall_gc4}%')
+    print('----------------------------------')
 
 
         
