@@ -30,7 +30,7 @@ for group in groups:
         total_gc4 = 0
         total_count = 0
         gc_values = []
-        print(f'Results for {species} in {group} ---')
+        print(f'Results for {sp_name} in {group} ---')
 
         for aa, nuc_counts in counts.items():
             gc_count = nuc_counts['G'] + nuc_counts['C']
