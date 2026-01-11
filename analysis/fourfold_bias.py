@@ -34,7 +34,7 @@ for group in groups:
 
         for aa, nuc_counts in counts.items():
             gc_count = nuc_counts['G'] + nuc_counts['C']
-            sum_count = sum(nuc_counts.values()))
+            sum_count = sum(nuc_counts.values())
 
             if sum_count > 0:
                 gc4_percent = round((gc_count / sum_count) * 100, 2)
@@ -48,7 +48,7 @@ for group in groups:
             stdev_gc4 = round(statistics.stdev(gc_values), 2) if len(gc_values) > 1 else 0.0
             print(f'Overall GC4: {overall_gc4:.2f}%')
             print(f'Variance (SD) between families: {stdev_gc4:.2f}')
-            
+
         all_data.append({'group': group, 'species': sp_name, 'overall_gc4': overall_gc4, 'stdev_gc4': stdev_gc4})
 
 df = pd.DataFrame(all_data)
