@@ -13,13 +13,14 @@ for group in groups:
     for species in os.listdir(group_path):
         species_path = os.path.join(group_path, species)
         counts = {aa: {'A': 0, 'C': 0, 'G': 0, 'T': 0} for aa in fourfold_families.values()}
-        for seq in SeqIO.parse(species_path, 'fasta'):
+        for record in SeqIO.parse(species_path, 'fasta'):
+            seq = str(record.seq).upper()
             for i in range(0, len(seq) - 2, 3):
                 codon = seq[i:i+3]
                 prefix = codon[0:2]
                 third_base = codon[2]
 
-                if prefix in fourfold_families and third_base in 'ACGT':
+                if prefix in fourfold_families.keys() and third_base in 'ACGT':
                     aa = fourfold_families[prefix]
                     counts[aa][third_base] += 1
         print(f'--- Results for {species} ---')
