@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import os
+import statistics
 from Bio import SeqIO
 
 fourfold_families = {
@@ -11,6 +12,7 @@ groups = ['relatives_only', 'endosymb_only']
 for group in groups:
     group_path = os.path.join(group, 'dna_concatenates')
     for species in os.listdir(group_path):
+        sp_name = species.replace('concatenate_', '').replace('_', ' ').replace('.fasta', '')
         species_path = os.path.join(group_path, species)
         counts = {aa: {'A': 0, 'C': 0, 'G': 0, 'T': 0} for aa in fourfold_families.values()}
         for record in SeqIO.parse(species_path, 'fasta'):
@@ -23,9 +25,9 @@ for group in groups:
                 if prefix in fourfold_families.keys() and third_base in 'ACGT':
                     aa = fourfold_families[prefix]
                     counts[aa][third_base] += 1
-        print(f'--- Results for {species} in {group} ---')
         total_gc4 = 0
         total_count = 0
+        gc_values = []
 
         for aa, nuc_counts in counts.items():
             gc_count = nuc_counts['G'] + nuc_counts['C']
@@ -33,14 +35,14 @@ for group in groups:
 
             if sum_count > 0:
                 gc4_percent = round((gc_count / sum_count) * 100, 2)
-                print(f'{aa} GC4: {gc4_percent}% (n={sum_count})')
+                gc_values.append(gc4_percent)
 
                 total_gc4 += nuc_counts['G'] + nuc_counts['C']
                 total_count += sum_count
         if total_count > 0:
             overall_gc4 = round((total_gc4 / total_count) * 100, 2)
-            print(f'Overall GC4: {overall_gc4}%')
-    print('----------------------------------')
+            stdev_gc4 = round(statistics.stdev(gc_values), 2) if len(gc_values) > 1 else 0.0
+        print(f'{group},{species},{overall_gc4},{stdev_gc4}')
 
 
         
