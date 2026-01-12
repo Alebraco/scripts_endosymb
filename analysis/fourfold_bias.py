@@ -3,7 +3,12 @@ import os
 import statistics
 from Bio import SeqIO
 import pandas as pd
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
 from scipy import stats
+import seaborn as sns
+
 
 csv_path = 'fourfold_gc_content.csv'
 
@@ -36,6 +41,8 @@ def fourfold_gc_content():
                         counts[aa][third_base] += 1
             total_gc4 = 0
             total_count = 0
+            overall_gc4 = 0
+            stdev_gc4 = 0.0
             gc_values = []
             print(f'Results for {sp_name} in {group} ---')
 
@@ -56,7 +63,7 @@ def fourfold_gc_content():
                 print(f'Overall GC4: {overall_gc4:.2f}%')
                 print(f'Variance (SD) between families: {stdev_gc4:.2f}')
 
-            all_data.append({'group': group, 'species': sp_name, 'overall_gc4': overall_gc4, 'stdev_gc4': stdev_gc4})
+                all_data.append({'group': group, 'species': sp_name, 'overall_gc4': overall_gc4, 'stdev_gc4': stdev_gc4})
 
     df = pd.DataFrame(all_data)
     df.to_csv(csv_path, index=False)
@@ -77,12 +84,49 @@ def stat_analysis():
         print('Significant difference in GC4 variation between groups')
     else:
         print('No significant difference in GC4 variation between groups')
+    return t_stat, p_val
+
+def plot_results(df, p_val):
+    plt.figure(figsize=(8, 6))
+    sns.boxplot(x='group', y='stdev_gc4', data=df, palette='Set2')
+    sns.stripplot(x='group', y='stdev_gc4', data=df, color='black', alpha=0.5)
+    
+    if p_val < 0.001:
+        sig_label = '***'
+    elif p_val < 0.01:
+        sig_label = '**'
+    elif p_val < 0.05:
+        sig_label = '*'
+    else:
+        sig_label = 'ns'
+    x1, x2 = 0, 1
+    y_max = df['stdev_gc4'].max()
+    y, h = y_max + (y_max * 0.1), y_max * 0.05
+
+    plt.plot([x1, x1, x2, x2], [y, y+h, y+h, y], lw=1.5, c='black')
+    plt.text((x1+x2)*.5, y+h, f"{sig_label}\n(p = {p_val:.2e})", 
+             ha='center', va='bottom', color='black', fontsize=10)
+    
+    plt.title('Codon-specific GC4 Variation Between Groups')
+    plt.xlabel('Group')
+    plt.ylabel('Standard Deviation of GC4 (%)')
+    plt.tight_layout()
+    plt.savefig('gc4_boxplot.pdf')
+    plt.close()
+
+    linear = sns.lmplot(x='overall_gc4', y='stdev_gc4', hue='group', data=df, palette='Set2', 
+               aspect=1.2, scatter_kws={'alpha':0.6})
+    linear.figure.suptitle('Overall GC4 vs GC4 Variation', y=1.02)
+    linear.set_axis_labels('Overall GC4 (%)', 'Standard Deviation of GC4 (%)')
+
+    plt.tight_layout()
+    plt.savefig('gc4_correlation.pdf')
+    plt.close()
 
 if __name__ == '__main__':
-    if os.path.exists(csv_path):
-        stat_analysis()
-    else:
+    if not os.path.exists(csv_path):
         fourfold_gc_content()
-        stat_analysis()
 
-    
+    t_stat, p_val = stat_analysis()
+    df = pd.read_csv(csv_path)
+    plot_results(df, p_val)
