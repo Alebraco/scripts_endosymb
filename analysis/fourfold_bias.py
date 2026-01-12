@@ -123,7 +123,7 @@ def plot_results(df, p_val):
         hue='group', 
         data=df, 
         palette='Set2', 
-        alpha=0.6
+        alpha=0.8
         )
     plt.title('Overall GC4 vs GC4 Variation')
     plt.xlabel('Overall GC4 (%)')
