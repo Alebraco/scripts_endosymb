@@ -88,7 +88,7 @@ def stat_analysis():
 
 def plot_results(df, p_val):
     plt.figure(figsize=(8, 6))
-    sns.boxplot(x='group', y='stdev_gc4', data=df, palette='Set2')
+    sns.boxplot(x='group', y='stdev_gc4', data=df, palette='Set2', hue = 'group')
     sns.stripplot(x='group', y='stdev_gc4', data=df, color='black', alpha=0.5)
     
     if p_val < 0.001:
