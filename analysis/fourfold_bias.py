@@ -20,10 +20,10 @@ def fourfold_gc_content():
         'GC': 'Ala', 'GG': 'Gly', 'CC': 'Pro', 'AC': 'Thr', 
         'GT': 'Val', 'CG': 'Arg4', 'CT': 'Leu4', 'TC': 'Ser4'
     }
-    groups = ['relatives_only', 'endosymb_only']
+    groups = {'relatives_only': 'Relatives', 'endosymb_only': 'Endosymbionts'}
     all_data = []
 
-    for group in groups:
+    for group, group_name in groups.items():
         group_path = os.path.join(group, 'dna_concatenates')
         for species in os.listdir(group_path):
             sp_name = species.replace('concatenate_', '').replace('_', ' ').replace('.fasta', '')
@@ -63,7 +63,7 @@ def fourfold_gc_content():
                 print(f'Overall GC4: {overall_gc4:.2f}%')
                 print(f'Variance (SD) between families: {stdev_gc4:.2f}')
 
-                all_data.append({'group': group, 'species': sp_name, 'overall_gc4': overall_gc4, 'stdev_gc4': stdev_gc4})
+                all_data.append({'group': group_name, 'species': sp_name, 'overall_gc4': overall_gc4, 'stdev_gc4': stdev_gc4})
 
     df = pd.DataFrame(all_data)
     df.to_csv(csv_path, index=False)
@@ -74,8 +74,8 @@ def stat_analysis():
     Performs statistical analysis on the fourfold GC content data.
     '''
     df = pd.read_csv(csv_path)
-    relatives = df[df['group'] == 'relatives_only']['stdev_gc4']
-    endosymb = df[df['group'] == 'endosymb_only']['stdev_gc4']
+    relatives = df[df['group'] == 'Relatives']['stdev_gc4']
+    endosymb = df[df['group'] == 'Endosymbionts']['stdev_gc4']
 
     t_stat, p_val = stats.ttest_ind(relatives, endosymb, equal_var=False)
 
@@ -103,11 +103,11 @@ def plot_results(df, p_val):
     y_max = df['stdev_gc4'].max()
     y, h = y_max + (y_max * 0.05), y_max * 0.03
 
-    plt.plot([x1, x1, x2, x2], [y, y+h, y+h, y], lw=1.5, c='black')
+    plt.plot([x1, x1, x2, x2], [y, y+h, y+h, y], lw=1.5, c='grey')
     plt.text((x1+x2)*.5, y+h + (y_max * 0.02), f"{sig_label}\n(p = {p_val:.2e})", 
-             ha='center', va='bottom', color='black', fontsize=10)
+             ha='center', va='bottom', color='grey', fontsize=10)
     
-    plt.ylim(top=y_max * 1.30)
+    plt.ylim(top=y_max * 1.20)
     
     plt.title('Codon-specific GC4 Variation Between Groups')
     plt.xlabel('Group')
