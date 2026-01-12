@@ -101,9 +101,9 @@ def plot_results(df, p_val):
         sig_label = 'ns'
     x1, x2 = 0, 1
     y_max = df['stdev_gc4'].max()
-    y, h = y_max + (y_max * 0.1), y_max * 0.05
+    y, h = y_max + (y_max * 0.02), y_max * 0.03
 
-    plt.plot([x1, x1, x2, x2], [y, y+h, y+h, y], lw=1.5, c='black')
+    plt.plot([x1, x1, x2, x2], [y, y+h, y+h, y], lw=1.5, c='grey')
     plt.text((x1+x2)*.5, y+h, f"{sig_label}\n(p = {p_val:.2e})", 
              ha='center', va='bottom', color='black', fontsize=10)
     
