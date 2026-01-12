@@ -116,13 +116,20 @@ def plot_results(df, p_val):
     plt.savefig('gc4_boxplot.pdf')
     plt.close()
 
-    linear = sns.lmplot(x='overall_gc4', y='stdev_gc4', hue='group', data=df, palette='Set2', 
-               aspect=1.2, scatter_kws={'alpha':0.6})
-    linear.figure.suptitle('Overall GC4 vs GC4 Variation', y=1.02)
-    linear.set_axis_labels('Overall GC4 (%)', 'Standard Deviation of GC4 (%)')
-
+    plt.figure(figsize=(8, 6))
+    sns.scatterplot(
+        x='overall_gc4', 
+        y='stdev_gc4', 
+        hue='group', 
+        data=df, 
+        palette='Set2', 
+        alpha=0.6
+        )
+    plt.title('Overall GC4 vs GC4 Variation')
+    plt.xlabel('Overall GC4 (%)')
+    plt.ylabel('Standard Deviation of GC4 (%)')
     plt.tight_layout()
-    plt.savefig('gc4_correlation.pdf')
+    plt.savefig('gc4_scatter.pdf')
     plt.close()
 
 if __name__ == '__main__':
