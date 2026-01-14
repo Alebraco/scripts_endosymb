@@ -8,3 +8,4 @@
 source ~/.bashrc
 conda activate /usr/local/usrapps/metastrain/asoneto/annotation/
 python3 igs_lengths.py
+python3 igs_plots.py

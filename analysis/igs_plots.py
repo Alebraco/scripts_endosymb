@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
+import os
 import pandas as pd
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import seaborn as sns
+from utils import files_dir
 
 group_colors = {
 # 'Endosymbionts and Free-Living Relatives' : '#1f77b4',
@@ -12,7 +14,7 @@ group_colors = {
 }
 
 #Box Plots with all data points
-df_boxplot = pd.read_csv('all_IGS_data.csv')
+df_boxplot = pd.read_csv(os.path.join(files_dir, 'all_IGS_data.csv'))
 df_boxplot = df_boxplot[df_boxplot['group'].isin(['Endosymbionts Only','Free-Living Relatives Only'])]
 df_boxplot_median = df_boxplot.groupby(['group', 'species', 'file'])['IGS_Size'].median().reset_index()
 
@@ -29,7 +31,7 @@ plt.savefig('IGS_boxplot.pdf')
 plt.close()
 
 #Scatterplot with mean IGS only
-summary_df = pd.read_csv('medianIGS.csv')
+summary_df = pd.read_csv(os.path.join(files_dir, 'medianIGS.csv'))
 summary_df = summary_df[summary_df['group'].isin(['Endosymbionts Only','Free-Living Relatives Only'])]
 pivot_df = summary_df.pivot_table(index='species', columns='group', values='mean_median_IGS').reset_index()
 outliers = pivot_df[pivot_df['Endosymbionts Only'] > pivot_df['Endosymbionts Only'].quantile(0.95)]

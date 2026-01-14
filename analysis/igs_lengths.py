@@ -1,14 +1,9 @@
 #!/usr/bin/env python3
 
 import os
-import sys
 import gffutils
-import numpy as np
 import pandas as pd
-import matplotlib
-matplotlib.use("Agg")
-import matplotlib.pyplot as plt
-import seaborn as sns
+from utils import files_dir
 
 def gff_processing(file_path):
     db = gffutils.create_db(file_path, dbfn=':memory:', force = True, keep_order = True, merge_strategy = 'merge', sort_attribute_values = True)
@@ -59,5 +54,5 @@ summary_df = summary_df.groupby(['group', 'species']).agg({
     'file': 'count'
 }).rename(columns = {'IGS_Size': 'mean_median_IGS', 'file': 'num_genomes'}).reset_index()
 
-summary_df.to_csv('medianIGS.csv', index = False)
-df.to_csv('all_IGS_data.csv', index = False)
+summary_df.to_csv(os.path.join(files_dir, 'medianIGS.csv'), index = False)
+df.to_csv(os.path.join(files_dir, 'all_IGS_data.csv'), index = False)
