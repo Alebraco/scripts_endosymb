@@ -45,6 +45,14 @@ common_max, common_min = common_max + padding, common_min - padding
 plt.xlim(common_min, common_max)
 
 plt.axline((0, 0), slope=1, color='red', linestyle='--', linewidth=1, label='y=x')
+
+# Label outliers
+for idx, row in outliers.iterrows():
+    plt.annotate(row['species'], 
+                xy=(row['Endosymbionts Only'], row['Free-Living Relatives Only']),
+                xytext=(5, 5), textcoords='offset points',
+                fontsize=8, alpha=0.7)
+
 plt.xlabel('Endosymbionts Only')
 plt.ylabel('Free-Living Relatives Only')
 plt.margins(x=0.1)

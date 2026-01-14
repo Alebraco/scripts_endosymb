@@ -8,9 +8,9 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from scipy import stats
 import seaborn as sns
+from utils import files_dir
 
-
-csv_path = 'fourfold_gc_content.csv'
+csv_path = os.path.join(files_dir,'fourfold_gc_content.csv')
 
 def fourfold_gc_content():
     '''
