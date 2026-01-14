@@ -472,6 +472,9 @@ def rate_shift_plot(df):
         endosymbiont_rates = current_data[('Endosymbiont Control Pairs')]
         
         current_distances = [species_distances.get(sp, np.nan) for sp in current_data.index]
+        
+        # Cap color scale at 95th percentile to avoid outlier compression
+        vmax_threshold = np.nanpercentile(current_distances, 95)
 
         scatter = plt.scatter(x=relative_rates, 
                               y=endosymbiont_rates,
@@ -480,6 +483,8 @@ def rate_shift_plot(df):
                               edgecolors='black',
                               s=60,
                               alpha=0.8,
+                              vmin=np.nanmin(current_distances),
+                              vmax=vmax_threshold,
                               zorder=2,
                               label='Species')
         
