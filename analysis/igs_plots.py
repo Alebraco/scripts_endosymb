@@ -38,7 +38,7 @@ pivot_df = summary_df.pivot_table(index='species', columns='group', values='mean
 outliers = pivot_df[pivot_df['Endosymbionts Only'] > pivot_df['Endosymbionts Only'].quantile(0.90)]
 
 plt.figure(figsize=(8,8))
-sns.boxplot(data = summary_df, x = 'group', y = 'mean_median_IGS', hue='group', palette=group_colors, hue_order = list(group_colors.keys()), flier_size=0)
+sns.boxplot(data = summary_df, x = 'group', y = 'mean_median_IGS', hue='group', palette=group_colors, hue_order=list(group_colors.keys()), fliersize=0)
 sns.stripplot(data = summary_df, x = 'group', y = 'mean_median_IGS', color='black', alpha=0.7)
 plt.title('Intergenic Space (IGS) Size by Group')
 plt.xlabel('Group')
