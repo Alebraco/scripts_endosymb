@@ -147,6 +147,7 @@ def plot_results(df, detailed_df, p_val):
         x='overall_gc4', 
         y='stdev_gc4', 
         hue='group', 
+        hue_order=['Relatives','Endosymbionts'],
         data=df, 
         palette='Set2', 
         alpha=0.8
@@ -166,16 +167,21 @@ def plot_results(df, detailed_df, p_val):
         y='gc4_percent', 
         hue='group',
         data=detailed_df, 
-        palette='Set2'
+        hue_order=['Relatives','Endosymbionts'],
+        palette='Set2',
+        fliersize=0
         )
     sns.stripplot(
         x='amino_acid', 
         y='gc4_percent', 
         hue='group', 
+        dodge=True,
+        hue_order=['Relatives','Endosymbionts'],
         data=detailed_df, 
-        color='black', 
         alpha=0.5,
+        legend=False
         )
+    plt.legend(title='Group', bbox_to_anchor=(1.05, 1), loc='upper left', ncol=2)
     plt.title('GC4 Percentage by Amino Acid and Group')
     plt.xlabel('Amino Acid')
     plt.ylabel('GC4 Percentage (%)')
@@ -206,26 +212,37 @@ def amino_acid_bias(detailed_df):
         hue='group', 
         data=max_bias, 
         palette='Set2',
+        hue_order=['Relatives','Endosymbionts'],
         order=detailed_df['amino_acid'].unique(),
-        ax=axes[0]
+        ax=axes[0],
+        legend=False
         )
+    for container in axes[0].containers:
+        axes[0].bar_label(container) 
+
     axes[0].set_title('Most Biased Amino Acids by Group')
     axes[0].set_xlabel('Amino Acid')
     axes[0].set_ylabel('Number of Species')
+    axes[0].legend().remove()
 
     sns.countplot(
         x='amino_acid', 
         hue='group', 
         data=min_bias, 
         palette='Set2',
+        hue_order=['Relatives','Endosymbionts'],
         order=detailed_df['amino_acid'].unique(),
         ax=axes[1]
         )
+    axes[1].legend(title='Group', loc='upper right')
+    for container in axes[1].containers:
+        axes[1].bar_label(container) 
+
     axes[1].set_title('Least Biased Amino Acids by Group')
     axes[1].set_xlabel('Amino Acid')
     axes[1].set_ylabel('Number of Species')
     plt.tight_layout()
-    plt.savefig('amino_acid_bias.pdf')
+    plt.savefig('gc4_amino_acid_bias.pdf')
     plt.close()
 
 
