@@ -9,8 +9,8 @@ from utils import files_dir
 
 group_colors = {
 # 'Endosymbionts and Free-Living Relatives' : '#1f77b4',
-'Endosymbionts Only' : '#ff7f0e',
-'Free-Living Relatives Only' : '#2ca02c',
+'Endosymbionts Only' : '#FC8D62FF',
+'Free-Living Relatives Only' : '#66C2A5FF',
 }
 
 #Box Plots with all data points

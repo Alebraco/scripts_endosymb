@@ -113,7 +113,7 @@ def stat_analysis():
 def plot_results(df, detailed_df, p_val):
     
     #Boxplot of GC4 variation
-    plt.figure(figsize=(8, 6))
+    plt.figure(figsize=(6, 6))
     sns.boxplot(x='group', y='stdev_gc4', data=df, palette='Set2', hue = 'group')
     sns.stripplot(x='group', y='stdev_gc4', data=df, color='black', alpha=0.5)
     
@@ -178,10 +178,11 @@ def plot_results(df, detailed_df, p_val):
         dodge=True,
         hue_order=['Relatives','Endosymbionts'],
         data=detailed_df, 
+        palette=['black','grey'],
         alpha=0.5,
         legend=False
         )
-    plt.legend(title='Group', bbox_to_anchor=(1.05, 1), loc='upper left', ncol=2)
+    plt.legend(title='Group', bbox_to_anchor=(1.05, 1), loc='upper left')
     plt.title('GC4 Percentage by Amino Acid and Group')
     plt.xlabel('Amino Acid')
     plt.ylabel('GC4 Percentage (%)')
