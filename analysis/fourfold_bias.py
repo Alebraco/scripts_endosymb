@@ -168,7 +168,7 @@ def plot_results(df, detailed_df, p_val):
         data=detailed_df, 
         palette='Set2'
         )
-    plt.stripplot(
+    sns.stripplot(
         x='amino_acid', 
         y='gc4_percent', 
         hue='group', 

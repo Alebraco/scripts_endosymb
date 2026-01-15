@@ -35,10 +35,10 @@ plt.close()
 summary_df = pd.read_csv(os.path.join(files_dir, 'medianIGS.csv'))
 summary_df = summary_df[summary_df['group'].isin(['Endosymbionts Only','Free-Living Relatives Only'])]
 pivot_df = summary_df.pivot_table(index='species', columns='group', values='mean_median_IGS').reset_index()
-outliers = pivot_df[pivot_df['Endosymbionts Only'] > pivot_df['Endosymbionts Only'].quantile(0.80)]
+outliers = pivot_df[pivot_df['Endosymbionts Only'] > pivot_df['Endosymbionts Only'].quantile(0.90)]
 
 plt.figure(figsize=(8,8))
-sns.boxplot(data = summary_df, x = 'group', y = 'mean_median_IGS', hue='group', palette=group_colors, hue_order = list(group_colors.keys()))
+sns.boxplot(data = summary_df, x = 'group', y = 'mean_median_IGS', hue='group', palette=group_colors, hue_order = list(group_colors.keys()), flier_size=0)
 sns.stripplot(data = summary_df, x = 'group', y = 'mean_median_IGS', color='black', alpha=0.7)
 plt.title('Intergenic Space (IGS) Size by Group')
 plt.xlabel('Group')
