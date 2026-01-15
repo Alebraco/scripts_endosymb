@@ -218,12 +218,11 @@ def amino_acid_bias(detailed_df):
         legend=False
         )
     for container in axes[0].containers:
-        axes[0].bar_label(container) 
+        axes[0].bar_label(container, padding=2) 
 
     axes[0].set_title('Most Biased Amino Acids by Group')
     axes[0].set_xlabel('Amino Acid')
     axes[0].set_ylabel('Number of Species')
-    axes[0].legend().remove()
 
     sns.countplot(
         x='amino_acid', 
@@ -236,7 +235,7 @@ def amino_acid_bias(detailed_df):
         )
     axes[1].legend(title='Group', loc='upper right')
     for container in axes[1].containers:
-        axes[1].bar_label(container) 
+        axes[1].bar_label(container, padding=2) 
 
     axes[1].set_title('Least Biased Amino Acids by Group')
     axes[1].set_xlabel('Amino Acid')
