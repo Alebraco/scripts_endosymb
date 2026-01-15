@@ -27,14 +27,25 @@ plt.ylabel('IGS Size (bp)')
 plt.title('Intergenic Space Size Distribution by Species and Group')
 plt.legend(title = 'Group')
 plt.tight_layout()
-plt.savefig('IGS_boxplot.pdf')
+plt.savefig('IGS_total_boxplot.pdf')
 plt.close()
+
 
 #Scatterplot with mean IGS only
 summary_df = pd.read_csv(os.path.join(files_dir, 'medianIGS.csv'))
 summary_df = summary_df[summary_df['group'].isin(['Endosymbionts Only','Free-Living Relatives Only'])]
 pivot_df = summary_df.pivot_table(index='species', columns='group', values='mean_median_IGS').reset_index()
-outliers = pivot_df[pivot_df['Endosymbionts Only'] > pivot_df['Endosymbionts Only'].quantile(0.95)]
+outliers = pivot_df[pivot_df['Endosymbionts Only'] > pivot_df['Endosymbionts Only'].quantile(0.80)]
+
+plt.figure(figsize=(8,8))
+sns.boxplot(data = pivot_df, x = 'group', y = 'IGS_Size', palette='Set2', hue_order = list(group_colors.keys()))
+sns.stripplot(data = pivot_df, x = 'group', y = 'IGS_Size', color='black', alpha=0.7)
+plt.title('Intergenic Space (IGS) Size by Group')
+plt.xlabel('Group')
+plt.ylabel('IGS Size (bp)')
+plt.tight_layout()
+plt.savefig('IGS_mean_boxplot.pdf')
+plt.close()
 
 plt.figure(figsize=(8,8))
 sns.scatterplot(data = pivot_df, x = 'Endosymbionts Only', y = 'Free-Living Relatives Only')
@@ -50,7 +61,7 @@ plt.axline((0, 0), slope=1, color='red', linestyle='--', linewidth=1, label='y=x
 
 # Label outliers
 for idx, row in outliers.iterrows():
-    plt.annotate(row['species'], 
+    plt.annotate(row['species'].replace('endosymbiont', '').replace('_', ' '),
                 xy=(row['Endosymbionts Only'], row['Free-Living Relatives Only']),
                 xytext=(5, 5), textcoords='offset points',
                 fontsize=8, alpha=0.7)

@@ -7,5 +7,6 @@
 #BSUB -W 10:00
 source ~/.bashrc
 conda activate /usr/local/usrapps/metastrain/asoneto/annotation/
+
 python3 scripts_endosymb/analysis/igs_lengths.py
 python3 scripts_endosymb/analysis/igs_plots.py
