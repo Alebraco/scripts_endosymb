@@ -11,6 +11,7 @@ import seaborn as sns
 from utils import files_dir
 
 csv_path = os.path.join(files_dir,'fourfold_gc_content.csv')
+detailed_csv_path = os.path.join(files_dir,'fourfold_gc_detailed.csv')
 
 def fourfold_gc_content():
     '''
@@ -22,10 +23,12 @@ def fourfold_gc_content():
     }
     groups = {'relatives_only': 'Relatives', 'endosymb_only': 'Endosymbionts'}
     all_data = []
+    detailed_data = []
 
     for group, group_name in groups.items():
         group_path = os.path.join(group, 'dna_concatenates')
         for species in os.listdir(group_path):
+            temp_data = []
             sp_name = species.replace('concatenate_', '').replace('_', ' ').replace('.fasta', '')
             species_path = os.path.join(group_path, species)
             counts = {aa: {'A': 0, 'C': 0, 'G': 0, 'T': 0} for aa in fourfold_families.values()}
@@ -44,7 +47,6 @@ def fourfold_gc_content():
             overall_gc4 = 0
             stdev_gc4 = 0.0
             gc_values = []
-            print(f'Results for {sp_name} in {group} ---')
 
             for aa, nuc_counts in counts.items():
                 gc_count = nuc_counts['G'] + nuc_counts['C']
@@ -53,21 +55,43 @@ def fourfold_gc_content():
                 if sum_count > 0:
                     gc4_percent = round((gc_count / sum_count) * 100, 2)
                     gc_values.append(gc4_percent)
-                    print(f'{aa} GC4: {gc4_percent:.2f}% (n={sum_count})')
 
-                    total_gc4 += nuc_counts['G'] + nuc_counts['C']
+                    temp_data.append({
+                        'group': group_name, 
+                        'species': sp_name,
+                        'amino_acid': aa,
+                        'gc4_percent': gc4_percent,
+                        'count': sum_count
+                    })
+
+                    total_gc4 += gc_count
                     total_count += sum_count
+            #        
             if total_count > 0:
                 overall_gc4 = round((total_gc4 / total_count) * 100, 2)
-                stdev_gc4 = round(statistics.stdev(gc_values), 2) if len(gc_values) > 1 else 0.0
-                print(f'Overall GC4: {overall_gc4:.2f}%')
-                print(f'Variance (SD) between families: {stdev_gc4:.2f}')
 
-                all_data.append({'group': group_name, 'species': sp_name, 'overall_gc4': overall_gc4, 'stdev_gc4': stdev_gc4})
+                for item in temp_data:
+                    item['overall_gc4'] = overall_gc4
+                    item['bias'] = abs(round(item['gc4_percent'] - overall_gc4, 2))
+                    detailed_data.append(item)
+
+                stdev_gc4 = round(statistics.stdev(gc_values), 2) if len(gc_values) > 1 else 0.0
+
+                all_data.append({
+                    'group': group_name, 
+                    'species': sp_name, 
+                    'overall_gc4': overall_gc4, 
+                    'stdev_gc4': stdev_gc4
+                })
 
     df = pd.DataFrame(all_data)
     df.to_csv(csv_path, index=False)
+
+    detailed_df = pd.DataFrame(detailed_data)
+    detailed_df.to_csv(detailed_csv_path, index=False)
+
     print(f'Saved fourfold GC content data to {csv_path}')
+    print(f'Saved detailed fourfold GC content data to {detailed_csv_path}')
 
 def stat_analysis():
     '''
@@ -86,7 +110,9 @@ def stat_analysis():
         print('No significant difference in GC4 variation between groups')
     return t_stat, p_val
 
-def plot_results(df, p_val):
+def plot_results(df, detailed_df, p_val):
+    
+    #Boxplot of GC4 variation
     plt.figure(figsize=(8, 6))
     sns.boxplot(x='group', y='stdev_gc4', data=df, palette='Set2', hue = 'group')
     sns.stripplot(x='group', y='stdev_gc4', data=df, color='black', alpha=0.5)
@@ -132,10 +158,86 @@ def plot_results(df, p_val):
     plt.savefig('gc4_scatter.pdf')
     plt.close()
 
+    #Amino acid specific boxplots
+    plt.figure(figsize=(10, 6))
+    detailed_df = pd.read_csv(detailed_csv_path)
+    sns.boxplot(
+        x='amino_acid', 
+        y='gc4_percent', 
+        hue='group',
+        data=detailed_df, 
+        palette='Set2'
+        )
+    plt.stripplot(
+        x='amino_acid', 
+        y='gc4_percent', 
+        hue='group', 
+        data=detailed_df, 
+        color='black', 
+        alpha=0.5,
+        )
+    plt.title('GC4 Percentage by Amino Acid and Group')
+    plt.xlabel('Amino Acid')
+    plt.ylabel('GC4 Percentage (%)')
+    plt.tight_layout()
+    plt.savefig('gc4_amino_acid_boxplot.pdf')
+    plt.close()
+
+def amino_acid_bias(detailed_df):
+    '''
+    Determines the most/least biased amino acid for each species and group.
+    '''
+    idx_max = detailed_df.groupby(['group','species'])['bias'].idxmax()
+    max_bias = detailed_df.loc[idx_max]
+
+    idx_min = detailed_df.groupby(['group','species'])['bias'].idxmin()
+    min_bias = detailed_df.loc[idx_min]
+
+    print('Most Biased Amino Acids by Group:')
+    print(max_bias.groupby('group')['amino_acid'].value_counts())
+
+    print('\nLeast Biased Amino Acids by Group:')
+    print(min_bias.groupby('group')['amino_acid'].value_counts())
+
+    fig, axes = plt.subplots(1,2, figsize=(14,6), sharey=True)
+
+    sns.countplot(
+        x='amino_acid', 
+        hue='group', 
+        data=max_bias, 
+        palette='Set2',
+        order=detailed_df['amino_acid'].unique(),
+        ax=axes[0]
+        )
+    axes[0].set_title('Most Biased Amino Acids by Group')
+    axes[0].set_xlabel('Amino Acid')
+    axes[0].set_ylabel('Number of Species')
+
+    sns.countplot(
+        x='amino_acid', 
+        hue='group', 
+        data=min_bias, 
+        palette='Set2',
+        order=detailed_df['amino_acid'].unique(),
+        ax=axes[1]
+        )
+    axes[1].set_title('Least Biased Amino Acids by Group')
+    axes[1].set_xlabel('Amino Acid')
+    axes[1].set_ylabel('Number of Species')
+    plt.tight_layout()
+    plt.savefig('amino_acid_bias.pdf')
+    plt.close()
+
+
 if __name__ == '__main__':
-    if not os.path.exists(csv_path):
+    if not os.path.exists(csv_path) or not os.path.exists(detailed_csv_path):
+        print('Calculating fourfold GC content...')
         fourfold_gc_content()
+    else:
+        print('Fourfold GC content data already exists. Skipping calculation.')
 
     t_stat, p_val = stat_analysis()
     df = pd.read_csv(csv_path)
-    plot_results(df, p_val)
+    detailed_df = pd.read_csv(detailed_csv_path)
+    plot_results(df, detailed_df, p_val)
+    amino_acid_bias(detailed_df)
