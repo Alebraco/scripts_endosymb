@@ -38,6 +38,7 @@ for group in group_names.keys():
     for sp in species:
         IGS_lengths = []
         sp_path  = os.path.join(gff_folder, sp)
+        spname = sp.replace('_endosymbiont','').replace('_', ' ')
         for file in os.listdir(sp_path):
             if file.endswith('gff'):
                 file_path = os.path.join(sp_path, file)
