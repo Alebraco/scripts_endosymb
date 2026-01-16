@@ -10,7 +10,7 @@
 source ~/.bashrc
 conda activate /usr/local/usrapps/metastrain/asoneto/transposase
 
-TRANS_DB="files/IS_db.dmnd"
+TRANS_DB="files/IS_db_fixed.dmnd"
 INPUT_DIRS=('endosymb_only/proteins' 'relatives_only/proteins')
 
 START_IND=$((($LSB_JOBINDEX - 1) * 60))
@@ -31,7 +31,7 @@ for ((i=START_IND; i<=END_IND && i<${#ALL_FILES[@]}; i++)); do
         --db $TRANS_DB \
         --query $FAA_FILE \
         --out $OUTFILE \
-        --outfmt 6 qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore \
+        --outfmt 6 qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore qlen slen \
         --threads 8 \
         --evalue 1e-5 \
         --max-target-seqs 1
