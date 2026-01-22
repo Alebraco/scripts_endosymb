@@ -23,7 +23,7 @@ def gff_processing(file_path):
             continue
 
         # Record gene lengths
-        if feature.type == 'gene':
+        if feature.featuretype == 'gene':
             gene_length = end - start + 1
             gene_lengths.append(gene_length)
 
