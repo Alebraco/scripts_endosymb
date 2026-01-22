@@ -9,6 +9,7 @@ import matplotlib.pyplot as plt
 from scipy import stats
 import seaborn as sns
 from utils import files_dir
+from collections import Counter
 
 csv_path = os.path.join(files_dir,'fourfold_gc_content.csv')
 detailed_csv_path = os.path.join(files_dir,'fourfold_gc_detailed.csv')
@@ -66,7 +67,7 @@ def fourfold_gc_content():
 
                     total_gc4 += gc_count
                     total_count += sum_count
-            #        
+                    
             if total_count > 0:
                 overall_gc4 = round((total_gc4 / total_count) * 100, 2)
 
@@ -245,6 +246,20 @@ def amino_acid_bias(detailed_df):
     plt.savefig('gc4_amino_acid_bias.pdf')
     plt.close()
 
+def counts_matrix(detailed_df):
+    '''
+    Creates a counts matrix of amino acid biases per species and group.
+    '''
+    matrix = detailed_df.pivot_table(
+        index=['group', 'species'], 
+        columns='amino_acid', 
+        values='count', 
+        fill_value=0
+    )
+
+    output_csv = os.path.join(files_dir, 'fourfold_counts_matrix.csv')
+    matrix.to_csv(output_csv)
+    print(f'Saved fourfold counts matrix to {output_csv}')
 
 if __name__ == '__main__':
     if not os.path.exists(csv_path) or not os.path.exists(detailed_csv_path):
@@ -253,8 +268,10 @@ if __name__ == '__main__':
     else:
         print('Fourfold GC content data already exists. Skipping calculation.')
 
-    t_stat, p_val = stat_analysis()
     df = pd.read_csv(csv_path)
     detailed_df = pd.read_csv(detailed_csv_path)
+    counts_matrix(detailed_df)
+
+    t_stat, p_val = stat_analysis()
     plot_results(df, detailed_df, p_val)
     amino_acid_bias(detailed_df)
