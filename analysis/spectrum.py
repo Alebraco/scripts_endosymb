@@ -6,13 +6,15 @@ from itertools import combinations
 from Bio import SeqIO
 import pandas as pd
 import matplotlib
+
+from gcsize_dict import genome_gcsize
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
 
 from distance_matrix import distance_matrix
-from utils import files_dir, load_or_compute_pickle
+from utils import files_dir, genome_gcsize_json_path, load_or_compute_pickle, load_or_compute
 
 output_csv = 'spectrum_rates.csv'
 data_dir = 'files'
@@ -521,6 +523,77 @@ def rate_shift_plot(df):
         plt.savefig(os.path.join(plot_dir, f'rate_shift_{mut.replace("→","_")}.pdf'))
         plt.close()
 
+def rate_shift_plot_gc(df):
+    
+    genome_json = genome_gcsize_json_path('endosymb_only')
+    genome_dataset = load_or_compute(genome_json, genome_gcsize, 'endosymb_only')
+
+    sp_gc_values = {}
+    for sp, genomes in genome_dataset.items():
+        sp_name = ' '.join(sp.split('_endosymbiont')[0].split('_'))
+
+        gc_data = [data.get('gc_genome', np.nan) for data in genomes.values()]
+        if gc_data:
+            sp_gc_values[sp_name] = np.mean(gc_data)
+        else:
+            sp_gc_values[sp_name] = np.nan
+    
+    df_pivot = df.pivot_table(index='Species', 
+                              columns='Group', 
+                              values=mutation_types, 
+                              aggfunc='median').dropna()
+    for mut in mutation_types:
+        plt.figure(figsize=(8, 8))
+        current_data = df_pivot[mut].dropna()
+        
+        relative_rates = current_data[('Free-Living Control Pairs')]
+        endosymbiont_rates = current_data[('Endosymbiont Control Pairs')]
+        
+        current_gcs = [sp_gc_values.get(sp, np.nan) for sp in current_data.index]
+
+        scatter = plt.scatter(x=relative_rates, 
+                              y=endosymbiont_rates,
+                              c=current_gcs,
+                              cmap='viridis',
+                              edgecolors='black',
+                              s=60,
+                              alpha=0.8,
+                              zorder=2,
+                              label='Species')
+        # Annotate points (species names)
+        texts = []
+        for sp_name in current_data.index:
+            x_val = relative_rates.loc[sp_name]
+            y_val = endosymbiont_rates.loc[sp_name]
+            t = plt.text(x_val, y_val, sp_name, fontsize=8, alpha=0.8, zorder = 3)
+            texts.append(t)
+            
+        cbar = plt.colorbar(scatter)
+        cbar.set_label('Endosymbiont GC Content (%)', rotation=270, labelpad=25)
+        
+        plt.axline((0, 0), slope=1, color='gray', linestyle='--', linewidth=1, label='y=x (No shift)')
+        plt.xlim(-0.05, 1.05)
+        plt.ylim(-0.05, 1.05)
+        
+        adjust_text(texts, 
+            only_move={'points':'y', 'texts':'xy'}, 
+            force_points=0.03,
+            force_text=2.0, 
+            expand_points=(2.1, 2.1),
+            expand_text=(1.5, 1.5),
+            autoalign='y',
+            add_objects=[scatter]
+            )
+
+        plt.title(f'{mut.replace("r","")} Median Rate Shift\nEndosymbionts vs Free-Living Relatives', fontsize=16)
+        plt.xlabel('Free-Living Relatives')
+        plt.ylabel('Endosymbionts')
+        plt.legend()
+        plt.tight_layout()
+        
+        plt.savefig(os.path.join(plot_dir, f'rate_shift_GC_{mut.replace("→","_")}.pdf'))
+        plt.close()
+    
 if __name__ == '__main__':
     if os.path.exists(csv_path):
         # run_diagnostic()  
@@ -528,9 +601,12 @@ if __name__ == '__main__':
         plot_distributions(df)
         plot_species_grid(df)
         rate_shift_plot(df)
+        rate_shift_plot_gc(df)
     else:
         print('File not found, run mutation analysis first.')
         run_mutation_analysis()
         df = load_data(csv_path)
         plot_distributions(df)
         plot_species_grid(df)
+        rate_shift_plot(df)
+        rate_shift_plot_gc(df)
