@@ -256,6 +256,8 @@ def counts_matrix(detailed_df):
         values='count', 
         fill_value=0
     )
+    matrix['Total'] = matrix.sum(axis=1)
+    matrix = matrix.astype(int)
 
     output_csv = os.path.join(files_dir, 'fourfold_counts_matrix.csv')
     matrix.to_csv(output_csv)
