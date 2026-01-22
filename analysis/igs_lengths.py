@@ -12,29 +12,38 @@ def gff_processing(file_path):
     
     IGS_sizes = []
     gene_lengths = []
+    cds_lengths = []
     IGS_start = None
 
-    for feature in db.all_features(order_by = ('seqid', 'start', 'end')):
-        start = feature.start
-        end = feature.end
+    target_features = ['gene', 'CDS']
 
-        # Skip region features (they span entire sequences)
-        if feature.featuretype == 'region':
+    for feature in db.all_features(order_by = ('seqid', 'start', 'end')):
+        if feature.featuretype not in target_features:
             continue
 
+        start = feature.start
+        end = feature.end
+        length = end - start + 1
+
+        # Record CDS lengths
+        if feature.featuretype == 'CDS':
+            cds_lengths.append(length)
         # Record gene lengths
         if feature.featuretype == 'gene':
-            gene_length = end - start + 1
-            gene_lengths.append(gene_length)
+            gene_lengths.append(length)
 
         # Calculate IGS sizes
         if IGS_start:
             IGS_size = start - IGS_start - 1
             if IGS_size > 0:
                 IGS_sizes.append(IGS_size)
-        IGS_start = end
 
-    return IGS_sizes, gene_lengths
+        if IGS_start is None or end > IGS_start:
+            IGS_start = end
+
+    final_lengths = gene_lengths if len(gene_lengths) > 0 else cds_lengths
+
+    return IGS_sizes, final_lengths
 
 all_igs_data = []
 all_gene_data = []
@@ -56,17 +65,18 @@ for group in group_names.keys():
                 IGS_sizes, gene_lengths = gff_processing(file_path)
                 for size in IGS_sizes:
                     all_igs_data.append({'group': group_names[group],
-                                     'species': sp, 'IGS_Size': size, 
+                                     'species': spname, 'IGS_Size': size, 
                                      'file': file})
                 for length in gene_lengths:
                     all_gene_data.append({'group': group_names[group],
-                                     'species': sp, 'Gene_Length': length,
+                                     'species': spname, 'Gene_Length': length,
                                      'file': file})
 
 if all_igs_data:                    
-    #Show overall median IGS per species, for each group
     df = pd.DataFrame(all_igs_data)
+    # Median per file
     summary_df = df.groupby(['group', 'species', 'file'])['IGS_Size'].median().reset_index()
+    # Mean of Medians per Species
     summary_df = summary_df.groupby(['group', 'species']).agg({
         'IGS_Size': 'mean',
         'file': 'count'
@@ -76,9 +86,12 @@ if all_igs_data:
     df.to_csv(os.path.join(files_dir, 'all_IGS_data.csv'), index = False)
 
 if all_gene_data:
-    #Show average Gene Length per species, for each group
     df_gene = pd.DataFrame(all_gene_data)
-    summary_gene_df = df_gene.groupby(['group', 'species']).agg({
+    # Mean per file
+    summary_gene_df = df_gene.groupby(['group', 'species', 'file']).agg({
+        'Gene_Length': 'mean'}).reset_index()
+    # Mean of Mean per Species
+    summary_gene_df = summary_gene_df.groupby(['group', 'species']).agg({
         'Gene_Length': 'mean',
         'file': 'count'
     }).rename(columns = {'Gene_Length': 'mean_gene_length', 'file': 'num_genomes'}).reset_index()
