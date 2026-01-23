@@ -9,4 +9,4 @@
 
 source ~/.bashrc
 conda activate /usr/local/usrapps/metastrain/asoneto/annotation/
-python3 -u spectrum.py
+python3 -u scripts_endosymb/analysis/spectrum.py
