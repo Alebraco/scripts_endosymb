@@ -20,17 +20,25 @@ def gff_processing(file_path):
     for feature in db.all_features(order_by = ('seqid', 'start', 'end')):
         if feature.featuretype not in target_features:
             continue
-
+        
+        # Determine pseudogene status
+        pseudo = False
+        if 'pseudo' in feature.attributes:
+            if feature.attributes['pseudo'][0].lower() == 'true':
+                pseudo = True
+        
         start = feature.start
         end = feature.end
         length = end - start + 1
 
-        # Record CDS lengths
-        if feature.featuretype == 'CDS':
-            cds_lengths.append(length)
-        # Record gene lengths
-        if feature.featuretype == 'gene':
-            gene_lengths.append(length)
+        # Only consider true genes
+        if not pseudo:
+            # Record CDS lengths
+            if feature.featuretype == 'CDS':
+                cds_lengths.append(length)
+            # Record gene lengths
+            if feature.featuretype == 'gene':
+                gene_lengths.append(length)
 
         # Calculate IGS sizes
         if IGS_start:
