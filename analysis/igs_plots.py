@@ -7,6 +7,8 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from utils import files_dir
 
+plot_dir = os.path.join('plots', 'igs_lengths')
+os.makedirs(plot_dir, exist_ok=True)
 group_colors = {
 # 'Endosymbionts and Free-Living Relatives' : '#1f77b4',
 'Endosymbionts Only' : '#FC8D62FF',
@@ -27,7 +29,7 @@ plt.ylabel('IGS Size (bp)')
 plt.title('Intergenic Space Size Distribution by Species and Group')
 plt.legend(title = 'Group')
 plt.tight_layout()
-plt.savefig('IGS_total_boxplot.pdf')
+plt.savefig(os.path.join(plot_dir, 'IGS_total_boxplot.pdf'))
 plt.close()
 
 
@@ -44,7 +46,7 @@ plt.title('Intergenic Space (IGS) Size by Group')
 plt.xlabel('Group')
 plt.ylabel('IGS Size (bp)')
 plt.tight_layout()
-plt.savefig('IGS_mean_boxplot.pdf')
+plt.savefig(os.path.join(plot_dir, 'IGS_mean_boxplot.pdf'))
 plt.close()
 
 plt.figure(figsize=(8,8))
@@ -71,5 +73,5 @@ plt.ylabel('Free-Living Relatives Only')
 plt.margins(x=0.1)
 plt.title('Mean Intergenic Space Size (bp)\nEndosymbionts vs Free-Living Relatives')
 plt.tight_layout()
-plt.savefig('IGS_scatterplot.pdf')
+plt.savefig(os.path.join(plot_dir, 'IGS_scatterplot.pdf'))
 plt.close()

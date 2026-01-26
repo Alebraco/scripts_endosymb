@@ -15,7 +15,7 @@ def gff_processing(file_path):
     cds_lengths = []
     IGS_start = None
 
-    target_features = ['gene', 'CDS']
+    target_features = ['gene', 'CDS', 'rRNA']
 
     for feature in db.all_features(order_by = ('seqid', 'start', 'end')):
         if feature.featuretype not in target_features:
@@ -40,14 +40,14 @@ def gff_processing(file_path):
             if feature.featuretype == 'gene':
                 gene_lengths.append(length)
 
-        # Calculate IGS sizes
-        if IGS_start:
-            IGS_size = start - IGS_start - 1
-            if IGS_size > 0:
-                IGS_sizes.append(IGS_size)
+            # Calculate IGS sizes if not pseudo gene
+            if IGS_start:
+                IGS_size = start - IGS_start - 1
+                if IGS_size > 0:
+                    IGS_sizes.append(IGS_size)
 
-        if IGS_start is None or end > IGS_start:
-            IGS_start = end
+            if IGS_start is None or end > IGS_start:
+                IGS_start = end
 
     final_lengths = gene_lengths if len(gene_lengths) > 0 else cds_lengths
 
