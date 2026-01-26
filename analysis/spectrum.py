@@ -615,7 +615,7 @@ def rate_shift_plot_gc(df):
         plt.legend()
         plt.tight_layout()
         
-        plt.savefig(os.path.join(plot_dir, f'rate_shift_GC_{mut.replace("→","_")}.pdf'))
+        plt.savefig(os.path.join(plot_dir, f'gcabs_rate_shift_{mut.replace("→","_")}.pdf'))
         plt.close()
     
 if __name__ == '__main__':

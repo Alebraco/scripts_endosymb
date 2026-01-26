@@ -25,7 +25,7 @@ from utils import (
 )
 
 if len(sys.argv) != 5:
-    print('Usage: gc_main_analysis.py <group> <matrix1_type> <matrix2_type> <mean/matrix>')
+    print('Usage: main_analysis.py <group> <matrix1_type> <matrix2_type> <mean/matrix>')
     sys.exit(1)
 if '/' in sys.argv[1]:
     print('Defined group must be a string, not a folder.')
