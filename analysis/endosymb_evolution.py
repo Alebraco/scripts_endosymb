@@ -13,10 +13,10 @@ from utils import (
     load_or_compute,
     load_or_compute_pickle,
     genome_gcsize_json_path,
-    files_dir,
-    plot_dir
+    files_dir
 )
 
+plot_dir = os.path.join('plots', 'endosymb_evolution')
 # Size - GC - Evolutionary Distance Plot
 def sge_data(mode = 'mean'):
 
@@ -75,6 +75,7 @@ def sge_data(mode = 'mean'):
                 })
 
     df = pd.DataFrame(all_data)
+    df.to_csv(os.path.join(files_dir, f'endosymb_evolution_data.csv'), index=False)
     return df
 
 def seg_plot(df):
@@ -97,17 +98,15 @@ def seg_plot(df):
 
     plt.tight_layout()
     plt.savefig(os.path.join(plot_dir, f'endosymb_evolution.pdf'))
-    df.to_csv(os.path.join(files_dir, f'endosymb_evolution_data.csv'), index=False)
-
     plt.close()
 
 if __name__ == '__main__':
-    csv_path = os.path.join(files_dir, 'endosymb_evolution.csv')
+    csv_path = os.path.join(files_dir, 'endosymb_evolution_data.csv')
     if os.path.exists(csv_path):
-        print('Loading existing data...')
+        print('Loading existing data.')
         df = pd.read_csv(csv_path)
     else:
-        print('Computing data...')
+        print('Computing data.')
         df = sge_data(mode='mean')
     seg_plot(df)
     print('Plot saved.')
