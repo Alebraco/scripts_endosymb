@@ -14,6 +14,8 @@ import numpy as np
 import seaborn as sns
 
 from distance_matrix import distance_matrix
+from delta_matrix import delta_matrix
+from gcsize_dict import genome_gcsize
 from utils import files_dir, genome_gcsize_json_path, load_or_compute_pickle, load_or_compute
 
 output_csv = 'spectrum_rates.csv'
@@ -433,18 +435,34 @@ def run_mutation_analysis():
 #     plt.savefig(os.path.join(plot_dir, f'rate_shift_{mut.replace("→","_")}.pdf'))
 #     plt.close()
 
-def rate_shift_plot(df):
+def rate_shift_plot(df, color_by = 'distance'):
     '''
-    Regression plots comparing rates between control groups to determine mutation rate shifts by species.
+    Plots comparing mutation rates between endosymbionts and relatives, colored by genetic distance or GC content.
     '''
-    distance_matrices = load_or_compute_pickle(
-                        os.path.join(files_dir, 'distances_endosymb+relatives.pkl'),
-                        distance_matrix,
-                        'endosymb+relatives'
-                        )
+    if color_by not in ['distance', 'gc_genome']:
+        print('Invalid color_by option. Choose "distance" or "gc_genome".')
+        return
+    if color_by == 'distance':
+        matrices = load_or_compute_pickle(
+                            os.path.join(files_dir, 'distances_endosymb+relatives.pkl'),
+                            distance_matrix,
+                            'endosymb+relatives'
+                            )
+        cmap = 'magma'
+        cbar_label = 'Median Genetic Distance\n(Endosymbiont-Relative Pairs)'
+
+    elif color_by == 'gc_genome':
+        genome_dataset = load_or_compute(
+                            genome_gcsize_json_path('endosymb+relatives'),
+                            genome_gcsize,
+                            'endosymb+relatives'
+                            )
+        matrices = delta_matrix(genome_dataset, 'gc_genome')
+        cmap = 'seismic'
+        cbar_label = 'Median Delta GC (%)\n(Endosymbiont-Relative Pairs)'
     
-    species_distances = {}
-    for species_key, matrix in distance_matrices.items():
+    species_metric = {}
+    for species_key, matrix in matrices.items():
         sp_name = species_key.replace('_endosymbiont', '').replace('_', ' ')
         
         i, j = np.triu_indices_from(matrix, k=1)
@@ -458,7 +476,7 @@ def rate_shift_plot(df):
                 continue
             dist_list.append(matrix.loc[id1, id2])
         
-        species_distances[sp_name] = np.median(dist_list)
+        species_metric[sp_name] = np.median(dist_list)
 
     df_pivot = df.pivot_table(index='Species', 
                               columns='Group', 
@@ -473,19 +491,25 @@ def rate_shift_plot(df):
         relative_rates = current_data[('Free-Living Control Pairs')]
         endosymbiont_rates = current_data[('Endosymbiont Control Pairs')]
         
-        current_distances = [species_distances.get(sp, np.nan) for sp in current_data.index]
-        
-        # Cap color scale at 95th percentile to avoid outlier compression
-        vmax_threshold = np.nanpercentile(current_distances, 95)
+        current_metric = [species_metric.get(sp, np.nan) for sp in current_data.index]
+
+        if color_by == 'gc_genome':
+            limit = np.nanmax(np.abs(current_metric))
+            vmax_threshold = limit
+            vmin_val = -limit
+        elif color_by == 'distance':
+            # Cap color scale at 95th percentile to avoid outlier compression
+            vmax_threshold = np.nanpercentile(current_metric, 95)
+            vmin_val = np.nanmin(current_metric)
 
         scatter = plt.scatter(x=relative_rates, 
                               y=endosymbiont_rates,
-                              c=current_distances,
-                              cmap='magma',
+                              c=current_metric,
+                              cmap=cmap,
                               edgecolors='black',
                               s=60,
                               alpha=0.8,
-                              vmin=np.nanmin(current_distances),
+                              vmin=vmin_val,
                               vmax=vmax_threshold,
                               zorder=2,
                               label='Species')
@@ -498,7 +522,7 @@ def rate_shift_plot(df):
             texts.append(t)
             
         cbar = plt.colorbar(scatter)
-        cbar.set_label('Median Genetic Distance\n(Endosymbiont-Relative Pairs)', rotation=270, labelpad=25)
+        cbar.set_label(cbar_label, rotation=270, labelpad=25)
         
         plt.axline((0, 0), slope=1, color='gray', linestyle='--', linewidth=1, label='y=x (No shift)')
         plt.xlim(-0.05, 1.05)
@@ -520,7 +544,7 @@ def rate_shift_plot(df):
         plt.legend()
         plt.tight_layout()
         
-        plt.savefig(os.path.join(plot_dir, f'rate_shift_{mut.replace("→","_")}.pdf'))
+        plt.savefig(os.path.join(plot_dir, f'rate_shift_{mut.replace("→","_")}_{color_by}.pdf'))
         plt.close()
 
 def rate_shift_plot_gc(df):
@@ -600,7 +624,8 @@ if __name__ == '__main__':
         df = load_data(csv_path)
         plot_distributions(df)
         plot_species_grid(df)
-        rate_shift_plot(df)
+        rate_shift_plot(df, color_by='distance')
+        rate_shift_plot(df, color_by='gc_genome')
         rate_shift_plot_gc(df)
     else:
         print('File not found, run mutation analysis first.')
@@ -608,5 +633,6 @@ if __name__ == '__main__':
         df = load_data(csv_path)
         plot_distributions(df)
         plot_species_grid(df)
-        rate_shift_plot(df)
+        rate_shift_plot(df, color_by='distance')
+        rate_shift_plot(df, color_by='gc_genome')
         rate_shift_plot_gc(df)
