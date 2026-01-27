@@ -17,6 +17,7 @@ from utils import (
 )
 
 plot_dir = os.path.join('plots', 'endosymb_evolution')
+os.makedirs(plot_dir, exist_ok=True)
 # Size - GC - Evolutionary Distance Plot
 def sge_data(mode = 'mean'):
 

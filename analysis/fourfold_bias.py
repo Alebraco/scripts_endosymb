@@ -13,6 +13,8 @@ from collections import Counter
 
 csv_path = os.path.join(files_dir,'fourfold_gc_content.csv')
 detailed_csv_path = os.path.join(files_dir,'fourfold_gc_detailed.csv')
+plot_dir = os.path.join('plots', 'fourfold_bias')
+os.makedirs(plot_dir, exist_ok=True)
 
 def fourfold_gc_content():
     '''
@@ -140,7 +142,7 @@ def plot_results(df, detailed_df, p_val):
     plt.xlabel('Group')
     plt.ylabel('Standard Deviation of GC4 (%)')
     plt.tight_layout()
-    plt.savefig('gc4_boxplot.pdf')
+    plt.savefig(os.path.join(plot_dir, 'gc4_boxplot.pdf'))
     plt.close()
 
     plt.figure(figsize=(8, 6))
@@ -157,7 +159,7 @@ def plot_results(df, detailed_df, p_val):
     plt.xlabel('Overall GC4 (%)')
     plt.ylabel('Standard Deviation of GC4 (%)')
     plt.tight_layout()
-    plt.savefig('gc4_scatter.pdf')
+    plt.savefig(os.path.join(plot_dir, 'gc4_scatter.pdf'))
     plt.close()
 
     #Amino acid specific boxplots
@@ -188,7 +190,7 @@ def plot_results(df, detailed_df, p_val):
     plt.xlabel('Amino Acid')
     plt.ylabel('GC4 Percentage (%)')
     plt.tight_layout()
-    plt.savefig('gc4_amino_acid_boxplot.pdf')
+    plt.savefig(os.path.join(plot_dir, 'gc4_amino_acid_boxplot.pdf'))
     plt.close()
 
 def amino_acid_bias(detailed_df):
@@ -243,7 +245,7 @@ def amino_acid_bias(detailed_df):
     axes[1].set_xlabel('Amino Acid')
     axes[1].set_ylabel('Number of Species')
     plt.tight_layout()
-    plt.savefig('gc4_amino_acid_bias.pdf')
+    plt.savefig(os.path.join(plot_dir, 'gc4_amino_acid_bias.pdf'))
     plt.close()
 
 def counts_matrix(detailed_df):
