@@ -55,7 +55,7 @@ def sge_data(mode = 'mean'):
 
         if mode == 'mean':
             gc = np.median([genome_data[genome_id]['gc_genome'] for genome_id in endosymb_ids])
-            size = np.median([genome_data[genome_id]['genome_size'] for genome_id in endosymb_ids])
+            size = np.median([genome_data[genome_id]['size'] for genome_id in endosymb_ids])
             
             all_data.append({
                 'species': sp_name,
@@ -70,7 +70,7 @@ def sge_data(mode = 'mean'):
                 all_data.append({
                     'species': sp_name,
                     'gc': genome_data[genome_id]['gc_genome'],
-                    'size': genome_data[genome_id]['genome_size'],
+                    'size': genome_data[genome_id]['size'],
                     'distance': median_distance
                 })
 
