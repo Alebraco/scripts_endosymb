@@ -193,6 +193,39 @@ def plot_results(df, detailed_df, p_val):
     plt.savefig(os.path.join(plot_dir, 'gc4_amino_acid_boxplot.pdf'))
     plt.close()
 
+def overall_score(detailed_df):
+    '''
+    Ranks species from most neutral to least neutral based on average GC4 bias.
+    '''
+
+    scores = detailed_df.groupby(['group','species'])['bias'].mean().reset_index()
+    scores.rename(columns={'bias':'score'}, inplace=True)
+
+    scores = scores.sort_values(by='score', ascending=True)
+ 
+    output_csv = os.path.join(files_dir, 'neutrality_scores.csv')
+    scores.to_csv(output_csv, index=False)
+    print(f'Saved neutrality scores to {output_csv}')
+
+    plt.figure(figsize=(8, 6))
+    
+    sns.barplot(
+        x='score',
+        y='species',
+        hue='group',
+        hue_order=['Relatives','Endosymbionts'],
+        data=scores,
+        palette='Set2'
+        )
+    
+    plt.title('Species Neutrality Scores Based on Average GC4 Bias')
+    plt.xlabel('Neutrality Score (Lower = More Neutral)')
+    plt.ylabel('Species')
+    plt.tight_layout()
+    plt.savefig(os.path.join(plot_dir, 'neutrality_scores.pdf'))
+    plt.close()
+
+
 def amino_acid_bias(detailed_df):
     '''
     Determines the most/least biased amino acid for each species and group.
@@ -250,7 +283,7 @@ def amino_acid_bias(detailed_df):
 
 def counts_matrix(detailed_df):
     '''
-    Creates a counts matrix of amino acid biases per species and group.
+    Creates a counts matrix of fourfold degenerate amino acids per species and group.
     '''
     matrix = detailed_df.pivot_table(
         index=['group', 'species'], 
