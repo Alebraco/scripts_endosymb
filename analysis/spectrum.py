@@ -439,6 +439,9 @@ def rate_shift_plot(df, color_by = 'distance'):
     '''
     Plots comparing mutation rates between endosymbionts and relatives, colored by genetic distance or GC content.
     '''
+
+    species_metric = {}
+
     if color_by not in ['distance', 'gc_genome']:
         print('Invalid color_by option. Choose "distance" or "gc_genome".')
         return
@@ -448,6 +451,24 @@ def rate_shift_plot(df, color_by = 'distance'):
                             distance_matrix,
                             'endosymb+relatives'
                             )
+        
+        for species_key, matrix in matrices.items():
+            sp_name = species_key.replace('_endosymbiont', '').replace('_', ' ')
+            
+            i, j = np.triu_indices_from(matrix, k=1)
+            ids = matrix.index.tolist()
+            
+            dist_list = []
+            for index1, index2 in zip(i, j):
+                id1, id2 = ids[index1], ids[index2]
+                # Only compare across endosymbiont-relative pairs
+                if ('_genomic' in id1) == ('_genomic' in id2):
+                    continue
+                dist_list.append(matrix.loc[id1, id2])
+            
+            if dist_list:
+                species_metric[sp_name] = np.median(dist_list)
+
         cmap = 'magma'
         cbar_label = 'Median Genetic Distance\n(Endosymbiont-Relative Pairs)'
 
@@ -457,26 +478,19 @@ def rate_shift_plot(df, color_by = 'distance'):
                             genome_gcsize,
                             'endosymb+relatives'
                             )
-        matrices = delta_matrix(genome_dataset, 'gc_genome')
+
+        for sp, genomes in genome_dataset.items():
+            sp_name = ' '.join(sp.split('_endosymbiont')[0].split('_'))
+
+            endosymb_gcs = [g['gc_genome'] for genome_id, g in genomes.items() if '_genomic' not in genome_id]
+            relatives_gcs = [g['gc_genome'] for genome_id, g in genomes.items() if '_genomic' in genome_id]
+
+            if endosymb_gcs and relatives_gcs:
+                species_metric[sp_name] = np.median(endosymb_gcs) - np.median(relatives_gcs)
+
         cmap = 'seismic'
-        cbar_label = 'Median Delta GC (%)\n(Endosymbiont-Relative Pairs)'
+        cbar_label = 'Median ΔGC (%)\n(Endosymbiont - Relatives)'
     
-    species_metric = {}
-    for species_key, matrix in matrices.items():
-        sp_name = species_key.replace('_endosymbiont', '').replace('_', ' ')
-        
-        i, j = np.triu_indices_from(matrix, k=1)
-        ids = matrix.index.tolist()
-        
-        dist_list = []
-        for index1, index2 in zip(i, j):
-            id1, id2 = ids[index1], ids[index2]
-            # Only compare across endosymbiont-relative pairs
-            if ('_genomic' in id1) == ('_genomic' in id2):
-                continue
-            dist_list.append(matrix.loc[id1, id2])
-        
-        species_metric[sp_name] = np.median(dist_list)
 
     df_pivot = df.pivot_table(index='Species', 
                               columns='Group', 
