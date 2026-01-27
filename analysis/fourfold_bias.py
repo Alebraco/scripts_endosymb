@@ -86,6 +86,8 @@ def fourfold_gc_content():
                     'overall_gc4': overall_gc4, 
                     'stdev_gc4': stdev_gc4
                 })
+            else:
+                print(f"WARNING: Dropping {sp_name} (Group: {group_name}) - No fourfold codons found.")
 
     df = pd.DataFrame(all_data)
     df.to_csv(csv_path, index=False)
