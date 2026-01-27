@@ -312,3 +312,4 @@ if __name__ == '__main__':
     t_stat, p_val = stat_analysis()
     plot_results(df, detailed_df, p_val)
     amino_acid_bias(detailed_df)
+    overall_score(detailed_df)
