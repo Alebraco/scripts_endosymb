@@ -32,7 +32,7 @@ def fourfold_gc_content():
         group_path = os.path.join(group, 'dna_concatenates')
         for species in os.listdir(group_path):
             temp_data = []
-            sp_name = species.replace('concatenate_', '').replace('_', ' ').replace('.fasta', '')
+            sp_name = species.replace('_endosymbiont', '').replace('concatenate_', '').replace('_', ' ').replace('.fasta', '')
             species_path = os.path.join(group_path, species)
             counts = {aa: {'A': 0, 'C': 0, 'G': 0, 'T': 0} for aa in fourfold_families.values()}
             for record in SeqIO.parse(species_path, 'fasta'):
@@ -203,13 +203,14 @@ def overall_score(detailed_df):
     scores = detailed_df.groupby(['group','species'])['bias'].mean().reset_index()
     scores.rename(columns={'bias':'score'}, inplace=True)
 
-    fig, axes = plt.subplots(1,2, figsize=(12,6), sharex=True)
+    fig, axes = plt.subplots(1,2, figsize=(12,8), sharex=True)
     groups = ['Relatives','Endosymbionts']
     colors = sns.color_palette('Set2', n_colors=2)
 
     for i, group in enumerate(groups):
         group_data = scores[scores['group'] == group]
         group_data = group_data.sort_values(by='score', ascending=True)
+        group_data = group_data[group_data['species'] != 'Candidatus Zinderia endosymbiont']
         sns.barplot(
             x = 'score',
             y = 'species',
@@ -218,16 +219,16 @@ def overall_score(detailed_df):
             ax=axes[i]
             )
         
-        axes[i].set_title(f'{group} Neutrality Score Distribution')
+        axes[i].set_title(f'{group} Score Distribution')
         axes[i].set_xlabel('Neutrality Score')
         axes[i].set_ylabel('')
     
-    plt.suptitle('Species Neutrality Scores Based on Average GC4 Bias', y=1.02)
+    plt.suptitle('Species Neutrality Scores Based on Average GC4 Bias')
  
     output_csv = os.path.join(files_dir, 'neutrality_scores.csv')
     scores.to_csv(output_csv, index=False)
     print(f'Saved neutrality scores to {output_csv}')
-    
+
     plt.tight_layout()
     plt.savefig(os.path.join(plot_dir, 'neutrality_scores.pdf'))
     plt.close()
