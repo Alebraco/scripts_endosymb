@@ -486,10 +486,10 @@ def rate_shift_plot(df, color_by = 'distance'):
             relatives_gcs = [g['gc_genome'] for genome_id, g in genomes.items() if '_genomic' in genome_id]
 
             if endosymb_gcs and relatives_gcs:
-                species_metric[sp_name] = np.median(endosymb_gcs) - np.median(relatives_gcs)
+                species_metric[sp_name] = abs(np.median(endosymb_gcs) - np.median(relatives_gcs))
 
-        cmap = 'seismic'
-        cbar_label = 'Median ΔGC (%)\n(Endosymbiont - Relatives)'
+        cmap = 'Greys'
+        cbar_label = 'Absolute ΔGC (%)'
     
 
     df_pivot = df.pivot_table(index='Species', 
@@ -510,7 +510,7 @@ def rate_shift_plot(df, color_by = 'distance'):
         if color_by == 'gc_genome':
             limit = np.nanmax(np.abs(current_metric))
             vmax_threshold = limit
-            vmin_val = -limit
+            vmin_val = 0
         elif color_by == 'distance':
             # Cap color scale at 95th percentile to avoid outlier compression
             vmax_threshold = np.nanpercentile(current_metric, 95)

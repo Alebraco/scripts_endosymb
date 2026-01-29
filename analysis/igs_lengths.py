@@ -82,15 +82,15 @@ for group in group_names.keys():
 
 if all_igs_data:                    
     df = pd.DataFrame(all_igs_data)
-    # Median per file
-    summary_df = df.groupby(['group', 'species', 'file'])['IGS_Size'].median().reset_index()
-    # Mean of Medians per Species
+    # Mean per file
+    summary_df = df.groupby(['group', 'species', 'file'])['IGS_Size'].mean().reset_index()
+    # Mean of Means per Species
     summary_df = summary_df.groupby(['group', 'species']).agg({
         'IGS_Size': 'mean',
         'file': 'count'
-    }).rename(columns = {'IGS_Size': 'mean_median_IGS', 'file': 'num_genomes'}).reset_index()
+    }).rename(columns = {'IGS_Size': 'mean_mean_IGS', 'file': 'num_genomes'}).reset_index()
 
-    summary_df.to_csv(os.path.join(files_dir, 'medianIGS.csv'), index = False)
+    summary_df.to_csv(os.path.join(files_dir, 'meanIGS.csv'), index = False)
     df.to_csv(os.path.join(files_dir, 'all_IGS_data.csv'), index = False)
 
 if all_gene_data:
