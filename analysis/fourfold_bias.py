@@ -203,26 +203,31 @@ def overall_score(detailed_df):
     scores = detailed_df.groupby(['group','species'])['bias'].mean().reset_index()
     scores.rename(columns={'bias':'score'}, inplace=True)
 
-    scores = scores.sort_values(by='score', ascending=True)
+    fig, axes = plt.subplots(1,2, figsize=(12,6), sharex=True)
+    groups = ['Relatives','Endosymbionts']
+    colors = sns.color_palette('Set2', n_colors=2)
+
+    for i, group in enumerate(groups):
+        group_data = scores[scores['group'] == group]
+        group_data = group_data.sort_values(by='score', ascending=True)
+        sns.barplot(
+            x = 'score',
+            y = 'species',
+            data = group_data,
+            color=colors[i],
+            ax=axes[i]
+            )
+        
+        axes[i].set_title(f'{group} Neutrality Score Distribution')
+        axes[i].set_xlabel('Neutrality Score')
+        axes[i].set_ylabel('')
+    
+    plt.suptitle('Species Neutrality Scores Based on Average GC4 Bias', y=1.02)
  
     output_csv = os.path.join(files_dir, 'neutrality_scores.csv')
     scores.to_csv(output_csv, index=False)
     print(f'Saved neutrality scores to {output_csv}')
-
-    plt.figure(figsize=(8, 6))
     
-    sns.barplot(
-        x='score',
-        y='species',
-        hue='group',
-        hue_order=['Relatives','Endosymbionts'],
-        data=scores,
-        palette='Set2'
-        )
-    
-    plt.title('Species Neutrality Scores Based on Average GC4 Bias')
-    plt.xlabel('Neutrality Score (Lower = More Neutral)')
-    plt.ylabel('Species')
     plt.tight_layout()
     plt.savefig(os.path.join(plot_dir, 'neutrality_scores.pdf'))
     plt.close()
