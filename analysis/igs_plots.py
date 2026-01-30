@@ -5,7 +5,10 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import seaborn as sns
-from utils import files_dir
+import numpy as np
+from delta_matrix import delta_matrix
+from gcsize_dict import genome_gcsize
+from utils import files_dir, genome_gcsize_json_path, load_or_compute
 
 plot_dir = os.path.join('plots', 'igs_lengths')
 os.makedirs(plot_dir, exist_ok=True)
@@ -75,3 +78,34 @@ plt.title('Intergenic Space Size (bp)\nEndosymbionts vs Free-Living Relatives')
 plt.tight_layout()
 plt.savefig(os.path.join(plot_dir, 'IGS_scatterplot.pdf'))
 plt.close()
+
+# Correlation of intergenic size and Delta GC%
+genome_json = genome_gcsize_json_path('endosymb_only')
+delta_df = delta_matrix(load_or_compute(genome_json, genome_gcsize, 'endosymb_only'), mat_type='gc_genome', save_to_file=True)
+size, delta_gc, species_list = [], [], []
+for species, matrix in delta_df.items():
+    if species not in summary_df['species'].values:
+        print(f'Skipping {species} as no IGS data is available.')
+        continue
+
+    igs_size = summary_df[summary_df['species'] == species]['mean_mean_IGS'].values[0]
+
+    i,j = np.triu_indices_from(matrix, k=1)
+    delta_gc_value = np.median(matrix.values[i,j])
+
+    size.append(igs_size)
+    delta_gc.append(delta_gc_value)
+    species_list.append(species)
+
+corr_df = pd.DataFrame({'species': species_list, 'mean_IGS': size, 'delta_gc': delta_gc})
+
+plt.figure(figsize=(8,8))
+sns.scatterplot(data=corr_df, x='delta_gc', y='mean_IGS', alpha=0.6)
+plt.xlabel('Delta GC%')
+plt.ylabel('Mean IGS Size (bp)')
+plt.title(f'IGS Size and Delta GC% in Endosymbionts')
+plt.tight_layout()
+plt.savefig(os.path.join(plot_dir, f'IGS_vs_DeltaGC_endosymb.pdf'))
+plt.close()
+
+

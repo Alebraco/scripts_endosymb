@@ -14,7 +14,6 @@ import numpy as np
 import seaborn as sns
 
 from distance_matrix import distance_matrix
-from delta_matrix import delta_matrix
 from gcsize_dict import genome_gcsize
 from utils import files_dir, genome_gcsize_json_path, load_or_compute_pickle, load_or_compute
 
