@@ -80,34 +80,40 @@ plt.savefig(os.path.join(plot_dir, 'IGS_scatterplot.pdf'))
 plt.close()
 
 # Correlation of intergenic size and Delta GC%
-genome_json = genome_gcsize_json_path('endosymb_only')
-delta_df = delta_matrix(load_or_compute(genome_json, genome_gcsize, 'endosymb_only'), mat_type='gc_genome', save_to_file=True)
+genome_json = genome_gcsize_json_path('endosymb+relatives')
+delta_df = delta_matrix(load_or_compute(genome_json, genome_gcsize, 'endosymb+relatives'), mat_type='gc_genome', save_to_file=True)
 
 print(f"Total species in delta_df: {len(delta_df)}")
 print(f"Total species in summary_df: {len(summary_df['species'].unique())}")
 print(f"Species in delta_df: {list(delta_df.keys())}")
 print(f"Species in summary_df: {summary_df['species'].unique()}")
 
-size, delta_gc, species_list = [], [], []
+data_list = []
 for species, matrix in delta_df.items():
     if species not in summary_df['species'].values:
         print(f'Skipping {species} as no IGS data is available.')
         continue
 
     igs_size = summary_df[summary_df['species'] == species]['mean_mean_IGS'].values[0]
+    
+    ids = matrix.index.tolist()
+    i,j = np.triu_indices_from(matrix, k=1)    
+    dist_list = []
+    for index1, index2 in zip(i, j):
+        id1, id2 = ids[index1], ids[index2]
+        if ('_genomic' in id1) == ('_genomic' in id2):
+            continue
+        dist_list.append(matrix.loc[id1, id2])
+        
+    delta_gc_value = np.median(dist_list)
 
-    i,j = np.triu_indices_from(matrix, k=1)
-    delta_gc_value = np.median(matrix.values[i,j])
+    data_list.append({'species': species, 'mean_IGS': igs_size, 'delta_gc': delta_gc_value})
 
-    size.append(igs_size)
-    delta_gc.append(delta_gc_value)
-    species_list.append(species)
-
-corr_df = pd.DataFrame({'species': species_list, 'mean_IGS': size, 'delta_gc': delta_gc})
+corr_df = pd.DataFrame(data_list)
 
 plt.figure(figsize=(8,8))
 sns.scatterplot(data=corr_df, x='delta_gc', y='mean_IGS', alpha=0.6)
-plt.xlabel('Delta GC%')
+plt.xlabel('Delta GC% (Endosymbionts and Relatives)')
 plt.ylabel('Mean IGS Size (bp)')
 plt.title(f'IGS Size and Delta GC% in Endosymbionts')
 plt.tight_layout()
