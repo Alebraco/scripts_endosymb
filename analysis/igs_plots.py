@@ -90,11 +90,13 @@ print(f"Species in summary_df: {summary_df['species'].unique()}")
 
 data_list = []
 for species, matrix in delta_df.items():
-    if species not in summary_df['species'].values:
+    sp_name = species.replace('_endosymbiont','').replace('_', ' ')
+    if sp_name not in summary_df['species'].values:
         print(f'Skipping {species} as no IGS data is available.')
         continue
+    print(f'Processing {species} for IGS vs Delta GC% correlation.')
 
-    igs_size = summary_df[summary_df['species'] == species]['mean_mean_IGS'].values[0]
+    igs_size = summary_df[summary_df['species'] == sp_name]['mean_mean_IGS'].values[0]
     
     ids = matrix.index.tolist()
     i,j = np.triu_indices_from(matrix, k=1)    
@@ -107,7 +109,7 @@ for species, matrix in delta_df.items():
         
     delta_gc_value = np.median(dist_list)
 
-    data_list.append({'species': species, 'mean_IGS': igs_size, 'delta_gc': delta_gc_value})
+    data_list.append({'species': sp_name, 'mean_IGS': igs_size, 'delta_gc': delta_gc_value})
 
 corr_df = pd.DataFrame(data_list)
 
