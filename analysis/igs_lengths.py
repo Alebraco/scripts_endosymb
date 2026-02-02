@@ -14,6 +14,7 @@ def gff_processing(file_path):
     gene_lengths = []
     cds_lengths = []
     IGS_start = None
+    current_seqid = None
 
     target_features = ['gene', 'CDS', 'rRNA']
 
@@ -21,6 +22,10 @@ def gff_processing(file_path):
         if feature.featuretype not in target_features:
             continue
         
+        if current_seqid != feature.seqid:
+            current_seqid = feature.seqid
+            IGS_start = None
+            
         # Determine pseudogene status
         pseudo = False
         if 'pseudo' in feature.attributes:
@@ -53,55 +58,65 @@ def gff_processing(file_path):
 
     return IGS_sizes, final_lengths
 
-all_igs_data = []
-all_gene_data = []
+def generate_igs_gene_length():
+    all_igs_data = []
+    all_gene_data = []
 
-group_names = {'endosymb_only': 'Endosymbionts Only', 
-               'endosymb+relatives': 'Endosymbionts and Free-Living Relatives', 
-               'relatives_only': 'Free-Living Relatives Only'}
-print('Processing GFF files.')
+    group_names = {'endosymb_only': 'Endosymbionts Only', 
+                'endosymb+relatives': 'Endosymbionts and Free-Living Relatives', 
+                'relatives_only': 'Free-Living Relatives Only'}
+    print('Processing GFF files.')
 
-for group in group_names.keys():
-    gff_folder = os.path.join(group, 'genomes')
-    species = os.listdir(gff_folder)
-    for sp in species:
-        sp_path  = os.path.join(gff_folder, sp)
-        spname = sp.replace('_endosymbiont','').replace('_', ' ')
-        for file in os.listdir(sp_path):
-            if file.endswith('gff'):
-                file_path = os.path.join(sp_path, file)
-                IGS_sizes, gene_lengths = gff_processing(file_path)
-                for size in IGS_sizes:
-                    all_igs_data.append({'group': group_names[group],
-                                     'species': spname, 'IGS_Size': size, 
-                                     'file': file})
-                for length in gene_lengths:
-                    all_gene_data.append({'group': group_names[group],
-                                     'species': spname, 'Gene_Length': length,
-                                     'file': file})
+    for group in group_names.keys():
+        gff_folder = os.path.join(group, 'genomes')
+        species = os.listdir(gff_folder)
+        for sp in species:
+            sp_path  = os.path.join(gff_folder, sp)
+            spname = sp.replace('_endosymbiont','').replace('_', ' ')
+            for file in os.listdir(sp_path):
+                if file.endswith('gff'):
+                    file_path = os.path.join(sp_path, file)
+                    IGS_sizes, gene_lengths = gff_processing(file_path)
+                    for size in IGS_sizes:
+                        all_igs_data.append({'group': group_names[group],
+                                        'species': spname, 'IGS_Size': size, 
+                                        'file': file})
+                    for length in gene_lengths:
+                        all_gene_data.append({'group': group_names[group],
+                                        'species': spname, 'Gene_Length': length,
+                                        'file': file})
 
-if all_igs_data:                    
-    df = pd.DataFrame(all_igs_data)
-    # Mean per file
-    summary_df = df.groupby(['group', 'species', 'file'])['IGS_Size'].mean().reset_index()
-    # Mean of Means per Species
-    summary_df = summary_df.groupby(['group', 'species']).agg({
-        'IGS_Size': 'mean',
-        'file': 'count'
-    }).rename(columns = {'IGS_Size': 'mean_mean_IGS', 'file': 'num_genomes'}).reset_index()
+    if all_igs_data:                    
+        df = pd.DataFrame(all_igs_data)
+        # Mean per file
+        summary_df = df.groupby(['group', 'species', 'file'])['IGS_Size'].mean().reset_index()
+        # Mean of Means per Species
+        summary_df = summary_df.groupby(['group', 'species']).agg({
+            'IGS_Size': 'mean',
+            'file': 'count'
+        }).rename(columns = {'IGS_Size': 'mean_mean_IGS', 'file': 'num_genomes'}).reset_index()
 
-    summary_df.to_csv(os.path.join(files_dir, 'meanIGS.csv'), index = False)
-    df.to_csv(os.path.join(files_dir, 'all_IGS_data.csv'), index = False)
+        summary_df.to_csv(os.path.join(files_dir, 'meanIGS.csv'), index = False)
+        df.to_csv(os.path.join(files_dir, 'all_IGS_data.csv'), index = False)
 
-if all_gene_data:
-    df_gene = pd.DataFrame(all_gene_data)
-    # Mean per file
-    summary_gene_df = df_gene.groupby(['group', 'species', 'file']).agg({
-        'Gene_Length': 'mean'}).reset_index()
-    # Mean of Mean per Species
-    summary_gene_df = summary_gene_df.groupby(['group', 'species']).agg({
-        'Gene_Length': 'mean',
-        'file': 'count'
-    }).rename(columns = {'Gene_Length': 'mean_gene_length', 'file': 'num_genomes'}).reset_index()
+    if all_gene_data:
+        df_gene = pd.DataFrame(all_gene_data)
+        # Mean per file
+        summary_gene_df = df_gene.groupby(['group', 'species', 'file']).agg({
+            'Gene_Length': 'mean'}).reset_index()
+        # Mean of Mean per Species
+        summary_gene_df = summary_gene_df.groupby(['group', 'species']).agg({
+            'Gene_Length': 'mean',
+            'file': 'count'
+        }).rename(columns = {'Gene_Length': 'mean_gene_length', 'file': 'num_genomes'}).reset_index()
 
-    summary_gene_df.to_csv(os.path.join(files_dir, 'mean_gene_lengths.csv'), index = False)
+        summary_gene_df.to_csv(os.path.join(files_dir, 'mean_gene_lengths.csv'), index = False)
+
+if __name__ == "__main__":
+    csv_names = ['meanIGS.csv', 'all_IGS_data.csv', 'mean_gene_lengths.csv']
+    files = all(os.path.exists(os.path.join(files_dir, f)) for f in csv_names)
+    if not files:
+        print('IGS and Gene Length CSV files not found. Generating data...')
+        generate_igs_gene_length()
+    else:
+        print('IGS and Gene Length CSV files found.')
