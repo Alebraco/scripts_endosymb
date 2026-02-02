@@ -6,6 +6,7 @@ import numpy as np
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
+import matplotlib.lines as mlines
 import seaborn as sns
 from utils import files_dir
 
@@ -92,14 +93,13 @@ def abundance_plot(df_master):
     }
     plt.figure(figsize=(12, 6))
 
-    ax = sns.boxplot(x='Group', y='Total_Transposases', data=df_master, 
+    ax = sns.boxplot(x='Group', y='Total_Transposases', hue='Group', data=df_master, 
                         palette=palette, dodge=False, showfliers=False)
 
-    sns.stripplot(x='Group', y='Total_Transposases', 
+    sns.stripplot(x='Group', y='Total_Transposases', hue='Group',
                 data=df_master, palette=['black','grey'], 
                 alpha=0.7, jitter=True)
 
-    plt.legend(title='Group')
     plt.title("Number of Transposases per Genome by Group")
     plt.ylabel("Total Transposases per Genome")
     plt.tight_layout()
@@ -132,7 +132,7 @@ def heatmap_is_families(df_master):
     top_families = plot_data.sum().sort_values(ascending=False).head(20).index
     plot_data = plot_data[top_families]
 
-    plt.figure(figsize=(12, 10))
+    plt.figure(figsize=(14, 10))
     sns.heatmap(plot_data, cmap="Reds", linewidths=0.5, linecolor='whitesmoke',
                 cbar_kws={'label': 'Average Copies per Genome'})
     
