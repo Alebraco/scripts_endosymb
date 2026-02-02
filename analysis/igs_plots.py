@@ -81,12 +81,7 @@ plt.close()
 
 # Correlation of intergenic size and Delta GC%
 genome_json = genome_gcsize_json_path('endosymb+relatives')
-delta_df = delta_matrix(load_or_compute(genome_json, genome_gcsize, 'endosymb+relatives'), mat_type='gc_genome', save_to_file=True)
-
-print(f"Total species in delta_df: {len(delta_df)}")
-print(f"Total species in summary_df: {len(summary_df['species'].unique())}")
-print(f"Species in delta_df: {list(delta_df.keys())}")
-print(f"Species in summary_df: {summary_df['species'].unique()}")
+delta_df = delta_matrix(load_or_compute(genome_json, genome_gcsize, 'endosymb+relatives'), mat_type='gc_genome')
 
 data_list = []
 for species, matrix in delta_df.items():
@@ -106,6 +101,9 @@ for species, matrix in delta_df.items():
         if ('_genomic' in id1) == ('_genomic' in id2):
             continue
         dist_list.append(matrix.loc[id1, id2])
+    if not dist_list:
+        print(f'No valid distance pairs for {species}, skipping.')
+        continue
         
     delta_gc_value = np.median(dist_list)
 
