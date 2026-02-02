@@ -82,6 +82,12 @@ plt.close()
 # Correlation of intergenic size and Delta GC%
 genome_json = genome_gcsize_json_path('endosymb_only')
 delta_df = delta_matrix(load_or_compute(genome_json, genome_gcsize, 'endosymb_only'), mat_type='gc_genome', save_to_file=True)
+
+print(f"Total species in delta_df: {len(delta_df)}")
+print(f"Total species in summary_df: {len(summary_df['species'].unique())}")
+print(f"Species in delta_df: {list(delta_df.keys())}")
+print(f"Species in summary_df: {summary_df['species'].unique()}")
+
 size, delta_gc, species_list = [], [], []
 for species, matrix in delta_df.items():
     if species not in summary_df['species'].values:
