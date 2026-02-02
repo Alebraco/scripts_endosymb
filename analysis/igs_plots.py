@@ -111,7 +111,7 @@ for species, matrix in delta_df.items():
 
 corr_df = pd.DataFrame(data_list)
 
-plt.figure(figsize=(8,8))
+plt.figure(figsize=(6,6))
 sns.scatterplot(data=corr_df, x='delta_gc', y='mean_IGS', alpha=0.6)
 plt.xlabel('Delta GC% (Endosymbionts and Relatives)')
 plt.ylabel('Mean IGS Size (bp)')
