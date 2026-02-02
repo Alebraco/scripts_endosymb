@@ -1,6 +1,7 @@
 #!/bin/bash
 #BSUB -J igs
 #BSUB -n 1
+#BSUB -q bobay
 #BSUB -R "rusage[mem=20GB] span[hosts=1]"
 #BSUB -e %J.err
 #BSUB -o %J.out
