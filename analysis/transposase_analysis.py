@@ -106,44 +106,105 @@ def abundance_plot(df_master):
     plt.savefig(os.path.join(plot_dir, 'transposase_abundance.pdf'))
     plt.close()
 
-def heatmap_is_families(df_master):
-    # Expand copies into rows
-    df_exploded = df_master.explode('IS_Families')
+# def heatmap_is_families(df_master):
+#     # Expand copies into rows
+#     df_exploded = df_master.explode('IS_Families')
     
-    # Count occurrences per species (IS Abundance)
+#     # Count occurrences per species (IS Abundance)
+#     matrix = pd.crosstab(index=[df_exploded['Group'], df_exploded['Species']], 
+#                          columns=df_exploded['IS_Families'])
+    
+#     full_index = pd.MultiIndex.from_frame(df_master[['Group', 'Species']].drop_duplicates())
+#     matrix = matrix.reindex(full_index, fill_value=0)
+    
+#     # Normalize by number of genomes to get average copies per genome
+#     genome_counts = df_master.groupby(['Group', 'Species'])['Total_Genomes'].max()
+#     matrix = matrix.div(genome_counts, axis=0)
+
+#     matrix['Total_Abundance'] = matrix.sum(axis=1)
+
+#     # Sort by group and total abundance    
+#     matrix = matrix.sort_values(by=['Group', 'Total_Abundance'], ascending=[True, False])
+
+#     plot_data = matrix.drop(['Total_Abundance'], axis=1)
+
+#     # Select top 20 families
+#     top_families = plot_data.sum().sort_values(ascending=False).head(20).index
+#     plot_data = plot_data[top_families]
+
+#     plot_data.index = [idx[1] for idx in plot_data.index]
+
+#     plt.figure(figsize=(14, 10))
+#     sns.heatmap(plot_data, cmap="Reds", linewidths=0.5, linecolor='whitesmoke',
+#                 cbar_kws={'label': 'Average Copies per Genome'})
+    
+#     plt.title("Transposase Family Abundance: Endosymbionts vs Relatives")
+#     plt.xlabel("IS Family (Top 20)")
+#     plt.ylabel("Species")
+#     plt.tight_layout()
+#     plt.savefig(os.path.join(plot_dir, 'family_heatmap.pdf'))
+#     plt.close()
+
+import numpy as np
+import matplotlib.lines as mlines
+
+def heatmap_is_families(df_master):
+    # 1. Expand and Crosstab
+    df_exploded = df_master.explode('IS_Families')
     matrix = pd.crosstab(index=[df_exploded['Group'], df_exploded['Species']], 
                          columns=df_exploded['IS_Families'])
     
+    # 2. Safety Net (Reindex)
     full_index = pd.MultiIndex.from_frame(df_master[['Group', 'Species']].drop_duplicates())
     matrix = matrix.reindex(full_index, fill_value=0)
     
-    # Normalize by number of genomes to get average copies per genome
+    # 3. Normalize
     genome_counts = df_master.groupby(['Group', 'Species'])['Total_Genomes'].max()
     matrix = matrix.div(genome_counts, axis=0)
 
+    # 4. Sorting
     matrix['Total_Abundance'] = matrix.sum(axis=1)
-
-    # Sort by group and total abundance    
     matrix = matrix.sort_values(by=['Group', 'Total_Abundance'], ascending=[True, False])
 
     plot_data = matrix.drop(['Total_Abundance'], axis=1)
 
-    # Select top 20 families
-    top_families = plot_data.sum().sort_values(ascending=False).head(20).index
+    # 5. Filter Top 40 (Increased from 20 to capture more rare families)
+    top_families = plot_data.sum().sort_values(ascending=False).head(40).index
     plot_data = plot_data[top_families]
-
-    plt.figure(figsize=(14, 10))
-    sns.heatmap(plot_data, cmap="Reds", linewidths=0.5, linecolor='whitesmoke',
-                cbar_kws={'label': 'Average Copies per Genome'})
     
-    plt.title("Transposase Family Abundance: Endosymbionts vs Relatives")
-    plt.xlabel("IS Family (Top 20)")
+    # 6. LOG TRANSFORM (The Fix for the "Empty" look)
+    # We use log1p (log(1+x)) to handle zeros gracefully
+    plot_data_log = np.log1p(plot_data)
+
+    # Clean Index
+    plot_data_log.index = [idx[1] for idx in plot_data_log.index]
+    n_endo = sum(matrix.index.get_level_values('Group') == 'endosymb_only')
+    n_total = len(plot_data_log)
+
+    # 7. Plot
+    plt.figure(figsize=(16, 10)) # Wider for 40 families
+    ax = sns.heatmap(plot_data_log, cmap="Reds", linewidths=0.5, linecolor='whitesmoke',
+                     cbar_kws={'label': 'Log(Avg Copies + 1)'}) # Updated label
+    
+    # --- BRACKETS ---
+    trans = ax.get_yaxis_transform()
+    def draw_bracket(ax, y_start, y_end, label, x_pos=1.01):
+        ax.add_line(mlines.Line2D([x_pos, x_pos], [y_start, y_end], transform=trans, color='black', clip_on=False))
+        ax.add_line(mlines.Line2D([x_pos, x_pos-0.01], [y_start, y_start], transform=trans, color='black', clip_on=False))
+        ax.add_line(mlines.Line2D([x_pos, x_pos-0.01], [y_end, y_end], transform=trans, color='black', clip_on=False))
+        ax.text(x_pos + 0.02, (y_start + y_end) / 2, label, transform=trans, va='center', ha='left', fontsize=12)
+
+    draw_bracket(ax, 0, n_endo, "Endosymbionts")
+    draw_bracket(ax, n_endo, n_total, "Relatives")
+
+    plt.title("Transposase Family Abundance (Log Scale)")
+    plt.xlabel("IS Family (Top 40)")
     plt.ylabel("Species")
     plt.tight_layout()
-    plt.savefig(os.path.join(plot_dir, 'family_heatmap.pdf'))
+    plt.subplots_adjust(right=0.85)
+    plt.savefig(os.path.join(files_dir, 'family_heatmap_log.pdf'))
     plt.close()
 
-    
 if __name__ == "__main__":
     df_master = processing_transposase()
     if df_master is not None:
