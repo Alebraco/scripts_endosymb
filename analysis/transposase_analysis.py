@@ -10,6 +10,7 @@ import seaborn as sns
 from utils import files_dir
 
 plot_dir = os.path.join('plots', 'transposase')
+os.makedirs(plot_dir, exist_ok=True)
 
 coverage_threshold = 0.8
 identity_threshold = 30.0
@@ -139,7 +140,7 @@ def heatmap_is_families(df_master):
     plt.xlabel("IS Family (Top 20)")
     plt.ylabel("Species")
     plt.tight_layout()
-    plt.savefig(os.path.join(files_dir, 'family_heatmap.pdf'))
+    plt.savefig(os.path.join(plot_dir, 'family_heatmap.pdf'))
     plt.close()
 
     
@@ -148,3 +149,6 @@ if __name__ == "__main__":
     if df_master is not None:
         print(df_master.head())
         df_master.to_csv(os.path.join(files_dir, 'transposase_summary.csv'), index=False)
+        abundance_plot(df_master)
+        heatmap_is_families(df_master)
+
