@@ -136,6 +136,7 @@ def transposase_group_count(df_master):
     plt.grid(axis='y', linestyle='--', alpha=0.5)
 
     ax = plt.gca()
+    ax.set_xticks([0, 1])
     ax.set_xticklabels(['Endosymbionts', 'Relatives'])
 
     plt.tight_layout()
@@ -202,7 +203,7 @@ if __name__ == "__main__":
             ('Total_Transposases', 'Abundance of Transposases per Genome', 'Total Transposases', 'transposase_abundance.pdf'),
             ('Unique_Families', 'Diversity of Transposases (Unique Families)', 'Unique IS Families', 'transposase_diversity.pdf')
         ]
-        
+
         for metric, title, label, filename in parameters:
             transposase_plot(df_master, metric, title, label, filename)
         transposase_group_count(df_master)
