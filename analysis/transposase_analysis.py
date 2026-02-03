@@ -87,26 +87,34 @@ def processing_transposase():
         return None
 
 def abundance_plot(df_master):
-    colors = sns.color_palette('Set2', n_colors=2)
-    fig, axes = plt.subplots(nrows=1, ncols=2, figsize=(14, 6), sharey=True)
+    endo_order = sorted(df_master[df_master['Group'] == 'endosymb_only']['Species'].unique())
+    rel_order = sorted(df_master[df_master['Group'] == 'relatives_only']['Species'].unique())
 
-    sns.stripplot(x='Species', y='Total_Transposases',
+    colors = sns.color_palette('Set2', n_colors=2)
+    fig, axes = plt.subplots(nrows=1, ncols=2, figsize=(15, 10), sharex=True)
+
+    sns.stripplot(y='Species', x='Total_Transposases',
                   data=df_master[df_master['Group'] == 'endosymb_only'],
-                  alpha=0.7, jitter=True, ax=axes[0], color=colors[0])
+                  alpha=0.7, jitter=True, ax=axes[0], color=colors[0],
+                  order=endo_order)
+    
     axes[0].set_title('Endosymbionts')
     axes[0].tick_params(axis='x', rotation=90) 
-    axes[0].set_xlabel('')
+    axes[0].set_ylabel('')
+    axes[0].set_xlabel('Total Transposases')
+    axes[0].grid(axis='x', linestyle='--', alpha=0.5)
 
-    sns.stripplot(x='Species', y='Total_Transposases',
+    sns.stripplot(y='Species', x='Total_Transposases',
                   data=df_master[df_master['Group'] == 'relatives_only'],
-                  alpha=0.7, jitter=True, ax=axes[1], color=colors[1])
+                  alpha=0.7, jitter=True, ax=axes[1], color=colors[1],
+                  order=rel_order)
    
     axes[1].set_title('Relatives')
-    axes[1].tick_params(axis='x', rotation=90)
-    axes[1].set_xlabel('')
+    axes[1].grid(axis='x', linestyle='--', alpha=0.5)
+    axes[1].set_xlabel('Total Transposases')
     axes[1].set_ylabel('') 
 
-    plt.suptitle('Number of Transposases per Genome by Group', fontsize=14)
+    plt.suptitle('Number of Transposases per Genome by Group', fontsize=16)
     plt.tight_layout()
     plt.savefig(os.path.join(plot_dir, 'transposase_abundance.pdf'))
     plt.close()
