@@ -17,17 +17,15 @@ from distance_matrix import distance_matrix
 from gcsize_dict import genome_gcsize
 from utils import files_dir, genome_gcsize_json_path, load_or_compute_pickle, load_or_compute
 
-output_csv = 'spectrum_rates.csv'
 data_dir = 'files'
-csv_path = os.path.join(data_dir, output_csv)
 plot_dir = os.path.join('plots', 'spectrum_plots')
 os.makedirs(plot_dir, exist_ok=True)
 os.makedirs(data_dir, exist_ok=True)
 
 group_colors = {
-'Endosymbiont-Relative Pairs' : '#1f77b4',
-'Free-Living Control Pairs' : '#2ca02c',
-'Endosymbiont Control Pairs' : '#ff7f0e'
+'Endosymbiont-Relative Pairs' : '#8da0cb',
+'Free-Living Control Pairs' : '#66c2a5',
+'Endosymbiont Control Pairs' : '#fc8d62'
 }
 mut_map = {
     'rGC->AT': 'rGC→AT',
@@ -134,7 +132,7 @@ def calculate_rates(group_name, species, ancestor, descendant):
             'rAT->GC': r_AT_to_GC,
             }
 
-def plot_distributions(df, plot_type = 'kde'):
+def plot_distributions(df, position, plot_type = 'kde'):
     '''
     Plots histograms side-by-side and summary boxplot 
     '''
@@ -165,7 +163,9 @@ def plot_distributions(df, plot_type = 'kde'):
             ax.set_xlim(0, 1)
         axes[0].set_ylabel('Probability') 
         plt.tight_layout()
-        plt.savefig(os.path.join(plot_dir, 'spectrum_hist.pdf'))
+        
+        outdir = os.path.join(plot_dir, position)
+        plt.savefig(os.path.join(outdir, 'spectrum_hist.pdf'))
         plt.close()
         print('Saved spectrum_hist.pdf')
     else:
@@ -188,7 +188,7 @@ def plot_distributions(df, plot_type = 'kde'):
             ax.set_xlim(0, 1)
         axes[0].set_ylabel('Density') 
         plt.tight_layout()
-        plt.savefig(os.path.join(plot_dir, 'spectrum_kde.pdf'))
+        plt.savefig(os.path.join(plot_dir, position, 'spectrum_kde.pdf'))
         plt.close()
         print('Saved spectrum_kde.pdf')
 
@@ -213,11 +213,11 @@ def plot_distributions(df, plot_type = 'kde'):
     plt.xlabel('Group')
     plt.ylabel('Rate')
     plt.tight_layout()
-    plt.savefig(os.path.join(plot_dir, 'spectrum_boxplot.pdf'))
+    plt.savefig(os.path.join(plot_dir, position, 'spectrum_boxplot.pdf'))
     plt.close()
     print('Saved spectrum_boxplot.pdf')
 
-def plot_species_grid(df):
+def plot_species_grid(df, position):
     '''
     Generates a grid of histogram plots for each species in the CSV.
     Only plots if species are shared by both groups.
@@ -259,7 +259,7 @@ def plot_species_grid(df):
         grid.set(xlim=(0, 1))
         grid.figure.suptitle(f'{mut} Mutation Rate Distributions by Species', fontsize=18, y =1.02)
         
-        grid.savefig(os.path.join(plot_dir, output))
+        grid.savefig(os.path.join(plot_dir, position, output))
         plt.close()
         print(f'Saved {output}')
 
@@ -300,18 +300,22 @@ def run_diagnostic():
     df = pd.DataFrame(total_sites)
     df.to_csv(os.path.join(data_dir, 'diagnostic.csv'), index = False)
 
-def run_mutation_analysis():
+def run_mutation_analysis(position):
     '''
     Main analysis logic. Parses FASTA files, calculates rates,
     saves to CSV, and generates plots.
+    Args:
+        position (str): Position type to analyze ('first_sites', 'second_sites', 'third_sites').
     '''
 
+    output_csv = f'{position}_spectrum_rates.csv'
+    csv_path = os.path.join(data_dir, output_csv)
     all_data = []
     sites_threshold = 100
 
     for group, group_name in group_names.items():
         print(f'Processing {group_name}')
-        input_dir = os.path.join(group, 'third_sites')
+        input_dir = os.path.join(group, position)
         if not os.path.exists(input_dir):
             print(f'Warning: Directory {input_dir} not found. Skipping.')
             continue
@@ -369,72 +373,7 @@ def run_mutation_analysis():
     final_df = pd.DataFrame(all_data)
     final_df.to_csv(csv_path, index = False)
 
-# def rate_shift_plot(df):
-#     '''
-#     Regression plots comparing rates between control groups to determine mutation rate shifts by species.
-#     '''
-#     distance_matrices = load_or_compute_pickle(os.path.join(files_dir, 'distances_endosymb+relatives.pkl'))
-#     df_pivot = df.pivot_table(index = 'Species', 
-#                               columns = 'Group', 
-#                               values = mutation_types, 
-#                               aggfunc = 'median').dropna()
-#     for mut in mutation_types:
-#         relative_rates = df_pivot[(mut, 'Free-Living Control Pairs')]
-#         endosymbiont_rates = df_pivot[(mut, 'Endosymbiont Control Pairs')]
-
-#     texts = []
-#     median_distance = []
-#     for species_key, distance_matrix in distance_matrices.items():
-#             sp_name = species_key.replace('_endosymbiont', '').replace('_', ' ')
-#             dist_list = []
-#             distance_data = distance_matrix
-#             i,j = np.triu_indices_from(distance_data, k=1)
-#             ids = distance_data.index.tolist()
-
-#             for index1, index2 in zip(i, j):
-#                 id1 = ids[index1]
-#                 id2 = ids[index2]
-#                 if ('_genomic' in id1) == ('_genomic' in id2):
-#                     continue
-#                 dist_list.append(distance_data.loc[id1, id2])
-
-#             median_distance.append(np.median(dist_list))
-#             x = relative_rates.loc[sp_name]
-#             y = endosymbiont_rates.loc[sp_name]     
-            
-#             t = plt.text(x, y, 
-#                          sp_name, 
-#                          fontsize=8, 
-#                          alpha=0.7)
-#             texts.append(t)
-
-#     plt.figure(figsize=(8,8))
-#     scatter = plt.scatter(x = relative_rates, 
-#                     y = endosymbiont_rates,
-#                     c = median_distance,
-#                     cmap = 'viridis',
-#                     s = 50,
-#                     alpha = 0.7,
-#                     label = 'Species')
-#     cbar = plt.colorbar(scatter)
-#     cbar.set_label('Median Genetic Distance\n(Endosymbiont-Relative Pairs)', rotation=270, labelpad=15)
-    
-#     plt.axline((0, 0), slope=1, color='gray', linestyle='--', linewidth=1, label='y=x (No shift)')
-#     plt.xlim(-0.05,1.05)
-#     plt.ylim(-0.05,1.05)
-#     adjust_text(texts, 
-#                 arrowprops=dict(arrowstyle="-", color='black', lw=0.5, alpha=0.7, shrinkA = 10),
-#                 )
-
-#     plt.title(f'{mut.replace("r","")} Median Rate Shift\nEndosymbionts vs Free-Living Relatives', fontsize=16)
-#     plt.legend()
-#     plt.tight_layout()
-#     plt.xlabel('Free-Living Relatives')
-#     plt.ylabel('Endosymbionts')
-#     plt.savefig(os.path.join(plot_dir, f'rate_shift_{mut.replace("→","_")}.pdf'))
-#     plt.close()
-
-def rate_shift_plot(df, color_by = 'distance'):
+def rate_shift_plot(df, position, color_by = 'distance'):
     '''
     Plots comparing mutation rates between endosymbionts and relatives, colored by genetic distance or GC content.
     '''
@@ -557,10 +496,10 @@ def rate_shift_plot(df, color_by = 'distance'):
         plt.legend()
         plt.tight_layout()
         
-        plt.savefig(os.path.join(plot_dir, f'rate_shift_{mut.replace("→","_")}_{color_by}.pdf'))
+        plt.savefig(os.path.join(plot_dir, position, f'rate_shift_{mut.replace("→","_")}_{color_by}.pdf'))
         plt.close()
 
-def rate_shift_plot_gc(df):
+def rate_shift_plot_gc(df, position):
     
     genome_json = genome_gcsize_json_path('endosymb_only')
     genome_dataset = load_or_compute(genome_json, genome_gcsize, 'endosymb_only')
@@ -628,24 +567,35 @@ def rate_shift_plot_gc(df):
         plt.legend()
         plt.tight_layout()
         
-        plt.savefig(os.path.join(plot_dir, f'gcabs_rate_shift_{mut.replace("→","_")}.pdf'))
+        plt.savefig(os.path.join(plot_dir, position, f'gcabs_rate_shift_{mut.replace("→","_")}.pdf'))
         plt.close()
     
 if __name__ == '__main__':
-    if os.path.exists(csv_path):
-        # run_diagnostic()  
+    for position in ['first_sites', 'second_sites', 'third_sites']:
+
+        output_csv = f'{position}_spectrum_rates.csv'
+        csv_path = os.path.join(data_dir, output_csv)
+
+        if not os.path.exists(csv_path):
+            print('File not found, run mutation analysis first.')
+            run_mutation_analysis(position)
+        
+        if not os.path.exists(csv_path):
+            print(f'Error: {csv_path} could not be generated. Skipping {position}.')
+            continue
+        
+        print(f'Loading data from {csv_path}')
         df = load_data(csv_path)
-        plot_distributions(df)
-        plot_species_grid(df)
-        rate_shift_plot(df, color_by='distance')
-        rate_shift_plot(df, color_by='gc_genome')
-        rate_shift_plot_gc(df)
-    else:
-        print('File not found, run mutation analysis first.')
-        run_mutation_analysis()
-        df = load_data(csv_path)
-        plot_distributions(df)
-        plot_species_grid(df)
-        rate_shift_plot(df, color_by='distance')
-        rate_shift_plot(df, color_by='gc_genome')
-        rate_shift_plot_gc(df)
+
+        if df.empty:
+            print(f'No data found in {csv_path}, skipping {position}.')
+            continue
+
+        outdir = os.path.join(plot_dir, position)
+        os.makedirs(outdir, exist_ok=True)
+
+        plot_distributions(df, position)
+        plot_species_grid(df, position)
+        rate_shift_plot(df, position, color_by='distance')
+        rate_shift_plot(df, position, color_by='gc_genome')
+        rate_shift_plot_gc(df, position)
