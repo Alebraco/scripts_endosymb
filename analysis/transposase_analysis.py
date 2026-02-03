@@ -14,7 +14,7 @@ plot_dir = os.path.join('plots', 'transposase')
 os.makedirs(plot_dir, exist_ok=True)
 
 coverage_threshold = 0.8
-identity_threshold = 30.0
+identity_threshold = 25.0
 columns = ['qseqid', 
            'sseqid', 
            'pident', 
@@ -148,7 +148,7 @@ def transposase_completeness(df_master, group_name):
     df = df_master[df_master['Group'] == group_name]
     df_agg = df.groupby('Species')[['Complete_Transposases', 'Partial_Transposases']].mean()
     df_agg['Total'] = df_agg['Complete_Transposases'] + df_agg['Partial_Transposases']
-    df_sorted = df_agg.sort_values('Total', ascending=False)
+    df_sorted = df_agg.sort_values('Total', ascending=True)
 
     ax = df_sorted[['Complete_Transposases', 'Partial_Transposases']].rename(
         columns={
@@ -187,11 +187,16 @@ def transposase_completeness_perc(df_master):
     plt.title('Transposase Completeness Percentage by Group')
     plt.ylabel('Percentage (%)')
     plt.xlabel('Group')
+    plt.ylim(0, 100)
     plt.legend(title='Integrity')
+
+    ax = plt.gca()
+    ax.set_xticks([0, 1])
+    ax.set_xticklabels(['Endosymbionts', 'Relatives'])
+
     plt.tight_layout()
     plt.savefig(os.path.join(plot_dir, 'transposase_completeness_perc.pdf'))
     plt.close()
-
 
 if __name__ == "__main__":
     df_master = processing_transposase()
