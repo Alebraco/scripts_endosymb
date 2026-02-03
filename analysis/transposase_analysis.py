@@ -165,7 +165,7 @@ def transposase_completeness(df_master, group_name):
     plt.title(f'Transposase Integrity: {group_names[group_name].replace(" Only", "")}', fontsize=14)
     plt.xlabel('Number of Transposases')
     plt.ylabel('')
-    plt.legend(title='Integrity')
+    plt.legend(title='Integrity', loc='upper left', bbox_to_anchor=(1.05, 1))
     plt.tight_layout()
     
     plt.savefig(os.path.join(plot_dir, f'transposase_completeness_{group_name}.pdf'))
