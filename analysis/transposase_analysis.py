@@ -67,7 +67,7 @@ def processing_transposase():
 
                         # Extract IS families
                         fam_list = df['sseqid'].str.split('_').str[0].str.split('//').str[1].tolist()
-                        families = len(fam_list)
+                        families = len(set(fam_list)) if fam_list else 0
 
                 results.append({
                     'Group': group,
@@ -78,7 +78,7 @@ def processing_transposase():
                     'Partial_Transposases': partial,
                     'Total_Transposases': total,
                     'IS_Families': fam_list,
-                    'Families_Count': families
+                    'Unique_Families': families
                 })
 
     if results:
@@ -86,14 +86,14 @@ def processing_transposase():
     else:
         return None
 
-def abundance_plot(df_master):
+def transposase_plot(df_master, metric, title, label, filename):
     endo_order = sorted(df_master[df_master['Group'] == 'endosymb_only']['Species'].unique())
     rel_order = sorted(df_master[df_master['Group'] == 'relatives_only']['Species'].unique())
 
     colors = sns.color_palette('Set2', n_colors=2)
     fig, axes = plt.subplots(nrows=1, ncols=2, figsize=(15, 10), sharex=True)
 
-    sns.stripplot(y='Species', x='Total_Transposases',
+    sns.stripplot(y='Species', x=metric,
                   data=df_master[df_master['Group'] == 'endosymb_only'],
                   alpha=0.7, jitter=True, ax=axes[0], color=colors[0],
                   order=endo_order)
@@ -101,67 +101,51 @@ def abundance_plot(df_master):
     axes[0].set_title('Endosymbionts')
     axes[0].tick_params(axis='x', rotation=90) 
     axes[0].set_ylabel('')
-    axes[0].set_xlabel('Total Transposases')
+    axes[0].set_xlabel(label)
     axes[0].grid(axis='x', linestyle='--', alpha=0.5)
 
-    sns.stripplot(y='Species', x='Total_Transposases',
+    sns.stripplot(y='Species', x=metric,
                   data=df_master[df_master['Group'] == 'relatives_only'],
                   alpha=0.7, jitter=True, ax=axes[1], color=colors[1],
                   order=rel_order)
    
     axes[1].set_title('Relatives')
     axes[1].grid(axis='x', linestyle='--', alpha=0.5)
-    axes[1].set_xlabel('Total Transposases')
+    axes[1].set_xlabel(label)
     axes[1].set_ylabel('') 
 
-    plt.suptitle('Number of Transposases per Genome by Group', fontsize=16)
+    plt.suptitle(title, fontsize=16)
     plt.tight_layout()
-    plt.savefig(os.path.join(plot_dir, 'transposase_abundance.pdf'))
+    plt.savefig(os.path.join(plot_dir, filename))
     plt.close()
 
-# def heatmap_is_families(df_master):
-#     # Expand copies into rows
-#     df_exploded = df_master.explode('IS_Families')
+def transposase_group_count(df_master):
+    plt.figure(figsize=(6,6))
+
+    sns.stripplot(x='Group', y='Total_Transposases', hue='Group',
+                  data=df_master, alpha=0.7, jitter=True, palette='Set2', 
+                  order=['endosymb_only', 'relatives_only'])
     
-#     # Count occurrences per species (IS Abundance)
-#     matrix = pd.crosstab(index=[df_exploded['Group'], df_exploded['Species']], 
-#                          columns=df_exploded['IS_Families'])
-    
-#     full_index = pd.MultiIndex.from_frame(df_master[['Group', 'Species']].drop_duplicates())
-#     matrix = matrix.reindex(full_index, fill_value=0)
-    
-#     # Normalize by number of genomes to get average copies per genome
-#     genome_counts = df_master.groupby(['Group', 'Species'])['Total_Genomes'].max()
-#     matrix = matrix.div(genome_counts, axis=0)
+    plt.title('Total Transposase Count by Group')
+    plt.ylabel('Number of Transposases')
+    plt.xlabel('Group')
+    plt.grid(axis='y', linestyle='--', alpha=0.5)
 
-#     matrix['Total_Abundance'] = matrix.sum(axis=1)
-
-#     # Sort by group and total abundance    
-#     matrix = matrix.sort_values(by=['Group', 'Total_Abundance'], ascending=[True, False])
-
-#     plot_data = matrix.drop(['Total_Abundance'], axis=1)
-
-#     # Select top 20 families
-#     top_families = plot_data.sum().sort_values(ascending=False).head(20).index
-#     plot_data = plot_data[top_families]
-
-#     plot_data.index = [idx[1] for idx in plot_data.index]
-
-#     plt.figure(figsize=(14, 10))
-#     sns.heatmap(plot_data, cmap="Reds", linewidths=0.5, linecolor='whitesmoke',
-#                 cbar_kws={'label': 'Average Copies per Genome'})
-    
-#     plt.title("Transposase Family Abundance: Endosymbionts vs Relatives")
-#     plt.xlabel("IS Family (Top 20)")
-#     plt.ylabel("Species")
-#     plt.tight_layout()
-#     plt.savefig(os.path.join(plot_dir, 'family_heatmap.pdf'))
-#     plt.close()
+    plt.tight_layout()
+    plt.savefig(os.path.join(plot_dir, 'transposase_group_count.pdf'))
+    plt.close()
 
 if __name__ == "__main__":
     df_master = processing_transposase()
     if df_master is not None:
         print(df_master.head())
         df_master.to_csv(os.path.join(files_dir, 'transposase_summary.csv'), index=False)
-        abundance_plot(df_master)
+
+        parameters = [
+            ('Total_Transposases', 'Abundance of Transposases per Genome', 'Total Transposases', 'transposase_abundance.pdf'),
+            ('Unique_Families', 'Diversity of Transposases (Unique Families)', 'Unique IS Families', 'transposase_diversity.pdf')
+        ]
+        for metric, title, label, filename in parameters:
+            transposase_plot(df_master, metric, title, label, filename)
+        transposase_group_count(df_master)
 

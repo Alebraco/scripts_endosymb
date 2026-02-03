@@ -22,6 +22,12 @@ plot_dir = os.path.join('plots', 'spectrum_plots')
 os.makedirs(plot_dir, exist_ok=True)
 os.makedirs(data_dir, exist_ok=True)
 
+site_labels = {
+    'first_sites': 'First Codon Positions',
+    'second_sites': 'Second Codon Positions',
+    'third_sites': 'Fourfold Degenerate Third Sites'
+}
+
 group_colors = {
 'Endosymbiont-Relative Pairs' : '#8da0cb',
 'Free-Living Control Pairs' : '#66c2a5',
@@ -138,8 +144,9 @@ def plot_distributions(df, position, plot_type = 'kde'):
     '''
     median_df = df.groupby(['Group','Species'])[['rGC→AT', 'rAT→GC']].median().reset_index()
 
+    site_label = site_labels[position]
     fig, axes = plt.subplots(1, 2, figsize=(16, 7), sharey=True)
-    plt.suptitle('Comparison of Mutational Spectra by Group', fontsize=16, y=0.98)
+    plt.suptitle(f'Comparison of Mutational Spectra: {site_label}', fontsize=16, y=0.98)
 
     if plot_type != 'kde':
         # Histograms
@@ -224,6 +231,7 @@ def plot_species_grid(df, position):
     Produces two files: one for GC->AT rates and one for AT->GC rates.
     '''
 
+    site_label = site_labels[position]
     # Include only species present in both groups
     group1 = set(df[df['Group'] == 'Endosymbiont-Relative Pairs']['Species'])
     group2 = set(df[df['Group'] == 'Free-Living Control Pairs']['Species'])
@@ -257,7 +265,7 @@ def plot_species_grid(df, position):
         grid.set_titles('{col_name}')
         grid.set_axis_labels(f'Rate ({mut})', 'Density')
         grid.set(xlim=(0, 1))
-        grid.figure.suptitle(f'{mut} Mutation Rate Distributions by Species', fontsize=18, y =1.02)
+        grid.figure.suptitle(f'{mut} Rates by Species\n{site_label}', fontsize=18, y =1.02)
         
         grid.savefig(os.path.join(plot_dir, position, output))
         plt.close()
@@ -377,7 +385,7 @@ def rate_shift_plot(df, position, color_by = 'distance'):
     '''
     Plots comparing mutation rates between endosymbionts and relatives, colored by genetic distance or GC content.
     '''
-
+    site_label = site_labels[position]
     species_metric = {}
 
     if color_by not in ['distance', 'gc_genome']:
@@ -490,7 +498,7 @@ def rate_shift_plot(df, position, color_by = 'distance'):
             add_objects=[scatter]
             )
 
-        plt.title(f'{mut.replace("r","")} Median Rate Shift\nEndosymbionts vs Free-Living Relatives', fontsize=16)
+        plt.title(f'{mut.replace("r","")} Rate Shift\n{site_label}', fontsize=16)
         plt.xlabel('Free-Living Relatives')
         plt.ylabel('Endosymbionts')
         plt.legend()
@@ -500,7 +508,8 @@ def rate_shift_plot(df, position, color_by = 'distance'):
         plt.close()
 
 def rate_shift_plot_gc(df, position):
-    
+    site_label = site_labels[position]
+
     genome_json = genome_gcsize_json_path('endosymb_only')
     genome_dataset = load_or_compute(genome_json, genome_gcsize, 'endosymb_only')
 
@@ -561,7 +570,7 @@ def rate_shift_plot_gc(df, position):
             add_objects=[scatter]
             )
 
-        plt.title(f'{mut.replace("r","")} Median Rate Shift\nEndosymbionts vs Free-Living Relatives', fontsize=16)
+        plt.title(f'{mut.replace("r","")} Rate Shift\n{site_label}', fontsize=16)
         plt.xlabel('Free-Living Relatives')
         plt.ylabel('Endosymbionts')
         plt.legend()
