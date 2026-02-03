@@ -144,19 +144,22 @@ def transposase_group_count(df_master):
 
 def transposase_completeness(df_master, group_name):
 
-    df = df_master[df_master['Group'] == group_name].copy()
-    df.set_index('Species', inplace=True)
+    df = df_master[df_master['Group'] == group_name]
+    df_agg = df.groupby('Species')[['Complete_Transposases', 'Partial_Transposases']].mean()
+    df_agg['Total'] = df_agg['Complete_Transposases'] + df_agg['Partial_Transposases']
+    df_sorted = df_agg.sort_values('Total', ascending=True)
     
-    df['Total'] = df['Complete_Transposases'] + df['Partial_Transposases']
-    df_sorted = df.sort_values('Total', ascending=True)
-    
-    height = max(6, len(df_sorted) * 0.4 + 2)
+    height = max(6, len(df_sorted) * 0.3 + 2)
 
-    ax = df_sorted[['Complete_Transposases', 'Partial_Transposases']].plot(
+    ax = df_sorted[['Complete_Transposases', 'Partial_Transposases']].rename(
+        columns={
+            'Complete_Transposases': 'Complete', 
+            'Partial_Transposases': 'Partial'
+        }).plot(
         kind='barh', 
         stacked=True, 
         figsize=(8, height),
-        color=['#E5C494FF', '#A23B72'],
+        color=['grey', 'black'],
         edgecolor='white'
     )
     
@@ -164,7 +167,6 @@ def transposase_completeness(df_master, group_name):
     plt.xlabel('Number of Transposases')
     plt.legend(title='Integrity', bbox_to_anchor=(1.05, 1), loc='upper left')
     plt.tight_layout()
-    
     
     plt.savefig(os.path.join(plot_dir, f'transposase_completeness_{group_name}.pdf'))
     plt.close()
