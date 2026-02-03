@@ -8,7 +8,7 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import matplotlib.lines as mlines
 import seaborn as sns
-from utils import files_dir
+from utils import files_dir, group_names
 
 plot_dir = os.path.join('plots', 'transposase')
 os.makedirs(plot_dir, exist_ok=True)
@@ -122,6 +122,10 @@ def transposase_plot(df_master, metric, title, label, filename):
 def transposase_group_count(df_master):
     plt.figure(figsize=(6,6))
 
+    sns.boxplot(x='Group', y='Total_Transposases', hue='Group', data=df_master,
+                    palette='Set2', showfliers=False, width=0.5, boxprops={'alpha': 0.4},
+                    order=['endosymb_only', 'relatives_only'])
+
     sns.stripplot(x='Group', y='Total_Transposases', hue='Group',
                   data=df_master, alpha=0.7, jitter=True, palette='Set2', 
                   order=['endosymb_only', 'relatives_only'])
@@ -131,8 +135,38 @@ def transposase_group_count(df_master):
     plt.xlabel('Group')
     plt.grid(axis='y', linestyle='--', alpha=0.5)
 
+    ax = plt.gca()
+    ax.set_xticklabels(['Endosymbionts', 'Relatives'])
+
     plt.tight_layout()
     plt.savefig(os.path.join(plot_dir, 'transposase_group_count.pdf'))
+    plt.close()
+
+def transposase_completeness(df_master, group_name):
+
+    df = df_master[df_master['Group'] == group_name].copy()
+    df.set_index('Species', inplace=True)
+    
+    df['Total'] = df['Complete_Transposases'] + df['Partial_Transposases']
+    df_sorted = df.sort_values('Total', ascending=True)
+    
+    height = max(6, len(df_sorted) * 0.4 + 2)
+
+    ax = df_sorted[['Complete_Transposases', 'Partial_Transposases']].plot(
+        kind='barh', 
+        stacked=True, 
+        figsize=(8, height),
+        color=['#E5C494FF', '#A23B72'],
+        edgecolor='white'
+    )
+    
+    plt.title(f'Transposase Integrity: {group_names[group_name]}', fontsize=14)
+    plt.xlabel('Number of Transposases')
+    plt.legend(title='Integrity', bbox_to_anchor=(1.05, 1), loc='upper left')
+    plt.tight_layout()
+    
+    
+    plt.savefig(os.path.join(plot_dir, f'transposase_completeness_{group_name}.pdf'))
     plt.close()
 
 if __name__ == "__main__":
@@ -148,4 +182,6 @@ if __name__ == "__main__":
         for metric, title, label, filename in parameters:
             transposase_plot(df_master, metric, title, label, filename)
         transposase_group_count(df_master)
+        for group in ['endosymb_only', 'relatives_only']:
+            transposase_completeness(df_master, group)
 
