@@ -147,9 +147,7 @@ def transposase_completeness(df_master, group_name):
     df = df_master[df_master['Group'] == group_name]
     df_agg = df.groupby('Species')[['Complete_Transposases', 'Partial_Transposases']].mean()
     df_agg['Total'] = df_agg['Complete_Transposases'] + df_agg['Partial_Transposases']
-    df_sorted = df_agg.sort_values('Total', ascending=True)
-    
-    height = max(6, len(df_sorted) * 0.3 + 2)
+    df_sorted = df_agg.sort_values('Total', ascending=False)
 
     ax = df_sorted[['Complete_Transposases', 'Partial_Transposases']].rename(
         columns={
@@ -158,18 +156,41 @@ def transposase_completeness(df_master, group_name):
         }).plot(
         kind='barh', 
         stacked=True, 
-        figsize=(8, height),
-        color=['grey', 'black'],
+        figsize=(8, 14),
+        color=['black', 'grey'],
         edgecolor='white'
     )
     
-    plt.title(f'Transposase Integrity: {group_names[group_name]}', fontsize=14)
+    plt.title(f'Transposase Integrity: {group_names[group_name].replace(" Only", "")}', fontsize=14)
     plt.xlabel('Number of Transposases')
-    plt.legend(title='Integrity', bbox_to_anchor=(1.05, 1), loc='upper left')
+    plt.ylabel('')
+    plt.legend(title='Integrity')
     plt.tight_layout()
     
     plt.savefig(os.path.join(plot_dir, f'transposase_completeness_{group_name}.pdf'))
     plt.close()
+
+def transposase_completeness_perc(df_master):
+    df = df_master.groupby(['Group'])[['Complete_Transposases', 'Partial_Transposases']].sum().reset_index()
+    df['Total'] = df['Complete_Transposases'] + df['Partial_Transposases']
+    df['Complete_Percentage'] = (df['Complete_Transposases'] / df['Total']) * 100
+    df['Partial_Percentage'] = 100 - df['Complete_Percentage']
+    df_melted = df.melt(id_vars='Group', value_vars=['Complete_Percentage', 'Partial_Percentage'],
+                        var_name='Integrity', value_name='Percentage')
+    df_melted['Integrity'] = df_melted['Integrity'].replace({'Complete_Percentage': 'Complete', 'Partial_Percentage': 'Partial'})
+
+    plt.figure(figsize=(6,6))
+    sns.barplot(x='Group', y='Percentage', hue='Integrity', data=df_melted,
+                palette=['black', 'grey'], edgecolor='white')
+    
+    plt.title('Transposase Completeness Percentage by Group')
+    plt.ylabel('Percentage (%)')
+    plt.xlabel('Group')
+    plt.legend(title='Integrity')
+    plt.tight_layout()
+    plt.savefig(os.path.join(plot_dir, 'transposase_completeness_perc.pdf'))
+    plt.close()
+
 
 if __name__ == "__main__":
     df_master = processing_transposase()
@@ -181,9 +202,11 @@ if __name__ == "__main__":
             ('Total_Transposases', 'Abundance of Transposases per Genome', 'Total Transposases', 'transposase_abundance.pdf'),
             ('Unique_Families', 'Diversity of Transposases (Unique Families)', 'Unique IS Families', 'transposase_diversity.pdf')
         ]
+        
         for metric, title, label, filename in parameters:
             transposase_plot(df_master, metric, title, label, filename)
         transposase_group_count(df_master)
         for group in ['endosymb_only', 'relatives_only']:
             transposase_completeness(df_master, group)
+        transposase_completeness_perc(df_master)
 
