@@ -4,7 +4,7 @@
 #BSUB -e %J.err
 #BSUB -n 1
 #BSUB -R "rusage[mem=8GB] span[hosts=1]"
-#BSUB -W 48:00
+#BSUB -W 100:00
 #BSUB -q bobay
 
 source ~/.bashrc
