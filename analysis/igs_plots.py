@@ -82,6 +82,7 @@ plt.close()
 # Correlation of intergenic size and Delta GC%
 genome_json = genome_gcsize_json_path('endosymb+relatives')
 delta_df = delta_matrix(load_or_compute(genome_json, genome_gcsize, 'endosymb+relatives'), mat_type='gc_genome')
+transposase = pd.read_csv(os.path.join(files_dir, 'median_transposases_species.csv'))
 
 data_list = []
 for species, matrix in delta_df.items():
@@ -105,19 +106,45 @@ for species, matrix in delta_df.items():
         print(f'No valid distance pairs for {species}, skipping.')
         continue
         
+    if species not in genome_json:
+        print(f'No genome GC% data for {species}, skipping.')
+        continue
+    else:
+        gc_value = np.median(genome_json[species][genome_id]['gc_genome'] for genome_id in genome_json[species] if not '_genomic' in genome_id)
+        size = np.median(genome_json[species][genome_id]['size'] for genome_id in genome_json[species] if not '_genomic' in genome_id)
+    
+    if sp_name not in transposase['Species'].values:
+        print(f'No transposase data for {sp_name}, skipping.')
+        continue
+    else:
+        transposases = transposase[transposase['Species'] == sp_name]['Median_Transposases'].values[0]
+
     delta_gc_value = np.median(dist_list)
 
-    data_list.append({'species': sp_name, 'mean_IGS': igs_size, 'delta_gc': delta_gc_value})
+    data_list.append({'species': sp_name, 'mean_IGS': igs_size, 'DeltaGC': delta_gc_value, 'genome_gc': gc_value, 'genome_size': size, 'transposases': transposases})
 
 corr_df = pd.DataFrame(data_list)
 
-plt.figure(figsize=(6,6))
-sns.scatterplot(data=corr_df, x='delta_gc', y='mean_IGS', alpha=0.6)
-plt.xlabel('Delta GC% (Endosymbionts and Relatives)')
-plt.ylabel('Mean IGS Size (bp)')
-plt.title(f'IGS Size and Delta GC% in Endosymbionts')
-plt.tight_layout()
-plt.savefig(os.path.join(plot_dir, f'IGS_vs_DeltaGC_endosymb.pdf'))
-plt.close()
+def scatterplot(corr_df, x_col):
+    labels = {'DeltaGC': 'Delta GC%', 'genome_gc': 'Genome GC%', 'genome_size': 'Genome Size (bp)', 'transposases': 'Median Number of Transposases'}
+
+    plt.figure(figsize=(6,6))
+    sns.scatterplot(data=corr_df, x=x_col, y='mean_IGS', alpha=0.6)
+    plt.xlabel(labels[x_col])
+    plt.ylabel('Mean IGS Size (bp)')
+    plt.title(f'IGS Size and {labels[x_col]} in Endosymbionts')
+    plt.tight_layout()
+    plt.savefig(os.path.join(plot_dir, f'IGS_vs_{x_col}_endosymb.pdf'))
+    plt.close()
+
+for xcol in corr_df.columns:
+    if xcol in ['DeltaGC', 'genome_gc', 'genome_size', 'transposases']:
+        scatterplot(corr_df, xcol)
+    else:
+        continue
+
+
+
+
 
 

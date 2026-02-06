@@ -204,6 +204,10 @@ if __name__ == "__main__":
         print(df_master.head())
         df_master.to_csv(os.path.join(files_dir, 'transposase_summary.csv'), index=False)
 
+        # Compute median number of transposases per species
+        median_transposases = df_master.groupby('Species')['Total_Transposases'].median().reset_index().rename(columns={'Total_Transposases': 'Median_Transposases'})
+        median_transposases.to_csv(os.path.join(files_dir, 'median_transposases_species.csv'), index=False)
+
         parameters = [
             ('Total_Transposases', 'Abundance of Transposases per Genome', 'Total Transposases', 'transposase_abundance.pdf'),
             ('Unique_Families', 'Diversity of Transposases (Unique Families)', 'Unique IS Families', 'transposase_diversity.pdf')
