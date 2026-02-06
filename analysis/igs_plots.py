@@ -111,8 +111,10 @@ for species, matrix in delta_df.items():
         print(f'No genome GC% or size data for {species}, skipping.')
         continue
     else:
-        gc_value = np.median(genome_data[species][genome_id]['gc_genome'] for genome_id in genome_data[species] if not '_genomic' in genome_id)
-        size = np.median(genome_data[species][genome_id]['size'] for genome_id in genome_data[species] if not '_genomic' in genome_id)
+        gc_values = [genome_data[species].get(genome_id, {}).get('gc_genome') for genome_id in genome_data[species] if not '_genomic' in genome_id and isinstance(genome_data[species], dict)]
+        size_values = [genome_data[species].get(genome_id, {}).get('size') for genome_id in genome_data[species] if not '_genomic' in genome_id and isinstance(genome_data[species], dict)]
+        gc_value = np.median(gc_values) if gc_values else np.nan
+        size = np.median(size_values) if size_values else np.nan
     
     if sp_name not in transposase['Species'].values:
         print(f'No transposase data for {sp_name}, skipping.')
