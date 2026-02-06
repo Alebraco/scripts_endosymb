@@ -80,8 +80,9 @@ plt.savefig(os.path.join(plot_dir, 'IGS_scatterplot.pdf'))
 plt.close()
 
 # Correlation of intergenic size and Delta GC%
-genome_json = genome_gcsize_json_path('endosymb+relatives')
-delta_df = delta_matrix(load_or_compute(genome_json, genome_gcsize, 'endosymb+relatives'), mat_type='gc_genome')
+genome_json_path = genome_gcsize_json_path('endosymb+relatives')
+genome_data = load_or_compute(genome_json_path, genome_gcsize, 'endosymb+relatives')
+delta_df = delta_matrix(genome_data, mat_type='gc_genome')
 transposase = pd.read_csv(os.path.join(files_dir, 'median_transposases_species.csv'))
 
 data_list = []
@@ -106,12 +107,12 @@ for species, matrix in delta_df.items():
         print(f'No valid distance pairs for {species}, skipping.')
         continue
         
-    if species not in genome_json:
-        print(f'No genome GC% data for {species}, skipping.')
+    if species not in genome_data:
+        print(f'No genome GC% or size data for {species}, skipping.')
         continue
     else:
-        gc_value = np.median(genome_json[species][genome_id]['gc_genome'] for genome_id in genome_json[species] if not '_genomic' in genome_id)
-        size = np.median(genome_json[species][genome_id]['size'] for genome_id in genome_json[species] if not '_genomic' in genome_id)
+        gc_value = np.median(genome_data[species][genome_id]['gc_genome'] for genome_id in genome_data[species] if not '_genomic' in genome_id)
+        size = np.median(genome_data[species][genome_id]['size'] for genome_id in genome_data[species] if not '_genomic' in genome_id)
     
     if sp_name not in transposase['Species'].values:
         print(f'No transposase data for {sp_name}, skipping.')
