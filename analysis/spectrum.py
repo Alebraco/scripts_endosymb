@@ -579,6 +579,14 @@ def rate_shift_plot_gc(df, position):
         
         plt.savefig(os.path.join(plot_dir, position, f'gcabs_rate_shift_{mut.replace("→","_")}.pdf'))
         plt.close()
+
+def gc_equilibrium(df):
+    '''
+    GC equilibrium plot comparing observed GC content to predicted equilibrium GC based on mutation rates.
+    '''
+
+    df.groupby(['Group','Species'])
+
     
 if __name__ == '__main__':
     for position in ['first_sites', 'second_sites', 'third_sites']:
@@ -609,63 +617,3 @@ if __name__ == '__main__':
         rate_shift_plot(df, position, color_by='distance')
         rate_shift_plot(df, position, color_by='gc_genome')
         rate_shift_plot_gc(df, position)
-        if position == 'third_sites':
-            plot_gc_equilibrium(position)
-    
-def plot_gc_equilibrium(position):
-    '''
-    Plots current GC content vs equilibrium GC content at fourfold degenerate sites.
-    '''
-    if position != 'third_sites':
-        print('GC equilibrium plot only available for third_sites.')
-        return
-    
-    # Load GC data
-    gc_data = load_or_compute(gc_codon_json_path('endosymb+relatives'), gc_codon_dict, 'endosymb+relatives')
-    
-    # Load rates data
-    csv_path = os.path.join(data_dir, f'{position}_spectrum_rates.csv')
-    if not os.path.exists(csv_path):
-        print(f'Rates data not found: {csv_path}')
-        return
-    df = load_data(csv_path)
-    
-    # Compute median rates per species
-    median_df = df.groupby(['Group','Species'])[['rGC→AT', 'rAT→GC']].median().reset_index()
-    
-    # Compute equilibrium GC
-    median_df['equilibrium_gc'] = median_df['rAT→GC'] / (median_df['rAT→GC'] + median_df['rGC→AT'])
-    
-    # Get current GC
-    current_gc_list = []
-    for _, row in median_df.iterrows():
-        species = row['Species']
-        if species in gc_data:
-            # Average GC across genomes for the species
-            gc_values = [v['gc_third'] for v in gc_data[species].values() if 'gc_third' in v]
-            if gc_values:
-                current_gc = np.mean(gc_values)
-            else:
-                current_gc = np.nan
-        else:
-            current_gc = np.nan
-        current_gc_list.append(current_gc)
-    median_df['current_gc'] = current_gc_list
-    
-    # Drop NaN
-    median_df = median_df.dropna(subset=['equilibrium_gc', 'current_gc'])
-    
-    # Plot
-    plt.figure(figsize=(8, 6))
-    sns.scatterplot(data=median_df, x='current_gc', y='equilibrium_gc', hue='Group', palette=group_colors, style='Group')
-    plt.plot([0, 1], [0, 1], 'r--', label='y=x')
-    plt.xlabel('Current GC Content (Fourfold Degenerate Sites)')
-    plt.ylabel('Equilibrium GC Content')
-    plt.title('Current vs Equilibrium GC Content at Fourfold Degenerate Sites')
-    plt.legend()
-    plt.xlim(0, 1)
-    plt.ylim(0, 1)
-    plt.tight_layout()
-    plt.savefig(os.path.join(plot_dir, position, 'gc_equilibrium_plot.pdf'))
-    plt.close()
-    print('Saved gc_equilibrium_plot.pdf')
