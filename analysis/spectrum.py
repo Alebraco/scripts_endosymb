@@ -18,10 +18,9 @@ from gcsize_dict import genome_gcsize
 from gc_codon_dict import gc_codon_dict
 from utils import files_dir, genome_gcsize_json_path, load_or_compute_pickle, load_or_compute, gc_codon_json_path
 
-data_dir = 'files'
 plot_dir = os.path.join('plots', 'spectrum_plots')
 os.makedirs(plot_dir, exist_ok=True)
-os.makedirs(data_dir, exist_ok=True)
+os.makedirs(files_dir, exist_ok=True)
 
 site_labels = {
     'first_sites': 'First Codon Positions',
@@ -221,9 +220,11 @@ def plot_distributions(df, position, plot_type = 'kde'):
     plt.xlabel('Group')
     plt.ylabel('Rate')
     plt.tight_layout()
-    plt.savefig(os.path.join(plot_dir, position, 'spectrum_boxplot.pdf'))
+
+    outpath = os.path.join(plot_dir, position, 'spectrum_boxplot.pdf')
+    plt.savefig(outpath)
     plt.close()
-    print('Saved spectrum_boxplot.pdf')
+    print(f'Saved {outpath}')
 
 def plot_species_grid(df, position):
     '''
@@ -268,9 +269,10 @@ def plot_species_grid(df, position):
         grid.set(xlim=(0, 1))
         grid.figure.suptitle(f'{mut} Rates by Species\n{site_label}', fontsize=18, y =1.02)
         
-        grid.savefig(os.path.join(plot_dir, position, output))
+        outpath = os.path.join(plot_dir, position, output)
+        grid.savefig(outpath)
         plt.close()
-        print(f'Saved {output}')
+        print(f'Saved {outpath}')
 
 def run_diagnostic():
     print('Running diagnostic...')
@@ -307,7 +309,7 @@ def run_diagnostic():
                                })
 
     df = pd.DataFrame(total_sites)
-    df.to_csv(os.path.join(data_dir, 'diagnostic.csv'), index = False)
+    df.to_csv(os.path.join(files_dir, 'diagnostic.csv'), index = False)
 
 def run_mutation_analysis(position):
     '''
@@ -318,7 +320,7 @@ def run_mutation_analysis(position):
     '''
 
     output_csv = f'{position}_spectrum_rates.csv'
-    csv_path = os.path.join(data_dir, output_csv)
+    csv_path = os.path.join(files_dir, output_csv)
     all_data = []
     sites_threshold = 100
 
@@ -504,9 +506,10 @@ def rate_shift_plot(df, position, color_by = 'distance'):
         plt.ylabel('Endosymbionts')
         plt.legend()
         plt.tight_layout()
-        
-        plt.savefig(os.path.join(plot_dir, position, f'rate_shift_{mut.replace("→","_")}_{color_by}.pdf'))
+        outpath = os.path.join(plot_dir, position, f'{mut.replace("→","_")}_rate_shift_{color_by}.pdf')
+        plt.savefig(outpath)
         plt.close()
+        print(f'Saved {outpath}')
 
 def rate_shift_plot_gc(df, position):
     site_label = site_labels[position]
@@ -576,23 +579,69 @@ def rate_shift_plot_gc(df, position):
         plt.ylabel('Endosymbionts')
         plt.legend()
         plt.tight_layout()
-        
-        plt.savefig(os.path.join(plot_dir, position, f'gcabs_rate_shift_{mut.replace("→","_")}.pdf'))
+
+        outpath = os.path.join(plot_dir, position, f'gcabs_rate_shift_{mut.replace("→","_")}.pdf')
+        plt.savefig(outpath)
         plt.close()
+        print(f'Saved {outpath}')
 
 def gc_equilibrium(df):
     '''
     GC equilibrium plot comparing observed GC content to predicted equilibrium GC based on mutation rates.
     '''
 
-    df.groupby(['Group','Species'])
+    median_rates = df.groupby(['Group','Species'])[['rGC->AT', 'rAT->GC']].median().reset_index()
+    median_rates = median_rates[median_rates['Group'] != 'Endosymbiont-Relative Pairs'].copy()
+    # Calculate predicted equilibrium GC content
+    median_rates['GC_eq'] = (median_rates['rAT->GC'] / (median_rates['rAT->GC'] + median_rates['rGC->AT'])) * 100
+    
+    # Map group names to match fourfold_gc
+    group_map = {
+        'Endosymbiont Control Pairs': 'Endosymbionts',
+        'Free-Living Control Pairs': 'Relatives'
+    }
+    median_rates['Group'] = median_rates['Group'].map(group_map)
+    
+    # Merge with observed GC content
+    fourfold_gc = pd.read_csv(os.path.join(files_dir, 'fourfold_gc_content.csv'))
+    fourfold_gc = fourfold_gc.rename(columns={'group': 'Group', 'species': 'Species', 'overall_gc4': 'GC_obs'})
+
+    merged_df = pd.merge(median_rates, fourfold_gc, on=['Species', 'Group'], how='inner')
+    
+    plt.figure(figsize=(8, 8))
+    sns.scatterplot(data=merged_df,
+                    x='GC_eq',
+                    y='GC_obs',
+                    hue='Group',
+                    palette = {'Endosymbionts': '#FC8D62FF', 'Relatives': '#66C2A5FF'},
+                    alpha = 0.8, 
+                    s = 100,
+                    edgecolor='black'
+                    )
+    plt.axline((0, 0), slope=1, color='gray', linestyle='--', linewidth=1, label='Observed = Equilibrium')
+    plt.gca().set_aspect('equal')
+    plt.grid(True, linestyle=':', alpha=0.6)
+
+    plt.title('GC Equilibrium vs Observed GC4', fontsize=16)
+    plt.ylabel('Observed GC4 (Fourfold Sites)')
+    plt.xlabel('Predicted Equilibrium GC ($GC_{eq}$)')
+
+    plt.xlim(0, 100)
+    plt.ylim(0, 100)
+    plt.legend()
+
+    outpath = os.path.join(plot_dir, 'third_sites', 'gc_equilibrium_plot.pdf')
+    plt.tight_layout()
+    plt.savefig(outpath)
+    plt.close()
+    print(f'Saved {outpath}')
 
     
 if __name__ == '__main__':
     for position in ['first_sites', 'second_sites', 'third_sites']:
 
         output_csv = f'{position}_spectrum_rates.csv'
-        csv_path = os.path.join(data_dir, output_csv)
+        csv_path = os.path.join(files_dir, output_csv)
 
         if not os.path.exists(csv_path):
             print('File not found, run mutation analysis first.')
@@ -617,3 +666,6 @@ if __name__ == '__main__':
         rate_shift_plot(df, position, color_by='distance')
         rate_shift_plot(df, position, color_by='gc_genome')
         rate_shift_plot_gc(df, position)
+
+        if position == 'third_sites':
+            gc_equilibrium(df)
