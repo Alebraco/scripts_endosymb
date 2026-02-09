@@ -654,6 +654,86 @@ def gc_equilibrium(df):
     plt.close()
     print(f'Saved {outpath}')
 
+
+def combined_sites_boxplot():
+    """
+    Combined faceted boxplots comparing mutation rates across sites
+    for the two control groups: Endosymbiont Control Pairs and Free-Living Control Pairs.
+
+    Produces a faceted plot (one facet per mutation type) with x-axis = site
+    and hue = Group. Uses per-species median rates to summarize distributions.
+    """
+
+    positions = ['first_sites', 'second_sites', 'third_sites']
+    dfs = []
+    for site in positions:
+        csv_name = f'{site}_spectrum_rates.csv'
+        csv_path = os.path.join(files_dir, csv_name)
+        if not os.path.exists(csv_path):
+            print(f'Warning: {csv_path} not found, skipping {site} in combined plot.')
+            continue
+        temp = load_data(csv_path)
+        if temp.empty:
+            continue
+        temp['Site'] = site_file_prefix[site]
+        dfs.append(temp)
+
+    if not dfs:
+        print('No data available for combined sites plot.')
+        return
+
+    combined = pd.concat(dfs, ignore_index=True)
+
+    keep_groups = ['Endosymbiont Control Pairs', 'Free-Living Control Pairs']
+    combined = combined[combined['Group'].isin(keep_groups)].copy()
+
+    med = combined.groupby(['Site', 'Group', 'Species'])[mutation_types].median().reset_index()
+
+    med_melt = med.melt(id_vars=['Site', 'Group', 'Species'], value_vars=mutation_types,
+                        var_name='Mutation Type', value_name='Rate')
+
+    site_order = ['first', 'second', 'third']
+
+    fig, axes = plt.subplots(1, 2, figsize=(12, 8), sharey=True)
+
+    for ax, mut in zip(axes, mutation_types):
+        sns.boxplot(data=med_melt[med_melt['Mutation Type'] == mut],
+                    x='Site', 
+                    y='Rate', 
+                    hue='Group', 
+                    palette = {'Endosymbiont Control Pairs': '#fc8d62', 'Free-Living Control Pairs': '#66c2a5'},
+                    order=site_order,
+                    ax=ax,
+                    width=0.5,
+                    showfliers=False
+                    )
+        sns.stripplot(data=med_melt[med_melt['Mutation Type'] == mut],
+                    x='Site', 
+                    y='Rate', 
+                    hue='Group', 
+                    color = 'gray',
+                    order=site_order,
+                    ax=ax,
+                    dodge=True,
+                    alpha=0.4,
+                    legend=False
+                    )
+        ax.set_title(f'{mut.replace("r","")} Rates by Site')
+        ax.set_xlabel('Codon Site')
+        ax.set_ylabel('Mutation Rate')
+        ax.set_ylim(0, 1)
+        if ax == axes[1]:
+            ax.legend(title='Group')
+        else:
+            ax.get_legend().remove()
+    fig.suptitle('Comparison of Mutation Rates Across Codon Sites', fontsize=16)
+
+    plt.tight_layout()
+    outpath = os.path.join(plot_dir, f'combined_sites_boxplot.pdf')
+    plt.savefig(outpath)
+    plt.close()
+    print(f'Saved {outpath}')
+
     
 if __name__ == '__main__':
     for position in ['first_sites', 'second_sites', 'third_sites']:
@@ -687,3 +767,4 @@ if __name__ == '__main__':
 
         if position == 'third_sites':
             gc_equilibrium(df)
+            combined_sites_boxplot()
