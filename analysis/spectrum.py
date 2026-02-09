@@ -590,10 +590,12 @@ def gc_equilibrium(df):
     GC equilibrium plot comparing observed GC content to predicted equilibrium GC based on mutation rates.
     '''
 
-    median_rates = df.groupby(['Group','Species'])[['rGC->AT', 'rAT->GC']].median().reset_index()
+    # Use the mapped mutation column names (they contain the unicode arrow)
+    r_gc_at, r_at_gc = mutation_types[0], mutation_types[1]
+    median_rates = df.groupby(['Group','Species'])[[r_gc_at, r_at_gc]].median().reset_index()
     median_rates = median_rates[median_rates['Group'] != 'Endosymbiont-Relative Pairs'].copy()
     # Calculate predicted equilibrium GC content
-    median_rates['GC_eq'] = (median_rates['rAT->GC'] / (median_rates['rAT->GC'] + median_rates['rGC->AT'])) * 100
+    median_rates['GC_eq'] = (median_rates[r_at_gc] / (median_rates[r_at_gc] + median_rates[r_gc_at])) * 100
     
     # Map group names to match fourfold_gc
     group_map = {
