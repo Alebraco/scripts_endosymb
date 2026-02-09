@@ -720,7 +720,7 @@ def combined_sites_boxplot(strip=False):
                         legend=False
                         )
         ax.set_title(f'{mut.replace("r","")} Rates by Site', fontsize=14)
-        ax.set_xlabel('Codon Site', fontsize=12, fontweight='bold')
+        ax.set_xlabel('')
         ax.set_xticks([0,1,2])
         ax.set_xticklabels(display_labels)
         ax.set_ylabel('Mutation Rate', fontsize=12, fontweight='bold')
@@ -733,7 +733,7 @@ def combined_sites_boxplot(strip=False):
         else:
             ax.get_legend().remove()
     fig.suptitle('Comparison of Mutation Rates Across Codon Sites', fontsize=16, fontweight='bold')
-
+    fig.x_label('Codon Site', fontsize=12, fontweight='bold')
     plt.tight_layout()
     outpath = os.path.join(plot_dir, f'combined_sites_boxplot.pdf')
     plt.savefig(outpath)
