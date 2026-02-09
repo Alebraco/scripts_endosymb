@@ -720,10 +720,10 @@ def combined_sites_boxplot(strip=False):
                         legend=False
                         )
         ax.set_title(f'{mut.replace("r","")} Rates by Site', fontsize=14)
-        ax.set_xlabel('Codon Site', fontsize=12)
+        ax.set_xlabel('Codon Site', fontsize=12, fontweight='bold')
         ax.set_xticks([0,1,2])
         ax.set_xticklabels(display_labels)
-        ax.set_ylabel('Mutation Rate', fontsize=12)
+        ax.set_ylabel('Mutation Rate', fontsize=12, fontweight='bold')
 
         ax.grid(True, which="major", axis="y", ls="-", alpha=0.5)
         ax.grid(True, which="minor", axis="y", ls=":", alpha=0.2)
@@ -743,6 +743,7 @@ def combined_sites_boxplot(strip=False):
     
 if __name__ == '__main__':
     for position in ['first_sites', 'second_sites', 'third_sites']:
+        flag = True if position == 'third_sites' else False 
 
         output_csv = f'{position}_spectrum_rates.csv'
         csv_path = os.path.join(files_dir, output_csv)
@@ -767,12 +768,9 @@ if __name__ == '__main__':
 
         plot_distributions(df, position)
         plot_species_grid(df, position)
-        rate_shift_plot(df, position, color_by='distance')
-        rate_shift_plot(df, position, color_by='gc_genome')
-        if position == 'third_sites':
-            rate_shift_plot_gc(df, position, annotate=True)
-        else:
-            rate_shift_plot_gc(df, position, annotate=False)
+        rate_shift_plot(df, position, color_by='distance', annotate=flag)
+        rate_shift_plot(df, position, color_by='gc_genome', annotate=flag)
+        rate_shift_plot_gc(df, position, annotate=flag)
 
         if position == 'third_sites':
             gc_equilibrium(df)
