@@ -685,6 +685,10 @@ def combined_sites_boxplot(strip=False):
 
     keep_groups = ['Endosymbiont Control Pairs', 'Free-Living Control Pairs']
     combined = combined[combined['Group'].isin(keep_groups)].copy()
+    combined['Group'] = combined['Group'].replace({
+        'Endosymbiont Control Pairs': 'Endosymbionts',
+        'Free-Living Control Pairs': 'Free-Living Relatives'
+    })
 
     med = combined.groupby(['Site', 'Group', 'Species'])[mutation_types].median().reset_index()
 
@@ -701,7 +705,7 @@ def combined_sites_boxplot(strip=False):
                     x='Site', 
                     y='Rate', 
                     hue='Group', 
-                    palette = {'Endosymbiont Control Pairs': '#FC8D62', 'Free-Living Control Pairs': '#66C2A5'},
+                    palette = {'Endosymbionts': '#FC8D62', 'Free-Living Relatives': '#66C2A5'},
                     order=site_order,
                     ax=ax,
                     width=0.5,
@@ -712,7 +716,7 @@ def combined_sites_boxplot(strip=False):
                         x='Site', 
                         y='Rate', 
                         hue='Group', 
-                        palette = {'Endosymbiont Control Pairs': 'gray', 'Free-Living Control Pairs': 'gray'},
+                        palette = {'Endosymbionts': 'gray', 'Free-Living Relatives': 'gray'},
                         order=site_order,
                         ax=ax,
                         dodge=True,
@@ -724,6 +728,7 @@ def combined_sites_boxplot(strip=False):
         ax.set_xticks([0,1,2])
         ax.set_xticklabels(display_labels)
         ax.set_ylabel('Mutation Rate', fontsize=14, fontweight='bold')
+        ax.set_ylim(-0.05, 1)
 
         ax.grid(True, which="major", axis="y", ls="-", alpha=0.5)
         ax.grid(True, which="minor", axis="y", ls=":", alpha=0.2)
