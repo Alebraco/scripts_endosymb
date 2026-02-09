@@ -693,6 +693,7 @@ def combined_sites_boxplot():
                         var_name='Mutation Type', value_name='Rate')
 
     site_order = ['first', 'second', 'third']
+    display_labels = ['First', 'Second', 'Third (4-fold)']
 
     fig, axes = plt.subplots(1, 2, figsize=(12, 8), sharey=True)
 
@@ -701,7 +702,7 @@ def combined_sites_boxplot():
                     x='Site', 
                     y='Rate', 
                     hue='Group', 
-                    palette = {'Endosymbiont Control Pairs': '#fc8d62', 'Free-Living Control Pairs': '#66c2a5'},
+                    palette = {'Endosymbiont Control Pairs': '#FC8D62', 'Free-Living Control Pairs': '#66C2A5'},
                     order=site_order,
                     ax=ax,
                     width=0.5,
@@ -711,7 +712,7 @@ def combined_sites_boxplot():
                     x='Site', 
                     y='Rate', 
                     hue='Group', 
-                    color = 'gray',
+                    palette = {'Endosymbiont Control Pairs': 'gray', 'Free-Living Control Pairs': 'gray'},
                     order=site_order,
                     ax=ax,
                     dodge=True,
@@ -720,8 +721,14 @@ def combined_sites_boxplot():
                     )
         ax.set_title(f'{mut.replace("r","")} Rates by Site')
         ax.set_xlabel('Codon Site')
-        ax.set_ylabel('Mutation Rate')
-        ax.set_ylim(0, 1)
+        ax.set_xticks([0,1,2])
+        ax.set_xticklabels(display_labels)
+        ax.set_ylabel('Mutation Rate (log scale)')
+        ax.set_yscale('log')
+
+        ax.grid(True, which="major", axis="y", ls="-", alpha=0.5)
+        ax.grid(True, which="minor", axis="y", ls=":", alpha=0.2)
+        
         if ax == axes[1]:
             ax.legend(title='Group')
         else:
