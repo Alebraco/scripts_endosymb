@@ -28,6 +28,13 @@ site_labels = {
     'third_sites': 'Fourfold Degenerate Third Sites'
 }
 
+# short filename prefixes for each analyzed site
+site_file_prefix = {
+    'first_sites': 'first',
+    'second_sites': 'second',
+    'third_sites': 'third'
+}
+
 group_colors = {
 'Endosymbiont-Relative Pairs' : '#8da0cb',
 'Free-Living Control Pairs' : '#66c2a5',
@@ -172,7 +179,8 @@ def plot_distributions(df, position, plot_type = 'kde'):
         plt.tight_layout()
         
         outdir = os.path.join(plot_dir, position)
-        plt.savefig(os.path.join(outdir, 'spectrum_hist.pdf'))
+        prefix = site_file_prefix.get(position, position)
+        plt.savefig(os.path.join(outdir, f'{prefix}_spectrum_hist.pdf'))
         plt.close()
         print('Saved spectrum_hist.pdf')
     else:
@@ -195,7 +203,8 @@ def plot_distributions(df, position, plot_type = 'kde'):
             ax.set_xlim(0, 1)
         axes[0].set_ylabel('Density') 
         plt.tight_layout()
-        plt.savefig(os.path.join(plot_dir, position, 'spectrum_kde.pdf'))
+        prefix = site_file_prefix.get(position, position)
+        plt.savefig(os.path.join(plot_dir, position, f'{prefix}_spectrum_kde.pdf'))
         plt.close()
         print('Saved spectrum_kde.pdf')
 
@@ -221,7 +230,8 @@ def plot_distributions(df, position, plot_type = 'kde'):
     plt.ylabel('Rate')
     plt.tight_layout()
 
-    outpath = os.path.join(plot_dir, position, 'spectrum_boxplot.pdf')
+    prefix = site_file_prefix.get(position, position)
+    outpath = os.path.join(plot_dir, position, f'{prefix}_spectrum_boxplot.pdf')
     plt.savefig(outpath)
     plt.close()
     print(f'Saved {outpath}')
@@ -245,7 +255,8 @@ def plot_species_grid(df, position):
     
     for mut in mutation_types:
         safe_name = mut.replace('→', '_').replace('r', '')
-        output = f'grid_{safe_name}.pdf'
+        prefix = site_file_prefix.get(position, position)
+        output = f'{prefix}_grid_{safe_name}.pdf'
     
         grid = sns.FacetGrid(
             df, 
@@ -506,7 +517,9 @@ def rate_shift_plot(df, position, color_by = 'distance'):
         plt.ylabel('Endosymbionts')
         plt.legend()
         plt.tight_layout()
-        outpath = os.path.join(plot_dir, position, f'{mut.replace("→","_")}_rate_shift_{color_by}.pdf')
+        mut_file = mut.replace('→', '_')
+        prefix = site_file_prefix.get(position, position)
+        outpath = os.path.join(plot_dir, position, f'{prefix}_{mut_file}_rate_shift_{color_by}.pdf')
         plt.savefig(outpath)
         plt.close()
         print(f'Saved {outpath}')
@@ -580,7 +593,9 @@ def rate_shift_plot_gc(df, position):
         plt.legend()
         plt.tight_layout()
 
-        outpath = os.path.join(plot_dir, position, f'gcabs_rate_shift_{mut.replace("→","_")}.pdf')
+        mut_file = mut.replace('→', '_')
+        prefix = site_file_prefix.get(position, position)
+        outpath = os.path.join(plot_dir, position, f'{prefix}_gcabs_rate_shift_{mut_file}.pdf')
         plt.savefig(outpath)
         plt.close()
         print(f'Saved {outpath}')
@@ -632,7 +647,8 @@ def gc_equilibrium(df):
     plt.ylim(0, 100)
     plt.legend()
 
-    outpath = os.path.join(plot_dir, 'third_sites', 'gc_equilibrium_plot.pdf')
+    prefix = site_file_prefix.get('third_sites', 'third')
+    outpath = os.path.join(plot_dir, 'third_sites', f'{prefix}_gc_equilibrium_plot.pdf')
     plt.tight_layout()
     plt.savefig(outpath)
     plt.close()
