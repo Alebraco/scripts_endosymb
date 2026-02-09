@@ -524,7 +524,7 @@ def rate_shift_plot(df, position, color_by = 'distance'):
         plt.close()
         print(f'Saved {outpath}')
 
-def rate_shift_plot_gc(df, position):
+def rate_shift_plot_gc(df, position, annotate=False):
     site_label = site_labels[position]
 
     genome_json = genome_gcsize_json_path('endosymb_only')
@@ -562,22 +562,14 @@ def rate_shift_plot_gc(df, position):
                               alpha=0.8,
                               zorder=2,
                               label='Species')
-        # Annotate points (species names)
-        texts = []
-        for sp_name in current_data.index:
-            x_val = relative_rates.loc[sp_name]
-            y_val = endosymbiont_rates.loc[sp_name]
-            t = plt.text(x_val, y_val, sp_name, fontsize=8, alpha=0.8, zorder = 3)
-            texts.append(t)
-            
-        cbar = plt.colorbar(scatter)
-        cbar.set_label('Endosymbiont GC Content (%)', rotation=270, labelpad=25)
-        
-        plt.axline((0, 0), slope=1, color='gray', linestyle='--', linewidth=1, label='y=x (No shift)')
-        plt.xlim(-0.05, 1.05)
-        plt.ylim(-0.05, 1.05)
-        
-        adjust_text(texts, 
+        if annotate:
+            texts = []
+            for sp_name in current_data.index:
+                x_val = relative_rates.loc[sp_name]
+                y_val = endosymbiont_rates.loc[sp_name]
+                t = plt.text(x_val, y_val, sp_name, fontsize=8, alpha=0.8, zorder = 3)
+                texts.append(t)
+            adjust_text(texts, 
             only_move={'points':'y', 'texts':'xy'}, 
             force_points=0.03,
             force_text=2.0, 
@@ -586,6 +578,13 @@ def rate_shift_plot_gc(df, position):
             autoalign='y',
             add_objects=[scatter]
             )
+            
+        cbar = plt.colorbar(scatter)
+        cbar.set_label('Endosymbiont GC Content (%)', rotation=270, labelpad=25)
+        
+        plt.axline((0, 0), slope=1, color='gray', linestyle='--', linewidth=1, label='y=x (No shift)')
+        plt.xlim(-0.05, 1.05)
+        plt.ylim(-0.05, 1.05)
 
         plt.title(f'{mut.replace("r","")} Rate Shift\n{site_label}', fontsize=16)
         plt.xlabel('Free-Living Relatives')
@@ -728,7 +727,7 @@ def combined_sites_boxplot():
 
         ax.grid(True, which="major", axis="y", ls="-", alpha=0.5)
         ax.grid(True, which="minor", axis="y", ls=":", alpha=0.2)
-        
+
         if ax == axes[1]:
             ax.legend(title='Group')
         else:
@@ -770,7 +769,10 @@ if __name__ == '__main__':
         plot_species_grid(df, position)
         rate_shift_plot(df, position, color_by='distance')
         rate_shift_plot(df, position, color_by='gc_genome')
-        rate_shift_plot_gc(df, position)
+        if position == 'third_sites':
+            rate_shift_plot_gc(df, position, annotate=True)
+        else:
+            rate_shift_plot_gc(df, position, annotate=False)
 
         if position == 'third_sites':
             gc_equilibrium(df)
