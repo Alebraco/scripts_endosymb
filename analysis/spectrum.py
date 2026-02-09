@@ -654,7 +654,7 @@ def gc_equilibrium(df):
     print(f'Saved {outpath}')
 
 
-def combined_sites_boxplot():
+def combined_sites_boxplot(strip=False):
     """
     Combined faceted boxplots comparing mutation rates across sites
     for the two control groups: Endosymbiont Control Pairs and Free-Living Control Pairs.
@@ -707,23 +707,23 @@ def combined_sites_boxplot():
                     width=0.5,
                     showfliers=False
                     )
-        sns.stripplot(data=med_melt[med_melt['Mutation Type'] == mut],
-                    x='Site', 
-                    y='Rate', 
-                    hue='Group', 
-                    palette = {'Endosymbiont Control Pairs': 'gray', 'Free-Living Control Pairs': 'gray'},
-                    order=site_order,
-                    ax=ax,
-                    dodge=True,
-                    alpha=0.4,
-                    legend=False
-                    )
-        ax.set_title(f'{mut.replace("r","")} Rates by Site')
-        ax.set_xlabel('Codon Site')
+        if strip:
+            sns.stripplot(data=med_melt[med_melt['Mutation Type'] == mut],
+                        x='Site', 
+                        y='Rate', 
+                        hue='Group', 
+                        palette = {'Endosymbiont Control Pairs': 'gray', 'Free-Living Control Pairs': 'gray'},
+                        order=site_order,
+                        ax=ax,
+                        dodge=True,
+                        alpha=0.4,
+                        legend=False
+                        )
+        ax.set_title(f'{mut.replace("r","")} Rates by Site', fontsize=14)
+        ax.set_xlabel('Codon Site', fontsize=12)
         ax.set_xticks([0,1,2])
         ax.set_xticklabels(display_labels)
-        ax.set_ylabel('Mutation Rate (log scale)')
-        ax.set_yscale('log')
+        ax.set_ylabel('Mutation Rate', fontsize=12)
 
         ax.grid(True, which="major", axis="y", ls="-", alpha=0.5)
         ax.grid(True, which="minor", axis="y", ls=":", alpha=0.2)
@@ -732,7 +732,7 @@ def combined_sites_boxplot():
             ax.legend(title='Group')
         else:
             ax.get_legend().remove()
-    fig.suptitle('Comparison of Mutation Rates Across Codon Sites', fontsize=16)
+    fig.suptitle('Comparison of Mutation Rates Across Codon Sites', fontsize=16, fontweight='bold')
 
     plt.tight_layout()
     outpath = os.path.join(plot_dir, f'combined_sites_boxplot.pdf')
