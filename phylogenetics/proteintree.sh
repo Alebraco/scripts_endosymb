@@ -6,7 +6,6 @@
 #BSUB -W 96:00
 #BSUB -e tree_logs/%J_%I.err
 #BSUB -o tree_logs/%J_%I.out
-#BSUB -q bobay
 
 source ~/.bashrc
 conda activate /usr/local/usrapps/metastrain/asoneto/tree
