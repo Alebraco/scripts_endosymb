@@ -8,7 +8,7 @@ import seaborn as sns
 import numpy as np
 from delta_matrix import delta_matrix
 from gcsize_dict import genome_gcsize
-from utils import files_dir, genome_gcsize_json_path, load_or_compute
+from utils import files_dir, genome_gcsize_json_path, load_or_compute, group_names
 
 plot_dir = os.path.join('plots', 'igs_lengths')
 os.makedirs(plot_dir, exist_ok=True)
@@ -20,11 +20,12 @@ group_colors = {
 
 #Box Plots with all data points
 df_boxplot = pd.read_csv(os.path.join(files_dir, 'all_IGS_data.csv'))
-df_boxplot = df_boxplot[df_boxplot['group'].isin(['Endosymbionts Only','Free-Living Relatives Only'])]
-df_boxplot_median = df_boxplot.groupby(['group', 'species', 'file'])['IGS_Size'].median().reset_index()
+df_boxplot['Group'] = df_boxplot['Group'].map(group_names)
+df_boxplot = df_boxplot[df_boxplot['Group'].isin(['Endosymbionts Only','Free-Living Relatives Only'])]
+df_boxplot_median = df_boxplot.groupby(['Group', 'Species', 'File'])['IGS_Size'].median().reset_index()
 
 plt.figure(figsize=(12,12))
-sns.boxplot(data = df_boxplot_median, x = 'IGS_Size', y = 'species', hue = 'group',
+sns.boxplot(data = df_boxplot_median, x = 'IGS_Size', y = 'Species', hue = 'Group',
             palette=group_colors, hue_order = list(group_colors.keys()),
             fliersize=2, dodge = True, gap = 0.1)
 plt.xlabel('Species')
@@ -38,13 +39,14 @@ plt.close()
 
 #Scatterplot with mean IGS only
 summary_df = pd.read_csv(os.path.join(files_dir, 'meanIGS.csv'))
-summary_df = summary_df[summary_df['group'].isin(['Endosymbionts Only','Free-Living Relatives Only'])]
-pivot_df = summary_df.pivot_table(index='species', columns='group', values='mean_mean_IGS').reset_index()
+summary_df['Group'] = summary_df['Group'].map(group_names)
+summary_df = summary_df[summary_df['Group'].isin(['Endosymbionts Only','Free-Living Relatives Only'])]
+pivot_df = summary_df.pivot_table(index='Species', columns='Group', values='mean_mean_IGS').reset_index()
 outliers = pivot_df[pivot_df['Endosymbionts Only'] > pivot_df['Endosymbionts Only'].quantile(0.90)]
 
 plt.figure(figsize=(8,8))
-sns.boxplot(data = summary_df, x = 'group', y = 'mean_mean_IGS', hue='group', palette=group_colors, hue_order=list(group_colors.keys()), fliersize=0)
-sns.stripplot(data = summary_df, x = 'group', y = 'mean_mean_IGS', color='black', alpha=0.7)
+sns.boxplot(data = summary_df, x = 'Group', y = 'mean_mean_IGS', hue='Group', palette=group_colors, hue_order=list(group_colors.keys()), fliersize=0)
+sns.stripplot(data = summary_df, x = 'Group', y = 'mean_mean_IGS', color='black', alpha=0.7)
 plt.title('Intergenic Space (IGS) Size by Group')
 plt.xlabel('Group')
 plt.ylabel('IGS Size (bp)')
@@ -66,7 +68,7 @@ plt.axline((0, 0), slope=1, color='red', linestyle='--', linewidth=1, label='y=x
 
 # Label outliers
 for idx, row in outliers.iterrows():
-    plt.annotate(row['species'].replace('endosymbiont', '').replace('_', ' '),
+    plt.annotate(row['Species'].replace('endosymbiont', '').replace('_', ' '),
                 xy=(row['Endosymbionts Only'], row['Free-Living Relatives Only']),
                 xytext=(5, 5), textcoords='offset points',
                 fontsize=8, alpha=0.7)
@@ -88,12 +90,12 @@ transposase = pd.read_csv(os.path.join(files_dir, 'median_transposases_species.c
 data_list = []
 for species, matrix in delta_df.items():
     sp_name = species.replace('_endosymbiont','').replace('_', ' ')
-    if sp_name not in summary_df['species'].values:
+    if sp_name not in summary_df['Species'].values:
         print(f'Skipping {species} as no IGS data is available.')
         continue
     print(f'Processing {species} for IGS vs Delta GC% correlation.')
 
-    igs_size = summary_df[summary_df['species'] == sp_name]['mean_mean_IGS'].values[0]
+    igs_size = summary_df[summary_df['Species'] == sp_name]['mean_mean_IGS'].values[0]
     
     ids = matrix.index.tolist()
     i,j = np.triu_indices_from(matrix, k=1)    

@@ -31,55 +31,74 @@ columns = ['qseqid',
            'slen']
 use_columns = ['sseqid', 'pident', 'sstart', 'send', 'slen']
 
-def processing_transposase():
+def processing_transposase(path, group_label = None, auto_classify = False):
+    """
+    base_path: The directory containing the 'transposase' folder.
+               e.g. 'path/to/group' or 'path/to/general_folder'
+    group_label: Optional string to label the 'Group' column. 
+                 If None, defaults to 'Ungrouped'.
+    """
     results = []
 
-    for group in ['endosymb_only', 'relatives_only']:
-        group_path = os.path.join(group, 'transposase')
+    target_dir = os.path.join(path, 'transposase')
 
-        for species in os.listdir(group_path):
-            sp_name = species.replace('_endosymbiont', '').replace('_', ' ')
-            species_path = os.path.join(group_path, species)
+    if not os.path.exists(target_dir):
+        print(f"Directory not found: {target_dir}")
+        return None
+    
+    default_group = group_label if group_label else 'Ungrouped'
 
-            tsv_files = [file for file in os.listdir(species_path) if file.endswith('.tsv')]
-            total_genomes = len(tsv_files)
+    for species in os.listdir(target_dir):
+        sp_name = species.replace('_endosymbiont', '').replace('_', ' ')
+        species_path = os.path.join(target_dir, species)
 
-            for file in tsv_files:
-                file_path = os.path.join(species_path, file)
+        if not os.path.isdir(species_path):
+            continue
 
-                complete, partial, total, families = 0,0,0,0
-                fam_list = None
+        tsv_files = [file for file in os.listdir(species_path) if file.endswith('.tsv')]
+        total_genomes = len(tsv_files)
 
-                if os.path.getsize(file_path) > 0:
-                    df = pd.read_csv(file_path, sep='\t', names=columns, usecols=use_columns)
+        for file in tsv_files:
+            file_path = os.path.join(species_path, file)
 
-                    # Filter hits
-                    df = df[df['pident'] >= identity_threshold]
-                    df = df[df['sseqid'].str.contains('Transposase', case=False)]
-                    df = df[~df['sseqid'].str.contains('Accessory', case=False)]
+            complete, partial, total, families = 0,0,0,0
+            fam_list = None
 
-                    if not df.empty:
+            if auto_classify:
+                if '_genomic' in file:
+                    current_group = 'relatives_only'
+                else:
+                    current_group = 'endosymb_only'
+            else:
+                current_group = default_group
 
-                        df['coverage'] = (df['send'] - df['sstart'] + 1) / df['slen']
-                        complete = len(df[df['coverage'] >= coverage_threshold])
-                        partial = len(df[df['coverage'] < coverage_threshold])
-                        total = complete + partial
+            if os.path.getsize(file_path) > 0:
+                df = pd.read_csv(file_path, sep='\t', names=columns, usecols=use_columns)
 
-                        # Extract IS families
-                        fam_list = df['sseqid'].str.split('_').str[0].str.split('//').str[1].tolist()
-                        families = len(set(fam_list)) if fam_list else 0
+                df = df[df['pident'] >= identity_threshold]
+                df = df[df['sseqid'].str.contains('Transposase', case=False)]
+                df = df[~df['sseqid'].str.contains('Accessory', case=False)]
 
-                results.append({
-                    'Group': group,
-                    'Species': sp_name,
-                    'File': file.replace('.tsv',''),
-                    'Total_Genomes': total_genomes,
-                    'Complete_Transposases': complete,
-                    'Partial_Transposases': partial,
-                    'Total_Transposases': total,
-                    'IS_Families': fam_list,
-                    'Unique_Families': families
-                })
+                if not df.empty:
+                    df['coverage'] = (df['send'] - df['sstart'] + 1) / df['slen']
+                    complete = len(df[df['coverage'] >= coverage_threshold])
+                    partial = len(df[df['coverage'] < coverage_threshold])
+                    total = complete + partial
+
+                    fam_list = df['sseqid'].str.split('_').str[0].str.split('//').str[1].tolist()
+                    families = len(set(fam_list)) if fam_list else 0
+
+            results.append({
+                'Group': current_group,
+                'Species': sp_name,
+                'File': file.replace('.tsv',''),
+                'Total_Genomes': total_genomes,
+                'Complete_Transposases': complete,
+                'Partial_Transposases': partial,
+                'Total_Transposases': total,
+                'IS_Families': fam_list,
+                'Unique_Families': families
+            })
 
     if results:
         return pd.DataFrame(results)
@@ -199,9 +218,14 @@ def transposase_completeness_perc(df_master):
     plt.close()
 
 if __name__ == "__main__":
-    df_master = processing_transposase()
-    if df_master is not None:
-        print(df_master.head())
+    dfs = []
+
+    for group in ['endosymb_only', 'relatives_only']:
+        df = processing_transposase(group, group_label=group)
+        if df is not None:
+            dfs.append(df)
+    if dfs:
+        df_master = pd.concat(dfs, ignore_index=True)
         df_master.to_csv(os.path.join(files_dir, 'transposase_summary.csv'), index=False)
 
         # Compute median number of transposases per species
@@ -215,8 +239,13 @@ if __name__ == "__main__":
 
         for metric, title, label, filename in parameters:
             transposase_plot(df_master, metric, title, label, filename)
+
         transposase_group_count(df_master)
+
         for group in ['endosymb_only', 'relatives_only']:
             transposase_completeness(df_master, group)
+
         transposase_completeness_perc(df_master)
+    else:
+        print("No transposase data found to process.")
 
