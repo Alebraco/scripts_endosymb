@@ -13,15 +13,15 @@ echo "This is concatenate job number: $job_number"
 
 if [ $job_number -eq 1 ]; then
     echo "Processing endosymb+relatives concatenates"
-    python3 concatenate.py endosymb+relatives
+    python3 scripts_endosymb/phylogenetics/concatenate.py endosymb+relatives
 
 elif [ $job_number -eq 2 ]; then
     echo "Processing endosymb_only concatenates"
-    python3 concatenate.py endosymb_only
+    python3 scripts_endosymb/phylogenetics/concatenate.py endosymb_only
 
 elif [ $job_number -eq 3 ]; then
     echo "Processing relatives_only concatenates"
-    python3 concatenate.py relatives_only
+    python3 scripts_endosymb/phylogenetics/concatenate.py relatives_only
 
 else
     echo "Error: Unknown job number $job_number"
