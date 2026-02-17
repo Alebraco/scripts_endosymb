@@ -589,11 +589,11 @@ def rate_shift_plot(df, position, color_by = 'distance', annotate=False):
         plt.xlim(-0.05, 1.05)
         plt.ylim(-0.05, 1.05)
 
-        plt.title(f'{mut.replace("r","")} Rate Shift\n{site_label}', fontsize=20)
-        plt.xlabel('Free-Living Relatives', fontsize=16)
-        plt.ylabel('Endosymbionts', fontsize=16)
-        plt.tick_params(axis='both', labelsize=14)
-        plt.legend(fontsize=12)
+        plt.title(f'{mut.replace("r","")} Rate Shift\n{site_label}', fontsize=22)
+        plt.xlabel('Free-Living Relatives', fontsize=18)
+        plt.ylabel('Endosymbionts', fontsize=18)
+        plt.tick_params(axis='both', labelsize=16)
+        plt.legend(fontsize=16)
         plt.tight_layout()
         mut_file = mut.replace('→', '_')
         prefix = site_file_prefix.get(position, position)
@@ -665,10 +665,10 @@ def rate_shift_plot_gc(df, position, annotate=False):
         plt.xlim(-0.05, 1.05)
         plt.ylim(-0.05, 1.05)
 
-        plt.title(f'{mut.replace("r","")} Rate Shift\n{site_label}', fontsize=20)
-        plt.xlabel('Free-Living Relatives', fontsize=16)
-        plt.ylabel('Endosymbionts', fontsize=16)
-        plt.tick_params(axis='both', labelsize=14)
+        plt.title(f'{mut.replace("r","")} Rate Shift\n{site_label}', fontsize=22)
+        plt.xlabel('Free-Living Relatives', fontsize=18, fontweight='bold')
+        plt.ylabel('Endosymbionts', fontsize=18, fontweight='bold')
+        plt.tick_params(axis='both', labelsize=16)
         plt.legend(fontsize=12)
         plt.tight_layout()
 
@@ -704,7 +704,7 @@ def gc_equilibrium(df):
 
     merged_df = pd.merge(median_rates, fourfold_gc, on=['Species', 'Group'], how='inner')
     
-    plt.figure(figsize=(8, 8))
+    plt.figure(figsize=(12, 12))
     sns.scatterplot(data=merged_df,
                     x='GC_eq',
                     y='GC_obs',
@@ -718,9 +718,9 @@ def gc_equilibrium(df):
     plt.gca().set_aspect('equal')
     plt.grid(True, linestyle=':', alpha=0.6)
 
-    plt.title('GC Equilibrium vs Observed GC4', fontsize=16)
-    plt.ylabel('Observed GC4 (Fourfold Sites)')
-    plt.xlabel('Predicted Equilibrium GC ($GC_{eq}$)')
+    plt.title('GC Equilibrium vs Observed GC4', fontsize=20, fontweight='bold')
+    plt.ylabel('Observed GC4 (Fourfold Sites)', fontsize=18, fontweight='bold')
+    plt.xlabel('Predicted Equilibrium GC ($GC_{eq}$)', fontsize=18, fontweight='bold')
 
     plt.xlim(0, 100)
     plt.ylim(0, 100)
