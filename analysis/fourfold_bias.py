@@ -266,8 +266,8 @@ def amino_acid_bias(detailed_df):
         axes[0].bar_label(container, padding=2) 
 
     axes[0].set_title('Most Biased Amino Acids by Group', fontsize=20, fontweight='bold')
-    axes[0].set_xlabel('Amino Acid', fontsize=18)
-    axes[0].set_ylabel('Number of Species', fontsize=18)
+    axes[0].set_xlabel('Amino Acid', fontsize=18, fontweight='bold')
+    axes[0].set_ylabel('Number of Species', fontsize=18, fontweight='bold')
 
     sns.countplot(
         x='amino_acid', 
@@ -283,8 +283,8 @@ def amino_acid_bias(detailed_df):
         axes[1].bar_label(container, padding=2) 
 
     axes[1].set_title('Least Biased Amino Acids by Group', fontsize=20, fontweight='bold')
-    axes[1].set_xlabel('Amino Acid', fontsize=18)
-    axes[1].set_ylabel('Number of Species', fontsize=18)
+    axes[1].set_xlabel('Amino Acid', fontsize=18, fontweight='bold')
+    axes[1].set_ylabel('Number of Species', fontsize=18, fontweight='bold')
     plt.tight_layout()
     plt.savefig(os.path.join(plot_dir, 'gc4_amino_acid_bias.pdf'))
     plt.close()
