@@ -153,10 +153,10 @@ def transposase_group_count(df_master):
                   order=['endosymb_only', 'relatives_only'], hue_order=['endosymb_only', 'relatives_only'])
     
     if metric == 'Transposases_per_Gene':
-        plt.title('Normalized Transposase Abundance by Group', fontsize=20, fontweight='bold')
+        plt.title('Normalized Transposase Abundance by Group', fontsize=24, fontweight='bold')
         plt.ylabel('Transposases per Gene', fontsize=22, fontweight='bold')
     else:
-        plt.title('Total Transposase Count by Group', fontsize=20, fontweight='bold')
+        plt.title('Total Transposase Count by Group', fontsize=24, fontweight='bold')
         plt.ylabel('Number of Transposases', fontsize=22, fontweight='bold')
     plt.xlabel('Group', fontsize=22, fontweight='bold')
     plt.xticks(fontsize=18)
