@@ -13,20 +13,13 @@ from utils import files_dir, genome_gcsize_json_path, load_or_compute, group_nam
 plot_dir = os.path.join('plots', 'igs_lengths')
 os.makedirs(plot_dir, exist_ok=True)
 group_colors = {
-# 'Endosymbionts and Free-Living Relatives' : '#1f77b4',
-'Endosymbionts Only' : '#FC8D62FF',
-'Free-Living Relatives Only' : '#66C2A5FF',
+    'Endosymbionts' : '#FC8D62',
+    'Free-Living Relatives' : '#66C2A5',
 }
 
 #Box Plots with all data points
 df_boxplot = pd.read_csv(os.path.join(files_dir, 'all_IGS_data.csv'))
-# Normalize possible column name variations (e.g., 'group', 'Group ', etc.)
-cols_map = {c.lower().strip(): c for c in df_boxplot.columns}
-if 'group' in cols_map:
-    df_boxplot['Group'] = df_boxplot[cols_map['group']].map(group_names)
-else:
-    raise KeyError(f"'Group' column not found in all_IGS_data.csv. Available columns: {list(df_boxplot.columns)}")
-df_boxplot = df_boxplot[df_boxplot['Group'].isin(['Endosymbionts Only','Free-Living Relatives Only'])]
+df_boxplot = df_boxplot[df_boxplot['Group'].isin(['Endosymbionts','Free-Living Relatives'])]
 df_boxplot_median = df_boxplot.groupby(['Group', 'Species', 'File'])['IGS_Size'].median().reset_index()
 
 plt.figure(figsize=(12,12))
@@ -42,17 +35,23 @@ plt.savefig(os.path.join(plot_dir, 'IGS_total_boxplot.pdf'))
 plt.close()
 
 
-#Scatterplot with mean IGS only
 summary_df = pd.read_csv(os.path.join(files_dir, 'meanIGS.csv'))
-# Normalize 'Group' column for summary_df as well
-cols_map = {c.lower().strip(): c for c in summary_df.columns}
-if 'group' in cols_map:
-    summary_df['Group'] = summary_df[cols_map['group']].map(group_names)
-else:
-    raise KeyError(f"'Group' column not found in meanIGS.csv. Available columns: {list(summary_df.columns)}")
-summary_df = summary_df[summary_df['Group'].isin(['Endosymbionts Only','Free-Living Relatives Only'])]
+summary_df['Group'] = summary_df['Group'].replace({
+    'endosymb_only': 'Endosymbionts',
+    'relatives_only': 'Free-Living Relatives',
+    'Endosymbionts Only': 'Endosymbionts',
+    'Free-Living Relatives Only': 'Free-Living Relatives'
+})
+summary_df = summary_df[summary_df['Group'].isin(['Endosymbionts', 'Free-Living Relatives'])]
+
+threshold = summary_df['mean_mean_IGS'].quantile(0.90)
+summary_df = summary_df[summary_df['mean_mean_IGS'] <= threshold]
+
 pivot_df = summary_df.pivot_table(index='Species', columns='Group', values='mean_mean_IGS').reset_index()
-outliers = pivot_df[pivot_df['Endosymbionts Only'] > pivot_df['Endosymbionts Only'].quantile(0.90)]
+outlier_threshold = pivot_df['Endosymbionts'].quantile(0.95)
+pivot_outliers = pivot_df[pivot_df['Endosymbionts'] > outlier_threshold]
+
+pivot_df = pivot_df[pivot_df['Endosymbionts'] <= outlier_threshold]
 
 plt.figure(figsize=(12,12))
 sns.boxplot(data = summary_df, x = 'Group', y = 'mean_mean_IGS', hue='Group', palette=group_colors, hue_order=list(group_colors.keys()), fliersize=0)
@@ -67,9 +66,9 @@ plt.savefig(os.path.join(plot_dir, 'IGS_mean_boxplot.pdf'))
 plt.close()
 
 plt.figure(figsize=(12,12))
-sns.scatterplot(data = pivot_df, x = 'Endosymbionts Only', y = 'Free-Living Relatives Only')
-x_max, x_min = pivot_df['Endosymbionts Only'].max(), pivot_df['Endosymbionts Only'].min()
-y_max, y_min = pivot_df['Free-Living Relatives Only'].max(), pivot_df['Free-Living Relatives Only'].min()
+sns.scatterplot(data = pivot_df, x = 'Endosymbionts', y = 'Free-Living Relatives')
+x_max, x_min = pivot_df['Endosymbionts'].max(), pivot_df['Endosymbionts'].min()
+y_max, y_min = pivot_df['Free-Living Relatives'].max(), pivot_df['Free-Living Relatives'].min()
 common_min = min(x_min, y_min)
 common_max = max(x_max, y_max)
 padding = (common_max - common_min) * 0.1
@@ -78,15 +77,8 @@ plt.xlim(common_min, common_max)
 
 plt.axline((0, 0), slope=1, color='red', linestyle='--', linewidth=1, label='y=x')
 
-# Label outliers
-for idx, row in outliers.iterrows():
-    plt.annotate(row['Species'].replace('endosymbiont', '').replace('_', ' '),
-                xy=(row['Endosymbionts Only'], row['Free-Living Relatives Only']),
-                xytext=(5, 5), textcoords='offset points',
-                fontsize=8, alpha=0.7)
-
-plt.xlabel('Endosymbionts Only', fontsize = 20, fontweight='bold')
-plt.ylabel('Free-Living Relatives Only', fontsize = 20, fontweight='bold')
+plt.xlabel('Endosymbionts', fontsize = 20, fontweight='bold')
+plt.ylabel('Free-Living Relatives', fontsize = 20, fontweight='bold')
 plt.margins(x=0.1)
 plt.title('Intergenic Space Size (bp)\nEndosymbionts vs Free-Living Relatives', fontsize = 24, fontweight='bold')
 plt.tight_layout()
