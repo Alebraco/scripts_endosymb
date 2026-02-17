@@ -267,7 +267,7 @@ def plot_separated_group_boxplots(df, position):
 
     groups_to_plot = ['Endosymbionts', 'Free-Living Relatives']
 
-    fig, axes = plt.subplots(1, 2, figsize=(16, 8), sharey=True)
+    fig, axes = plt.subplots(1, 2, figsize=(14, 8), sharey=True)
 
     for ax, grp in zip(axes, groups_to_plot):
         subset = df_melted[df_melted['Group'] == grp]
@@ -275,6 +275,7 @@ def plot_separated_group_boxplots(df, position):
         sns.boxplot(data = subset,
                     x = 'Mutation Type', 
                     y = 'Rate',
+                    hue = 'Mutation Type',
                     palette = 'Paired', 
                     width = 0.5,
                     showfliers = False,
@@ -298,7 +299,7 @@ def plot_separated_group_boxplots(df, position):
         ax.set_ylim(-0.05, 1) 
         ax.grid(True, which="major", axis="y", ls="-", alpha=0.5)
 
-    plt.suptitle(f'Mutational Spectra by Group:\n{site_label}', fontsize=26, fontweight='bold')
+    plt.suptitle(f'Mutational Spectra by Group:\n{site_label}', fontsize=26)
     plt.tight_layout()
 
     prefix = site_file_prefix.get(position, position)
@@ -829,7 +830,7 @@ def combined_sites_boxplot(strip=False):
     print(f'Saved {outpath}')
 
     for mut in mutation_types:
-        plt.figure(figsize=(16, 12))
+        plt.figure(figsize=(14, 12))
         
         ax = sns.boxplot(data=med_melt[med_melt['Mutation Type'] == mut],
                     x='Site', 
