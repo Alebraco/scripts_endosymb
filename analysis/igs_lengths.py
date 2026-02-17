@@ -3,7 +3,7 @@
 import os
 import gffutils
 import pandas as pd
-from utils import files_dir, group_names
+from utils import files_dir
 
 def gff_processing(file_path):
     db = gffutils.create_db(file_path, dbfn=':memory:', force = True, 
