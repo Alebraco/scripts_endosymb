@@ -93,12 +93,13 @@ def seg_plot(df):
         linewidths = 0.5
         )
     cbar = plt.colorbar(scatter)
-    cbar.set_label('GC Content (%)', fontsize=12)
-    cbar.ax.tick_params(labelsize=10)
+    cbar.set_label('GC Content (%)', fontsize=16)
+    cbar.ax.tick_params(labelsize=14)
 
-    plt.xlabel('Median Evolutionary Distance', fontsize=16)
-    plt.ylabel('Genome Size (bp)' , fontsize=16)
-    plt.title('The Evolution of Endosymbionts:\nGenome Size, GC Content, and Evolutionary Distance', fontsize=18)
+    plt.xlabel('Median Evolutionary Distance', fontsize=20)
+    plt.ylabel('Genome Size (bp)' , fontsize=20)
+    plt.tick_params(axis='both', labelsize=14)
+    plt.title('The Evolution of Endosymbionts:\nGenome Size, GC Content, and Evolutionary Distance', fontsize=22)
     plt.gca().yaxis.set_major_formatter(plt.FuncFormatter(lambda x, p: f'{x/1e6:.1f} Mb'))
 
     plt.tight_layout()
