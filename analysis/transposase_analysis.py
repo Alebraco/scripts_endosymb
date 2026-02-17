@@ -146,19 +146,21 @@ def transposase_group_count(df_master):
 
     sns.boxplot(x='Group', y=metric, hue='Group', data=df_master,
                     palette='Set2', showfliers=False, width=0.5, boxprops={'alpha': 0.4},
-                    order=['endosymb_only', 'relatives_only'])
+                    order=['endosymb_only', 'relatives_only'], hue_order=['endosymb_only', 'relatives_only'])
 
     sns.stripplot(x='Group', y=metric, hue='Group',
                   data=df_master, alpha=0.7, jitter=True, palette='Set2', 
-                  order=['endosymb_only', 'relatives_only'])
+                  order=['endosymb_only', 'relatives_only'], hue_order=['endosymb_only', 'relatives_only'], dodge=True)
     
     if metric == 'Transposases_per_Gene':
         plt.title('Normalized Transposase Abundance by Group', fontsize=20, fontweight='bold')
-        plt.ylabel('Transposases per Gene', fontsize=18, fontweight='bold')
+        plt.ylabel('Transposases per Gene', fontsize=22, fontweight='bold')
     else:
         plt.title('Total Transposase Count by Group', fontsize=20, fontweight='bold')
-        plt.ylabel('Number of Transposases', fontsize=18, fontweight='bold')
-    plt.xlabel('Group', fontsize=18, fontweight='bold')
+        plt.ylabel('Number of Transposases', fontsize=22, fontweight='bold')
+    plt.xlabel('Group', fontsize=22, fontweight='bold')
+    plt.xticks(fontsize=18)
+    plt.yticks(fontsize=18)
 
     plt.grid(axis='y', linestyle='--', alpha=0.5)
 
