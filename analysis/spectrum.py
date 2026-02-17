@@ -853,12 +853,12 @@ def combined_sites_boxplot(strip=False):
                         legend=False,
                         ax = ax
                         )
-        plt.title(f'{mut.replace("r","")} Rates by Site', fontsize=26, fontweight='bold')
-        plt.xlabel('Codon Site', fontsize=22, fontweight='bold')
-        plt.xticks([0,1,2], display_labels, fontsize=18)
+        plt.title(f'{mut.replace("r","")} Rates by Site', fontsize=30, fontweight='bold')
+        plt.xlabel('Codon Site', fontsize=26, fontweight='bold')
+        plt.xticks([0,1,2], display_labels, fontsize=22)
 
-        plt.ylabel('Mutation Rate', fontsize=22, fontweight='bold')
-        plt.yticks(fontsize=18)
+        plt.ylabel('Mutation Rate', fontsize=26, fontweight='bold')
+        plt.yticks(fontsize=22)
         plt.ylim(-0.05, 1)
 
         plt.grid(True, which="major", axis="y", ls="-", alpha=0.5)
