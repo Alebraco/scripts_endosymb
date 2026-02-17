@@ -19,6 +19,10 @@ group_colors = {
 
 #Box Plots with all data points
 df_boxplot = pd.read_csv(os.path.join(files_dir, 'all_IGS_data.csv'))
+df_boxplot['Group'] = df_boxplot['Group'].replace({
+    'endosymb_only': 'Endosymbionts',
+    'relatives_only': 'Free-Living Relatives',
+})
 df_boxplot = df_boxplot[df_boxplot['Group'].isin(['Endosymbionts','Free-Living Relatives'])]
 df_boxplot_median = df_boxplot.groupby(['Group', 'Species', 'File'])['IGS_Size'].median().reset_index()
 
@@ -39,19 +43,11 @@ summary_df = pd.read_csv(os.path.join(files_dir, 'meanIGS.csv'))
 summary_df['Group'] = summary_df['Group'].replace({
     'endosymb_only': 'Endosymbionts',
     'relatives_only': 'Free-Living Relatives',
-    'Endosymbionts Only': 'Endosymbionts',
-    'Free-Living Relatives Only': 'Free-Living Relatives'
 })
 summary_df = summary_df[summary_df['Group'].isin(['Endosymbionts', 'Free-Living Relatives'])]
 
 threshold = summary_df['mean_mean_IGS'].quantile(0.90)
 summary_df = summary_df[summary_df['mean_mean_IGS'] <= threshold]
-
-pivot_df = summary_df.pivot_table(index='Species', columns='Group', values='mean_mean_IGS').reset_index()
-outlier_threshold = pivot_df['Endosymbionts'].quantile(0.95)
-pivot_outliers = pivot_df[pivot_df['Endosymbionts'] > outlier_threshold]
-
-pivot_df = pivot_df[pivot_df['Endosymbionts'] <= outlier_threshold]
 
 plt.figure(figsize=(12,12))
 sns.boxplot(data = summary_df, x = 'Group', y = 'mean_mean_IGS', hue='Group', palette=group_colors, hue_order=list(group_colors.keys()), fliersize=0)
@@ -65,17 +61,22 @@ plt.tight_layout()
 plt.savefig(os.path.join(plot_dir, 'IGS_mean_boxplot.pdf'))
 plt.close()
 
+
+# Scatterplot
+
+pivot_df = summary_df.pivot_table(index='Species', columns='Group', values='mean_mean_IGS').reset_index()
+
 plt.figure(figsize=(12,12))
-sns.scatterplot(data = pivot_df, x = 'Endosymbionts', y = 'Free-Living Relatives')
+sns.scatterplot(data = pivot_df, x = 'Endosymbionts', y = 'Free-Living Relatives', s = 100, color='gray', edgecolor='black')
 x_max, x_min = pivot_df['Endosymbionts'].max(), pivot_df['Endosymbionts'].min()
 y_max, y_min = pivot_df['Free-Living Relatives'].max(), pivot_df['Free-Living Relatives'].min()
-common_min = min(x_min, y_min)
-common_max = max(x_max, y_max)
-padding = (common_max - common_min) * 0.1
-common_max, common_min = common_max + padding, common_min - padding
-plt.xlim(common_min, common_max)
 
-plt.axline((0, 0), slope=1, color='red', linestyle='--', linewidth=1, label='y=x')
+common_max = max(x_max, y_max)
+common_max = common_max * 1.1
+plt.xlim(0, common_max)
+plt.ylim(0, common_max)
+
+plt.axline((0, 0), slope=1, color='gray', linestyle='--', linewidth=1, label='y=x (Equal IGS Size)')
 
 plt.xlabel('Endosymbionts', fontsize = 20, fontweight='bold')
 plt.ylabel('Free-Living Relatives', fontsize = 20, fontweight='bold')
