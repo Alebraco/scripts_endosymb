@@ -20,7 +20,12 @@ group_colors = {
 
 #Box Plots with all data points
 df_boxplot = pd.read_csv(os.path.join(files_dir, 'all_IGS_data.csv'))
-df_boxplot['Group'] = df_boxplot['Group'].map(group_names)
+# Normalize possible column name variations (e.g., 'group', 'Group ', etc.)
+cols_map = {c.lower().strip(): c for c in df_boxplot.columns}
+if 'group' in cols_map:
+    df_boxplot['Group'] = df_boxplot[cols_map['group']].map(group_names)
+else:
+    raise KeyError(f"'Group' column not found in all_IGS_data.csv. Available columns: {list(df_boxplot.columns)}")
 df_boxplot = df_boxplot[df_boxplot['Group'].isin(['Endosymbionts Only','Free-Living Relatives Only'])]
 df_boxplot_median = df_boxplot.groupby(['Group', 'Species', 'File'])['IGS_Size'].median().reset_index()
 
@@ -39,7 +44,12 @@ plt.close()
 
 #Scatterplot with mean IGS only
 summary_df = pd.read_csv(os.path.join(files_dir, 'meanIGS.csv'))
-summary_df['Group'] = summary_df['Group'].map(group_names)
+# Normalize 'Group' column for summary_df as well
+cols_map = {c.lower().strip(): c for c in summary_df.columns}
+if 'group' in cols_map:
+    summary_df['Group'] = summary_df[cols_map['group']].map(group_names)
+else:
+    raise KeyError(f"'Group' column not found in meanIGS.csv. Available columns: {list(summary_df.columns)}")
 summary_df = summary_df[summary_df['Group'].isin(['Endosymbionts Only','Free-Living Relatives Only'])]
 pivot_df = summary_df.pivot_table(index='Species', columns='Group', values='mean_mean_IGS').reset_index()
 outliers = pivot_df[pivot_df['Endosymbionts Only'] > pivot_df['Endosymbionts Only'].quantile(0.90)]

@@ -139,19 +139,27 @@ def transposase_plot(df_master, metric, title, label, filename):
     plt.close()
 
 def transposase_group_count(df_master):
-    plt.figure(figsize=(6,6))
+    plt.figure(figsize=(12,12))
 
-    sns.boxplot(x='Group', y='Total_Transposases', hue='Group', data=df_master,
+    metric = 'Transposases_per_Gene' if 'Transposases_per_Gene' in df_master.columns else 'Total_Transposases'
+    
+
+    sns.boxplot(x='Group', y=metric, hue='Group', data=df_master,
                     palette='Set2', showfliers=False, width=0.5, boxprops={'alpha': 0.4},
                     order=['endosymb_only', 'relatives_only'])
 
-    sns.stripplot(x='Group', y='Total_Transposases', hue='Group',
+    sns.stripplot(x='Group', y=metric, hue='Group',
                   data=df_master, alpha=0.7, jitter=True, palette='Set2', 
                   order=['endosymb_only', 'relatives_only'])
     
-    plt.title('Total Transposase Count by Group')
-    plt.ylabel('Number of Transposases')
-    plt.xlabel('Group')
+    if metric == 'Transposases_per_Gene':
+        plt.title('Normalized Transposase Abundance by Group', fontsize=20, fontweight='bold')
+        plt.ylabel('Transposases per Gene', fontsize=18, fontweight='bold')
+    else:
+        plt.title('Total Transposase Count by Group', fontsize=20, fontweight='bold')
+        plt.ylabel('Number of Transposases', fontsize=18, fontweight='bold')
+    plt.xlabel('Group', fontsize=18, fontweight='bold')
+
     plt.grid(axis='y', linestyle='--', alpha=0.5)
 
     ax = plt.gca()
@@ -226,6 +234,17 @@ if __name__ == "__main__":
             dfs.append(df)
     if dfs:
         df_master = pd.concat(dfs, ignore_index=True)
+
+        gene_counts_path = os.path.join(files_dir, 'gene_counts.csv')
+        if os.path.exists(gene_counts_path):
+            gene_counts_df = pd.read_csv(gene_counts_path)
+            df_master = pd.merge(df_master, gene_counts_df, on=['Group', 'Species', 'File'], how='left')
+
+            df_master['Transposases_per_Gene'] = df_master['Total_Transposases'] / df_master['Gene_Count']
+            print('Calculated Transposases per Gene and added to DataFrame.')
+        else:
+            print(f'Warning: gene_counts.csv not found at {gene_counts_path}.')
+
         df_master.to_csv(os.path.join(files_dir, 'transposase_summary.csv'), index=False)
 
         # Compute median number of transposases per species
