@@ -118,7 +118,7 @@ def stat_analysis():
 def plot_results(df, detailed_df, p_val):
     
     #Boxplot of GC4 variation
-    plt.figure(figsize=(6, 6))
+    plt.figure(figsize=(12, 12))
     sns.boxplot(x='group', y='stdev_gc4', data=df, palette='Set2', hue = 'group')
     sns.stripplot(x='group', y='stdev_gc4', data=df, color='black', alpha=0.5)
     
@@ -140,9 +140,9 @@ def plot_results(df, detailed_df, p_val):
     
     plt.ylim(top=y_max * 1.20)
     
-    plt.title('Codon-specific GC4 Variation Between Groups')
-    plt.xlabel('Group')
-    plt.ylabel('Standard Deviation of GC4 (%)')
+    plt.title('Codon-specific GC4 Variation Between Groups', fontsize=20, fontweight='bold')
+    plt.xlabel('Group', fontsize=18)
+    plt.ylabel('Standard Deviation of GC4 (%)', fontsize=18)
     plt.tight_layout()
     plt.savefig(os.path.join(plot_dir, 'gc4_boxplot.pdf'))
     plt.close()
@@ -157,9 +157,9 @@ def plot_results(df, detailed_df, p_val):
         palette='Set2', 
         alpha=0.8
         )
-    plt.title('Overall GC4 vs GC4 Variation')
-    plt.xlabel('Overall GC4 (%)')
-    plt.ylabel('Standard Deviation of GC4 (%)')
+    plt.title('Overall GC4 vs GC4 Variation', fontsize=18, fontweight='bold')
+    plt.xlabel('Overall GC4 (%)', fontsize=16)
+    plt.ylabel('Standard Deviation of GC4 (%)', fontsize=16)
     plt.tight_layout()
     plt.savefig(os.path.join(plot_dir, 'gc4_scatter.pdf'))
     plt.close()
@@ -188,9 +188,9 @@ def plot_results(df, detailed_df, p_val):
         legend=False
         )
     plt.legend(title='Group', bbox_to_anchor=(1.05, 1), loc='upper left')
-    plt.title('GC4 Percentage by Amino Acid and Group')
-    plt.xlabel('Amino Acid')
-    plt.ylabel('GC4 Percentage (%)')
+    plt.title('GC4 Percentage by Amino Acid and Group', fontsize=20, fontweight='bold')
+    plt.xlabel('Amino Acid', fontsize=18)
+    plt.ylabel('GC4 Percentage (%)', fontsize=18)
     plt.tight_layout()
     plt.savefig(os.path.join(plot_dir, 'gc4_amino_acid_boxplot.pdf'))
     plt.close()
@@ -265,9 +265,9 @@ def amino_acid_bias(detailed_df):
     for container in axes[0].containers:
         axes[0].bar_label(container, padding=2) 
 
-    axes[0].set_title('Most Biased Amino Acids by Group')
-    axes[0].set_xlabel('Amino Acid')
-    axes[0].set_ylabel('Number of Species')
+    axes[0].set_title('Most Biased Amino Acids by Group', fontsize=20, fontweight='bold')
+    axes[0].set_xlabel('Amino Acid', fontsize=18)
+    axes[0].set_ylabel('Number of Species', fontsize=18)
 
     sns.countplot(
         x='amino_acid', 
@@ -282,9 +282,9 @@ def amino_acid_bias(detailed_df):
     for container in axes[1].containers:
         axes[1].bar_label(container, padding=2) 
 
-    axes[1].set_title('Least Biased Amino Acids by Group')
-    axes[1].set_xlabel('Amino Acid')
-    axes[1].set_ylabel('Number of Species')
+    axes[1].set_title('Least Biased Amino Acids by Group', fontsize=20, fontweight='bold')
+    axes[1].set_xlabel('Amino Acid', fontsize=18)
+    axes[1].set_ylabel('Number of Species', fontsize=18)
     plt.tight_layout()
     plt.savefig(os.path.join(plot_dir, 'gc4_amino_acid_bias.pdf'))
     plt.close()
