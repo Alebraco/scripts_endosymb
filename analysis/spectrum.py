@@ -239,6 +239,75 @@ def plot_distributions(df, position, plot_type = 'kde'):
     plt.close()
     print(f'Saved {outpath}')
 
+def plot_separated_group_boxplots(df, position):
+    '''
+    Creates side-by-side boxplots for Endosymbionts and Relatives
+    X-axis is Mutation Type (GC→AT vs AT→GC) 
+    '''
+    site_label = site_labels[position]
+    
+    # 1. Filter groups and clean up names for the presentation
+    keep_groups = ['Endosymbiont Control Pairs', 'Free-Living Control Pairs']
+    df_filtered = df[df['Group'].isin(keep_groups)].copy()
+    df_filtered['Group'] = df_filtered['Group'].replace({
+        'Endosymbiont Control Pairs': 'Endosymbionts',
+        'Free-Living Control Pairs': 'Free-Living Relatives'
+    })
+    
+    # 2. Take the median per species (Crucial for smoothing out noise)
+    median_df = df_filtered.groupby(['Group', 'Species'])[mutation_types].median().reset_index()
+
+    # 3. Melt the dataframe for Seaborn
+    df_melted = median_df.melt(
+        id_vars = ['Group', 'Species'],
+        value_vars = mutation_types,
+        var_name = 'Mutation Type',
+        value_name = 'Rate'
+    ).dropna(subset=['Rate'])
+
+    groups_to_plot = ['Endosymbionts', 'Free-Living Relatives']
+
+    fig, axes = plt.subplots(1, 2, figsize=(16, 8), sharey=True)
+
+    for ax, grp in zip(axes, groups_to_plot):
+        subset = df_melted[df_melted['Group'] == grp]
+        
+        sns.boxplot(data = subset,
+                    x = 'Mutation Type', 
+                    y = 'Rate',
+                    palette = 'Paired', 
+                    width = 0.5,
+                    showfliers = False,
+                    ax = ax
+                    )
+        
+        ax.set_title(f'{grp}', fontsize=24, fontweight='bold')
+        ax.set_xlabel('Mutation Type', fontsize=20, fontweight='bold')
+        
+        display_muts = [mut.replace('r', '') for mut in mutation_types]
+        ax.set_xticks([0, 1])
+        ax.set_xticklabels(display_muts, fontsize=18)
+        
+        if ax == axes[0]:
+            ax.set_ylabel('Median Rate per Species', fontsize=20, fontweight='bold')
+            ax.tick_params(axis='y', labelsize=18)
+        else:
+            ax.set_ylabel('')
+            ax.tick_params(axis='y', length=0) 
+            
+        ax.set_ylim(-0.05, 1) 
+        ax.grid(True, which="major", axis="y", ls="-", alpha=0.5)
+
+    plt.suptitle(f'Mutational Spectra by Group:\n{site_label}', fontsize=26, fontweight='bold')
+    plt.tight_layout()
+
+    prefix = site_file_prefix.get(position, position)
+    outpath = os.path.join(plot_dir, position, f'{prefix}_separated_spectrum_boxplot.pdf')
+    
+    plt.savefig(outpath)
+    plt.close()
+    print(f'Saved {outpath}')
+
 def plot_species_grid(df, position):
     '''
     Generates a grid of histogram plots for each species in the CSV.
@@ -634,28 +703,27 @@ def gc_equilibrium(df):
 
     merged_df = pd.merge(median_rates, fourfold_gc, on=['Species', 'Group'], how='inner')
     
-    plt.figure(figsize=(10, 10))
+    plt.figure(figsize=(8, 8))
     sns.scatterplot(data=merged_df,
                     x='GC_eq',
                     y='GC_obs',
                     hue='Group',
                     palette = {'Endosymbionts': '#FC8D62FF', 'Relatives': '#66C2A5FF'},
-                    alpha = 0.9, 
-                    s = 150,
+                    alpha = 0.8, 
+                    s = 100,
                     edgecolor='black'
                     )
     plt.axline((0, 0), slope=1, color='gray', linestyle='--', linewidth=1, label='Observed = Equilibrium')
     plt.gca().set_aspect('equal')
     plt.grid(True, linestyle=':', alpha=0.6)
 
-    plt.title('GC Equilibrium vs Observed GC4', fontsize=20)
-    plt.ylabel('Observed GC4 (Fourfold Sites)', fontsize=16)
-    plt.xlabel('Predicted Equilibrium GC ($GC_{eq}$)', fontsize=16)
+    plt.title('GC Equilibrium vs Observed GC4', fontsize=16)
+    plt.ylabel('Observed GC4 (Fourfold Sites)')
+    plt.xlabel('Predicted Equilibrium GC ($GC_{eq}$)')
 
     plt.xlim(0, 100)
     plt.ylim(0, 100)
-    plt.legend(fontsize=12)
-    plt.tick_params(axis='both', labelsize=14)
+    plt.legend()
 
     prefix = site_file_prefix.get('third_sites', 'third')
     outpath = os.path.join(plot_dir, 'third_sites', f'{prefix}_gc_equilibrium_plot.pdf')
@@ -838,5 +906,6 @@ if __name__ == '__main__':
         rate_shift_plot_gc(df, position, annotate=flag)
 
         if position == 'third_sites':
+            plot_separated_group_boxplots(df, position)
             gc_equilibrium(df)
             combined_sites_boxplot()
