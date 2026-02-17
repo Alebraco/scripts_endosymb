@@ -877,7 +877,6 @@ def combined_sites_boxplot(strip=False):
     
 if __name__ == '__main__':
     for position in ['first_sites', 'second_sites', 'third_sites']:
-        flag = True if position == 'third_sites' else False 
 
         output_csv = f'{position}_spectrum_rates.csv'
         csv_path = os.path.join(files_dir, output_csv)
@@ -902,9 +901,9 @@ if __name__ == '__main__':
 
         plot_distributions(df, position)
         plot_species_grid(df, position)
-        rate_shift_plot(df, position, color_by='distance', annotate=flag)
-        rate_shift_plot(df, position, color_by='gc_genome', annotate=flag)
-        rate_shift_plot_gc(df, position, annotate=flag)
+        rate_shift_plot(df, position, color_by='distance')
+        rate_shift_plot(df, position, color_by='gc_genome')
+        rate_shift_plot_gc(df, position)
 
         if position == 'third_sites':
             plot_separated_group_boxplots(df, position)
