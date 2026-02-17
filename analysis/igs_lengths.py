@@ -139,6 +139,10 @@ def save_summary_stats(all_igs_data, all_gene_data, prefix=''):
     if all_gene_data:
         df_gene = pd.DataFrame(all_gene_data)
 
+        gene_counts = df_gene.groupby(['Group', 'Species', 'File']).size().reset_index(name='Gene_Count')
+        count_name = f'{prefix}gene_counts.csv' if prefix else 'gene_counts.csv'
+        gene_counts.to_csv(os.path.join(files_dir, count_name), index = False)
+
         summary_gene_df = df_gene.groupby(['Group', 'Species', 'File']).agg({
             'Gene_Length': 'mean'}).reset_index()
 
