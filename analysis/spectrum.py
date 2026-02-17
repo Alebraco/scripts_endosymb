@@ -582,18 +582,18 @@ def rate_shift_plot(df, position, color_by = 'distance', annotate=False):
                 )
 
         cbar = plt.colorbar(scatter)
-        cbar.set_label(cbar_label, rotation=270, labelpad=25, fontsize=12)
-        cbar.ax.tick_params(labelsize=16)
+        cbar.set_label(cbar_label, rotation=270, labelpad=25, fontsize=20)
+        cbar.ax.tick_params(labelsize=18)
         
         plt.axline((0, 0), slope=1, color='gray', linestyle='--', linewidth=1, label='y=x (No shift)')
         plt.xlim(-0.05, 1.05)
         plt.ylim(-0.05, 1.05)
 
-        plt.title(f'{mut.replace("r","")} Rate Shift\n{site_label}', fontsize=22, fontweight='bold')
-        plt.xlabel('Free-Living Relatives', fontsize=18, fontweight='bold')
-        plt.ylabel('Endosymbionts', fontsize=18, fontweight='bold')
-        plt.tick_params(axis='both', labelsize=16)
-        plt.legend(fontsize=16)
+        plt.title(f'{mut.replace("r","")} Rate Shift\n{site_label}', fontsize=24, fontweight='bold')
+        plt.xlabel('Free-Living Relatives', fontsize=20, fontweight='bold')
+        plt.ylabel('Endosymbionts', fontsize=20, fontweight='bold')
+        plt.tick_params(axis='both', labelsize=18)
+        plt.legend(fontsize=18)
         plt.tight_layout()
         mut_file = mut.replace('→', '_')
         prefix = site_file_prefix.get(position, position)
@@ -658,18 +658,18 @@ def rate_shift_plot_gc(df, position, annotate=False):
             )
             
         cbar = plt.colorbar(scatter)
-        cbar.set_label('Endosymbiont GC Content (%)', rotation=270, labelpad=25, fontsize=12)
-        cbar.ax.tick_params(labelsize=12)
+        cbar.set_label('Endosymbiont GC Content (%)', rotation=270, labelpad=25, fontsize=20)
+        cbar.ax.tick_params(labelsize=18)
         
         plt.axline((0, 0), slope=1, color='gray', linestyle='--', linewidth=1, label='y=x (No shift)')
         plt.xlim(-0.05, 1.05)
         plt.ylim(-0.05, 1.05)
 
-        plt.title(f'{mut.replace("r","")} Rate Shift\n{site_label}', fontsize=22)
-        plt.xlabel('Free-Living Relatives', fontsize=18, fontweight='bold')
-        plt.ylabel('Endosymbionts', fontsize=18, fontweight='bold')
-        plt.tick_params(axis='both', labelsize=16)
-        plt.legend(fontsize=12)
+        plt.title(f'{mut.replace("r","")} Rate Shift\n{site_label}', fontsize=24, fontweight='bold')
+        plt.xlabel('Free-Living Relatives', fontsize=20, fontweight='bold')
+        plt.ylabel('Endosymbionts', fontsize=20, fontweight='bold')
+        plt.tick_params(axis='both', labelsize=18)
+        plt.legend(fontsize=18)
         plt.tight_layout()
 
         mut_file = mut.replace('→', '_')
@@ -724,7 +724,7 @@ def gc_equilibrium(df):
 
     plt.xlim(0, 100)
     plt.ylim(0, 100)
-    plt.legend()
+    plt.legend(fontsize=18)
 
     prefix = site_file_prefix.get('third_sites', 'third')
     outpath = os.path.join(plot_dir, 'third_sites', f'{prefix}_gc_equilibrium_plot.pdf')
