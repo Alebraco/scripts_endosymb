@@ -152,8 +152,8 @@ def plot_distributions(df, position, plot_type = 'kde'):
     median_df = df.groupby(['Group','Species'])[['rGC→AT', 'rAT→GC']].median().reset_index()
 
     site_label = site_labels[position]
-    fig, axes = plt.subplots(1, 2, figsize=(16, 7), sharey=True)
-    plt.suptitle(f'Comparison of Mutational Spectra: {site_label}', fontsize=16, y=0.98)
+    fig, axes = plt.subplots(1, 2, figsize=(18, 9), sharey=True)
+    plt.suptitle(f'Comparison of Mutational Spectra: {site_label}', fontsize=20, y=0.98)
 
     if plot_type != 'kde':
         # Histograms
@@ -172,10 +172,11 @@ def plot_distributions(df, position, plot_type = 'kde'):
                         common_norm = False,
                         legend = (ax == axes[1])
             )
-            ax.set_title(f'{mut} Rate Distributions')
-            ax.set_xlabel(f'Rate ({mut})')        
+            ax.set_title(f'{mut} Rate Distributions', fontsize=16)
+            ax.set_xlabel(f'Rate ({mut})', fontsize=14)
             ax.set_xlim(0, 1)
-        axes[0].set_ylabel('Probability') 
+            ax.tick_params(axis='both', labelsize=12)
+        axes[0].set_ylabel('Probability', fontsize=14)
         plt.tight_layout()
         
         outdir = os.path.join(plot_dir, position)
@@ -198,10 +199,11 @@ def plot_distributions(df, position, plot_type = 'kde'):
                         common_norm = False,
                         legend = (ax == axes[1])
             )
-            ax.set_title(f'{mut} Rate Distributions')
-            ax.set_xlabel(f'Rate ({mut})')        
+            ax.set_title(f'{mut} Rate Distributions', fontsize=16)
+            ax.set_xlabel(f'Rate ({mut})', fontsize=14)
             ax.set_xlim(0, 1)
-        axes[0].set_ylabel('Density') 
+            ax.tick_params(axis='both', labelsize=12)
+        axes[0].set_ylabel('Density', fontsize=14)
         plt.tight_layout()
         prefix = site_file_prefix.get(position, position)
         plt.savefig(os.path.join(plot_dir, position, f'{prefix}_spectrum_kde.pdf'))
@@ -216,7 +218,7 @@ def plot_distributions(df, position, plot_type = 'kde'):
         value_name = 'Rate'
     ).dropna(subset=['Rate'])
 
-    plt.figure(figsize=(8, 6))
+    plt.figure(figsize=(12, 10))
     sns.boxplot(data = df_melted,
                 x = 'Group', 
                 y = 'Rate',
@@ -225,9 +227,10 @@ def plot_distributions(df, position, plot_type = 'kde'):
                 fliersize = 1,
                 width = 0.5
                 )
-    plt.title('Summary of Mutation Rates by Group', fontsize=16)
-    plt.xlabel('Group')
-    plt.ylabel('Rate')
+    plt.title('Summary of Mutation Rates by Group', fontsize=20)
+    plt.xlabel('Group', fontsize=16)
+    plt.ylabel('Rate', fontsize=16)
+    plt.tick_params(axis='both', labelsize=14)
     plt.tight_layout()
 
     prefix = site_file_prefix.get(position, position)
@@ -267,19 +270,22 @@ def plot_species_grid(df, position):
             col_wrap=7,
             sharex=True,
             sharey=False,
-            height=2.5,
-            aspect=1.2
+            height=3.5,
+            aspect=1.25
         )
         
         grid.map(sns.histplot, mut, stat='density',
                 common_norm=False, fill=True, alpha=0.5, 
                 bins='auto', element = 'step')
-        grid.add_legend(title='Group')
+        grid.add_legend(title='Group', title_fontsize=14, fontsize=12)
         grid.set_titles('{col_name}')
         grid.set_axis_labels(f'Rate ({mut})', 'Density')
         grid.set(xlim=(0, 1))
-        grid.figure.suptitle(f'{mut} Rates by Species\n{site_label}', fontsize=18, y =1.02)
-        
+        grid.figure.suptitle(f'{mut} Rates by Species\n{site_label}', fontsize=20, y =1.02)
+        for ax in grid.axes.flatten():
+            ax.tick_params(axis='both', labelsize=12)
+            ax.set_xlabel(ax.get_xlabel(), fontsize=12)
+            ax.set_ylabel(ax.get_ylabel(), fontsize=12)
         outpath = os.path.join(plot_dir, position, output)
         grid.savefig(outpath)
         plt.close()
@@ -459,7 +465,7 @@ def rate_shift_plot(df, position, color_by = 'distance', annotate=False):
 
     for mut in mutation_types:
 
-        plt.figure(figsize=(8, 8))
+        plt.figure(figsize=(12, 12))
         current_data = df_pivot[mut].dropna()
         
         relative_rates = current_data[('Free-Living Control Pairs')]
@@ -481,8 +487,8 @@ def rate_shift_plot(df, position, color_by = 'distance', annotate=False):
                               c=current_metric,
                               cmap=cmap,
                               edgecolors='black',
-                              s=60,
-                              alpha=0.8,
+                              s=100,
+                              alpha=0.85,
                               vmin=vmin_val,
                               vmax=vmax_threshold,
                               zorder=2,
@@ -493,7 +499,7 @@ def rate_shift_plot(df, position, color_by = 'distance', annotate=False):
             for sp_name in current_data.index:
                 x_val = relative_rates.loc[sp_name]
                 y_val = endosymbiont_rates.loc[sp_name]
-                t = plt.text(x_val, y_val, sp_name, fontsize=8, alpha=0.8, zorder = 3)
+                t = plt.text(x_val, y_val, sp_name, fontsize=10, alpha=0.9, zorder = 3)
                 texts.append(t)
             adjust_text(texts, 
                 only_move={'points':'y', 'texts':'xy'}, 
@@ -506,16 +512,18 @@ def rate_shift_plot(df, position, color_by = 'distance', annotate=False):
                 )
 
         cbar = plt.colorbar(scatter)
-        cbar.set_label(cbar_label, rotation=270, labelpad=25)
+        cbar.set_label(cbar_label, rotation=270, labelpad=25, fontsize=12)
+        cbar.ax.tick_params(labelsize=12)
         
         plt.axline((0, 0), slope=1, color='gray', linestyle='--', linewidth=1, label='y=x (No shift)')
         plt.xlim(-0.05, 1.05)
         plt.ylim(-0.05, 1.05)
 
-        plt.title(f'{mut.replace("r","")} Rate Shift\n{site_label}', fontsize=16)
-        plt.xlabel('Free-Living Relatives')
-        plt.ylabel('Endosymbionts')
-        plt.legend()
+        plt.title(f'{mut.replace("r","")} Rate Shift\n{site_label}', fontsize=20)
+        plt.xlabel('Free-Living Relatives', fontsize=16)
+        plt.ylabel('Endosymbionts', fontsize=16)
+        plt.tick_params(axis='both', labelsize=14)
+        plt.legend(fontsize=12)
         plt.tight_layout()
         mut_file = mut.replace('→', '_')
         prefix = site_file_prefix.get(position, position)
@@ -545,7 +553,7 @@ def rate_shift_plot_gc(df, position, annotate=False):
                               values=mutation_types, 
                               aggfunc='median').dropna()
     for mut in mutation_types:
-        plt.figure(figsize=(8, 8))
+        plt.figure(figsize=(12, 12))
         current_data = df_pivot[mut].dropna()
         
         relative_rates = current_data[('Free-Living Control Pairs')]
@@ -558,8 +566,8 @@ def rate_shift_plot_gc(df, position, annotate=False):
                               c=current_gcs,
                               cmap='viridis',
                               edgecolors='black',
-                              s=60,
-                              alpha=0.8,
+                              s=100,
+                              alpha=0.85,
                               zorder=2,
                               label='Species' if annotate else None)
         if annotate:
@@ -567,7 +575,7 @@ def rate_shift_plot_gc(df, position, annotate=False):
             for sp_name in current_data.index:
                 x_val = relative_rates.loc[sp_name]
                 y_val = endosymbiont_rates.loc[sp_name]
-                t = plt.text(x_val, y_val, sp_name, fontsize=8, alpha=0.8, zorder = 3)
+                t = plt.text(x_val, y_val, sp_name, fontsize=10, alpha=0.9, zorder = 3)
                 texts.append(t)
             adjust_text(texts, 
             only_move={'points':'y', 'texts':'xy'}, 
@@ -580,16 +588,18 @@ def rate_shift_plot_gc(df, position, annotate=False):
             )
             
         cbar = plt.colorbar(scatter)
-        cbar.set_label('Endosymbiont GC Content (%)', rotation=270, labelpad=25)
+        cbar.set_label('Endosymbiont GC Content (%)', rotation=270, labelpad=25, fontsize=12)
+        cbar.ax.tick_params(labelsize=12)
         
         plt.axline((0, 0), slope=1, color='gray', linestyle='--', linewidth=1, label='y=x (No shift)')
         plt.xlim(-0.05, 1.05)
         plt.ylim(-0.05, 1.05)
 
-        plt.title(f'{mut.replace("r","")} Rate Shift\n{site_label}', fontsize=16)
-        plt.xlabel('Free-Living Relatives')
-        plt.ylabel('Endosymbionts')
-        plt.legend()
+        plt.title(f'{mut.replace("r","")} Rate Shift\n{site_label}', fontsize=20)
+        plt.xlabel('Free-Living Relatives', fontsize=16)
+        plt.ylabel('Endosymbionts', fontsize=16)
+        plt.tick_params(axis='both', labelsize=14)
+        plt.legend(fontsize=12)
         plt.tight_layout()
 
         mut_file = mut.replace('→', '_')
@@ -624,27 +634,28 @@ def gc_equilibrium(df):
 
     merged_df = pd.merge(median_rates, fourfold_gc, on=['Species', 'Group'], how='inner')
     
-    plt.figure(figsize=(8, 8))
+    plt.figure(figsize=(10, 10))
     sns.scatterplot(data=merged_df,
                     x='GC_eq',
                     y='GC_obs',
                     hue='Group',
                     palette = {'Endosymbionts': '#FC8D62FF', 'Relatives': '#66C2A5FF'},
-                    alpha = 0.8, 
-                    s = 100,
+                    alpha = 0.9, 
+                    s = 150,
                     edgecolor='black'
                     )
     plt.axline((0, 0), slope=1, color='gray', linestyle='--', linewidth=1, label='Observed = Equilibrium')
     plt.gca().set_aspect('equal')
     plt.grid(True, linestyle=':', alpha=0.6)
 
-    plt.title('GC Equilibrium vs Observed GC4', fontsize=16)
-    plt.ylabel('Observed GC4 (Fourfold Sites)')
-    plt.xlabel('Predicted Equilibrium GC ($GC_{eq}$)')
+    plt.title('GC Equilibrium vs Observed GC4', fontsize=20)
+    plt.ylabel('Observed GC4 (Fourfold Sites)', fontsize=16)
+    plt.xlabel('Predicted Equilibrium GC ($GC_{eq}$)', fontsize=16)
 
     plt.xlim(0, 100)
     plt.ylim(0, 100)
-    plt.legend()
+    plt.legend(fontsize=12)
+    plt.tick_params(axis='both', labelsize=14)
 
     prefix = site_file_prefix.get('third_sites', 'third')
     outpath = os.path.join(plot_dir, 'third_sites', f'{prefix}_gc_equilibrium_plot.pdf')
@@ -659,8 +670,7 @@ def combined_sites_boxplot(strip=False):
     Combined faceted boxplots comparing mutation rates across sites
     for the two control groups: Endosymbiont Control Pairs and Free-Living Control Pairs.
 
-    Produces a faceted plot (one facet per mutation type) with x-axis = site
-    and hue = Group. Uses per-species median rates to summarize distributions.
+    Produces a faceted plot (one facet per mutation type) as well as individual plots for each mutation type.
     """
 
     positions = ['first_sites', 'second_sites', 'third_sites']
@@ -698,7 +708,8 @@ def combined_sites_boxplot(strip=False):
     site_order = ['first', 'second', 'third']
     display_labels = ['First', 'Second', 'Third (4-fold)']
 
-    fig, axes = plt.subplots(1, 2, figsize=(12, 8), sharey=True)
+    # Create faceted boxplot
+    fig, axes = plt.subplots(1, 2, figsize=(18, 12), sharey=True)
 
     for ax, mut in zip(axes, mutation_types):
         sns.boxplot(data=med_melt[med_melt['Mutation Type'] == mut],
@@ -723,27 +734,76 @@ def combined_sites_boxplot(strip=False):
                         alpha=0.4,
                         legend=False
                         )
-        ax.set_title(f'{mut.replace("r","")} Rates by Site', fontsize=14, fontweight='bold')
+        ax.set_title(f'{mut.replace("r","")} Rates by Site', fontsize=18, fontweight='bold')
         ax.set_xlabel('')
         ax.set_xticks([0,1,2])
-        ax.set_xticklabels(display_labels)
-        ax.set_ylabel('Mutation Rate', fontsize=14, fontweight='bold')
+        ax.set_xticklabels(display_labels, fontsize=18)
+        
+        ax.set_ylabel('Mutation Rate', fontsize=22, fontweight='bold')
+        ax.tick_params(axis='y', labelsize=18)
         ax.set_ylim(-0.05, 1)
 
         ax.grid(True, which="major", axis="y", ls="-", alpha=0.5)
         ax.grid(True, which="minor", axis="y", ls=":", alpha=0.2)
 
         if ax == axes[1]:
-            ax.legend(title='Group')
+            ax.legend(title='Group', fontsize=16, title_fontsize=18)
         else:
             ax.get_legend().remove()
-    fig.suptitle('Comparison of Mutation Rates Across Codon Sites', fontsize=16, fontweight='bold')
-    fig.supxlabel('Codon Site', fontsize=14, fontweight='bold')
+    fig.suptitle('Comparison of Mutation Rates Across Codon Sites', fontsize=26, fontweight='bold')
+    fig.supxlabel('Codon Site', fontsize=22, fontweight='bold')
+
     plt.tight_layout()
+
     outpath = os.path.join(plot_dir, f'combined_sites_boxplot.pdf')
     plt.savefig(outpath)
     plt.close()
     print(f'Saved {outpath}')
+
+    for mut in mutation_types:
+        plt.figure(figsize=(16, 12))
+        
+        ax = sns.boxplot(data=med_melt[med_melt['Mutation Type'] == mut],
+                    x='Site', 
+                    y='Rate', 
+                    hue='Group', 
+                    palette = {'Endosymbionts': '#FC8D62', 'Free-Living Relatives': '#66C2A5'},
+                    order=site_order,
+                    width=0.5,
+                    showfliers=False
+                    )
+        if strip:
+            sns.stripplot(data=med_melt[med_melt['Mutation Type'] == mut],
+                        x='Site', 
+                        y='Rate', 
+                        hue='Group', 
+                        palette = {'Endosymbionts': 'gray', 'Free-Living Relatives': 'gray'},
+                        order=site_order,
+                        dodge=True,
+                        alpha=0.4,
+                        legend=False,
+                        ax = ax
+                        )
+        plt.title(f'{mut.replace("r","")} Rates by Site', fontsize=26, fontweight='bold')
+        plt.xlabel('Codon Site', fontsize=22, fontweight='bold')
+        plt.xticks([0,1,2], display_labels, fontsize=18)
+
+        plt.ylabel('Mutation Rate', fontsize=22, fontweight='bold')
+        plt.yticks(fontsize=18)
+        plt.ylim(-0.05, 1)
+
+        plt.grid(True, which="major", axis="y", ls="-", alpha=0.5)
+        plt.grid(True, which="minor", axis="y", ls=":", alpha=0.2)
+
+        plt.legend(title='Group', fontsize = 18, title_fontsize = 20)
+        mut_file = mut.replace('→', '_').replace('r', '')
+        outpath_single = os.path.join(plot_dir, f'{mut_file}_sites_boxplot.pdf')
+
+        plt.tight_layout()
+
+        plt.savefig(outpath_single)
+        plt.close()
+        print(f'Saved {outpath_single}')
 
     
 if __name__ == '__main__':

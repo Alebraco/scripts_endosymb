@@ -2,7 +2,7 @@
 
 #BSUB -n 4
 #BSUB -R "rusage[mem=20GB] span[hosts=1]"
-#BSUB -J "iqtree[1-131]%5"
+#BSUB -J "iqtree[1-42]%5"
 #BSUB -W 96:00
 #BSUB -e tree_logs/%J_%I.err
 #BSUB -o tree_logs/%J_%I.out
@@ -14,9 +14,7 @@ conda activate /usr/local/usrapps/metastrain/asoneto/tree
 ROOT="/rs1/researchers/l/ljbobay/asoneto/endosymb"
 
 # 1. Look for the new protein concatenates (.faa)
-FILES=($ROOT/endosymb+relatives/protein_concatenates/*.faa \
-    $ROOT/endosymb_only/protein_concatenates/*.faa \
-    $ROOT/relatives_only/protein_concatenates/*.faa)
+FILES=($ROOT/endosymb+relatives/protein_concatenates/*.faa)
     
 CONCATENATE=${FILES[$((LSB_JOBINDEX - 1))]}
 

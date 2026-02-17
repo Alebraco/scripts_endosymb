@@ -2,16 +2,22 @@ import pandas as pd
 import os
 import Bio.Phylo as Phylo
 import time
-def distance_matrix(group):
+def distance_matrix(group, mode = 'dna'):
     '''Creates a matrix based on patristic distance
     args:
         group (str): endosymbiont_only, endosymbiont+relatives, relatives_only 
+        mode (str): dna or protein
     output:
         dist_df (df): DataFrame with distances matrix
     '''
     
     dist_matrices = {}
-    tree_dir = os.path.join(group,'dna_tree_results')
+    if mode == 'dna':
+        tree_dir = os.path.join(group,'dna_tree_results')
+    elif mode == 'protein':
+        tree_dir = os.path.join(group,'protein_tree_results')
+    else:
+        raise ValueError("Invalid mode. Use 'dna' or 'protein'.")
     
     print(f'Starting distance matrix computation for {group}')
     print(f'Processing trees in {tree_dir}')

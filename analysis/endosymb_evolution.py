@@ -23,10 +23,12 @@ def sge_data(mode = 'mean'):
 
     group = 'endosymb+relatives'
     genome_json = genome_gcsize_json_path(group)
-    distance_pkl = os.path.join(files_dir, f'distances_{group}.pkl')
+    # Use protein distance matrix instead of DNA
+    distance_pkl = os.path.join(files_dir, f'distances_{group}_protein.pkl')
 
     genome_dataset = load_or_compute(genome_json, genome_gcsize, group)
-    distance_matrices = load_or_compute_pickle(distance_pkl, distance_matrix, group)
+    # Compute protein distance matrices for the mixed group (endosymbionts + relatives)
+    distance_matrices = load_or_compute_pickle(distance_pkl, distance_matrix, group, mode = 'protein')
     print('All data has been loaded.')
 
     all_data = []
@@ -76,11 +78,11 @@ def sge_data(mode = 'mean'):
                 })
 
     df = pd.DataFrame(all_data)
-    df.to_csv(os.path.join(files_dir, f'endosymb_evolution_data.csv'), index=False)
+    df.to_csv(os.path.join(files_dir, f'endosymb_evolution_data_protein.csv'), index=False)
     return df
 
 def seg_plot(df):
-    plt.figure(figsize=(8,6))
+    plt.figure(figsize=(16,12))
     scatter = plt.scatter(
         x = df['distance'],         
         y = df['size'],  
@@ -90,19 +92,21 @@ def seg_plot(df):
         edgecolors = 'black',
         linewidths = 0.5
         )
-    cbar = plt.colorbar(scatter, label='GC Content (%)')
+    cbar = plt.colorbar(scatter)
+    cbar.set_label('GC Content (%)', fontsize=12)
+    cbar.ax.tick_params(labelsize=10)
 
-    plt.xlabel('Median Evolutionary Distance')
-    plt.ylabel('Genome Size (bp)')
-    plt.title('The Evolution of Endosymbionts:\nGenome Size, GC Content, and Evolutionary Distance')
+    plt.xlabel('Median Evolutionary Distance', fontsize=16)
+    plt.ylabel('Genome Size (bp)' , fontsize=16)
+    plt.title('The Evolution of Endosymbionts:\nGenome Size, GC Content, and Evolutionary Distance', fontsize=18)
     plt.gca().yaxis.set_major_formatter(plt.FuncFormatter(lambda x, p: f'{x/1e6:.1f} Mb'))
 
     plt.tight_layout()
-    plt.savefig(os.path.join(plot_dir, f'endosymb_evolution.pdf'))
+    plt.savefig(os.path.join(plot_dir, f'endosymb_evolution_protein.pdf'))
     plt.close()
 
 if __name__ == '__main__':
-    csv_path = os.path.join(files_dir, 'endosymb_evolution_data.csv')
+    csv_path = os.path.join(files_dir, 'endosymb_evolution_data_protein.csv')
     if os.path.exists(csv_path):
         print('Loading existing data.')
         df = pd.read_csv(csv_path)
