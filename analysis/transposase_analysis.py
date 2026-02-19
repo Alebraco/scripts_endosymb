@@ -146,11 +146,11 @@ def transposase_group_count(df_master):
 
     sns.boxplot(x='Group', y=metric, hue='Group', data=df_master,
                     palette='Set2', showfliers=False, width=0.5, boxprops={'alpha': 0.4},
-                    order=['endosymb_only', 'relatives_only'], hue_order=['endosymb_only', 'relatives_only'])
+                    order=['relatives_only', 'endosymb_only'], hue_order=['relatives_only', 'endosymb_only'])
 
     sns.stripplot(x='Group', y=metric, hue='Group',
                   data=df_master, alpha=0.7, jitter=True, palette='Set2', 
-                  order=['endosymb_only', 'relatives_only'], hue_order=['endosymb_only', 'relatives_only'])
+                  order=['relatives_only', 'endosymb_only'], hue_order=['relatives_only', 'endosymb_only'])
     
     if metric == 'Transposases_per_Gene':
         plt.title('Normalized Transposase Abundance by Group', fontsize=24, fontweight='bold')
