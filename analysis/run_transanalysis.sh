@@ -1,5 +1,5 @@
 #!/bin/bash
-#BSUB -J spectrum
+#BSUB -J transposase
 #BSUB -o %J.out
 #BSUB -e %J.err
 #BSUB -n 1
