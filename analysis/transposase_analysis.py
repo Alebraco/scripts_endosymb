@@ -166,7 +166,7 @@ def transposase_group_count(df_master):
 
     ax = plt.gca()
     ax.set_xticks([0, 1])
-    ax.set_xticklabels(['Endosymbionts', 'Relatives'])
+    ax.set_xticklabels(['Relatives', 'Endosymbionts'])
 
     plt.tight_layout()
     plt.savefig(os.path.join(plot_dir, 'transposase_group_count.pdf'))
@@ -221,7 +221,7 @@ def transposase_completeness_perc(df_master):
 
     ax = plt.gca()
     ax.set_xticks([0, 1])
-    ax.set_xticklabels(['Endosymbionts', 'Relatives'])
+    ax.set_xticklabels(['Relatives', 'Endosymbionts'])
 
     plt.tight_layout()
     plt.savefig(os.path.join(plot_dir, 'transposase_completeness_perc.pdf'))
