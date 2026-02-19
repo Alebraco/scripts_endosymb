@@ -109,7 +109,9 @@ def transposase_plot(df_master, metric, title, label, filename):
     endo_order = sorted(df_master[df_master['Group'] == 'endosymb_only']['Species'].unique())
     rel_order = sorted(df_master[df_master['Group'] == 'relatives_only']['Species'].unique())
 
-    colors = sns.color_palette('Set2', n_colors=2)
+    colors = sns.color_palette('Set2', 2)
+    palette_map = {'endosymb_only': colors[1], 'relatives_only': colors[0]}
+
     fig, axes = plt.subplots(nrows=1, ncols=2, figsize=(15, 10), sharex=True)
 
     sns.stripplot(y='Species', x=metric,
@@ -143,20 +145,24 @@ def transposase_group_count(df_master):
 
     metric = 'Transposases_per_Gene' if 'Transposases_per_Gene' in df_master.columns else 'Total_Transposases'
     
+    custom_palette = {
+        'endosymb_only': '#FC8D62FF', 
+        'relatives_only': '#66C2A5FF' 
+    }
 
     sns.boxplot(x='Group', y=metric, hue='Group', data=df_master,
-                    palette='Set2', showfliers=False, width=0.5, boxprops={'alpha': 0.4},
-                    order=['relatives_only', 'endosymb_only'], hue_order=['relatives_only', 'endosymb_only'])
+                    palette=custom_palette, showfliers=False, width=0.5, boxprops={'alpha': 0.4},
+                    order=['endosymb_only', 'relatives_only'], hue_order=['endosymb_only', 'relatives_only'])
 
     sns.stripplot(x='Group', y=metric, hue='Group',
-                  data=df_master, alpha=0.7, jitter=True, palette='Set2', 
-                  order=['relatives_only', 'endosymb_only'], hue_order=['relatives_only', 'endosymb_only'])
+                  data=df_master, alpha=0.7, jitter=True, palette=custom_palette, 
+                  order=['endosymb_only', 'relatives_only'], hue_order=['endosymb_only', 'relatives_only'])
     
     if metric == 'Transposases_per_Gene':
         plt.title('Normalized Transposase Abundance by Group', fontsize=24, fontweight='bold')
         plt.ylabel('Transposases per Gene', fontsize=22, fontweight='bold')
     else:
-        plt.title('Total Transposase Count by Group', fontsize=24, fontweight='bold')
+        plt.title('Total Transposase Count by Group', fontsize=20, fontweight='bold')
         plt.ylabel('Number of Transposases', fontsize=22, fontweight='bold')
     plt.xlabel('Group', fontsize=22, fontweight='bold')
     plt.xticks(fontsize=18)
@@ -166,7 +172,7 @@ def transposase_group_count(df_master):
 
     ax = plt.gca()
     ax.set_xticks([0, 1])
-    ax.set_xticklabels(['Relatives', 'Endosymbionts'])
+    ax.set_xticklabels(['Endosymbionts', 'Relatives'])
 
     plt.tight_layout()
     plt.savefig(os.path.join(plot_dir, 'transposase_group_count.pdf'))
@@ -221,7 +227,7 @@ def transposase_completeness_perc(df_master):
 
     ax = plt.gca()
     ax.set_xticks([0, 1])
-    ax.set_xticklabels(['Relatives', 'Endosymbionts'])
+    ax.set_xticklabels(['Endosymbionts', 'Relatives'])
 
     plt.tight_layout()
     plt.savefig(os.path.join(plot_dir, 'transposase_completeness_perc.pdf'))
