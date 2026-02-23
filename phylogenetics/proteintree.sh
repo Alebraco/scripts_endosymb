@@ -2,10 +2,11 @@
 
 #BSUB -n 4
 #BSUB -R "rusage[mem=20GB] span[hosts=1]"
-#BSUB -J "iqtree[1-42]%5"
-#BSUB -W 96:00
+#BSUB -J "iqtree[20, 25, 31, 36, 37]%5"
+#BSUB -W 150:00
 #BSUB -e tree_logs/%J_%I.err
 #BSUB -o tree_logs/%J_%I.out
+#BSUB -q bobay
 
 source ~/.bashrc
 conda activate /usr/local/usrapps/metastrain/asoneto/tree
