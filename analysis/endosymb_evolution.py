@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import argparse
 import os
 
 from distance_matrix import distance_matrix
@@ -19,16 +20,15 @@ from utils import (
 plot_dir = os.path.join('plots', 'endosymb_evolution')
 os.makedirs(plot_dir, exist_ok=True)
 # Size - GC - Evolutionary Distance Plot
-def sge_data(mode = 'mean'):
+def sge_data(mode='mean', seq_type='protein'):
 
     group = 'endosymb+relatives'
     genome_json = genome_gcsize_json_path(group)
-    # Use protein distance matrix instead of DNA
-    distance_pkl = os.path.join(files_dir, f'distances_{group}_protein.pkl')
+    suffix = f'_{seq_type}' if seq_type != 'dna' else ''
+    distance_pkl = os.path.join(files_dir, f'distances_{group}{suffix}.pkl')
 
     genome_dataset = load_or_compute(genome_json, genome_gcsize, group)
-    # Compute protein distance matrices for the mixed group (endosymbionts + relatives)
-    distance_matrices = load_or_compute_pickle(distance_pkl, distance_matrix, group, mode = 'protein')
+    distance_matrices = load_or_compute_pickle(distance_pkl, distance_matrix, group, mode=seq_type)
     print('All data has been loaded.')
 
     all_data = []
@@ -78,10 +78,12 @@ def sge_data(mode = 'mean'):
                 })
 
     df = pd.DataFrame(all_data)
-    df.to_csv(os.path.join(files_dir, f'endosymb_evolution_data_protein.csv'), index=False)
+    suffix = f'_{seq_type}' if seq_type != 'dna' else ''
+    df.to_csv(os.path.join(files_dir, f'endosymb_evolution_data{suffix}.csv'), index=False)
     return df
 
-def seg_plot(df):
+def seg_plot(df, seq_type='protein'):
+    suffix = f'_{seq_type}' if seq_type != 'dna' else ''
     plt.figure(figsize=(16,12))
     scatter = plt.scatter(
         x = df['distance'],         
@@ -103,18 +105,24 @@ def seg_plot(df):
     plt.gca().yaxis.set_major_formatter(plt.FuncFormatter(lambda x, p: f'{x/1e6:.1f} Mb'))
 
     plt.tight_layout()
-    plt.savefig(os.path.join(plot_dir, f'endosymb_evolution_protein.pdf'))
+    plt.savefig(os.path.join(plot_dir, f'endosymb_evolution{suffix}.pdf'))
     plt.close()
 
 if __name__ == '__main__':
-    csv_path = os.path.join(files_dir, 'endosymb_evolution_data_protein.csv')
+    ap = argparse.ArgumentParser()
+    ap.add_argument('--seq-type', default='protein', choices=['protein', 'dna'],
+                    help='Distance matrix type to use (default: protein)')
+    args = ap.parse_args()
+
+    suffix = f'_{args.seq_type}' if args.seq_type != 'dna' else ''
+    csv_path = os.path.join(files_dir, f'endosymb_evolution_data{suffix}.csv')
     if os.path.exists(csv_path):
         print('Loading existing data.')
         df = pd.read_csv(csv_path)
     else:
         print('Computing data.')
-        df = sge_data(mode='mean')
-    seg_plot(df)
+        df = sge_data(mode='mean', seq_type=args.seq_type)
+    seg_plot(df, seq_type=args.seq_type)
     print('Plot saved.')
 
 

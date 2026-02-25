@@ -1,4 +1,5 @@
 import os
+import re
 import subprocess
 import sys
 import pandas as pd
@@ -10,12 +11,14 @@ from utils import files_dir
 
 # Structure must be path/proteins/species/*.faa
 
-def run_diamond(path):
+def run_diamond(path, queue='bobay', threads=8):
     # The path must be the directory containing the 'proteins' folder
     TRANS_DB = os.path.join(files_dir, 'IS_db_fixed.dmnd')
+    proteins_root = os.path.join(path, 'proteins')
+    job_ids = []
 
-    for species in os.listdir(path):
-        species_path = os.path.join(path, 'proteins', species)
+    for species in os.listdir(proteins_root):
+        species_path = os.path.join(proteins_root, species)
         if not os.path.isdir(species_path):
             continue
 
@@ -23,25 +26,46 @@ def run_diamond(path):
         os.makedirs(out_dir, exist_ok=True)
 
         for file in os.listdir(species_path):
-            if file.endswith('.faa'):
-                accession = file.split('.faa')[0]
-                faa_file = os.path.join(species_path, file)
+            if not file.endswith('.faa'):
+                continue
 
-                outfile = os.path.join(out_dir, f'{accession}.tsv')
+            accession = file.split('.faa')[0]
+            faa_file = os.path.join(species_path, file)
+            outfile = os.path.join(out_dir, f'{accession}.tsv')
 
-                cmd = [
-                    "diamond", "blastp",
-                    "--db", TRANS_DB,
-                    "--query", faa_file,
-                    "--out", outfile,
-                    "--outfmt", "6", "qseqid", "sseqid", "pident", "length", "mismatch", 
-                    "gapopen", "qstart", "qend", "sstart", "send", "evalue", "bitscore", "qlen", "slen",
-                    "--threads", "8",
-                    "--evalue", "1e-5",
-                    "--max-target-seqs", "1"
-                ]
-    
-                subprocess.run(cmd, check=True)
+            if os.path.isfile(outfile):  # skip already completed
+                continue
+
+            diamond_cmd = (
+                f'diamond blastp --db {TRANS_DB} --query {faa_file} --out {outfile} '
+                f'--outfmt 6 qseqid sseqid pident length mismatch gapopen '
+                f'qstart qend sstart send evalue bitscore qlen slen '
+                f'--threads {threads} --evalue 1e-5 --max-target-seqs 1 --quiet'
+            )
+
+            bsub_cmd = [
+                'bsub', '-n', str(threads),
+                '-R', f'rusage[mem=4GB] span[hosts=1]',
+                '-q', queue,
+                '-J', f'diamond_{accession}',
+                diamond_cmd,
+            ]
+
+            try:
+                result = subprocess.run(bsub_cmd, check=True, capture_output=True, text=True)
+                match = re.search(r'Job <(\d+)>', result.stdout)
+                if match:
+                    job_ids.append(match.group(1))
+                    print(f'  Submitted job {match.group(1)} for {accession}')
+            except (subprocess.CalledProcessError, FileNotFoundError) as err:
+                print(f'  [WARN] bsub failed for {faa_file}: {err}', file=sys.stderr)
+
+    if job_ids:
+        wait_expr = ' && '.join(f'done({jid})' for jid in job_ids)
+        print(f'Waiting for {len(job_ids)} DIAMOND jobs to finish...')
+        subprocess.run(['bwait', '-w', wait_expr], check=True)
+    else:
+        print('No new DIAMOND jobs to submit (all outputs already exist).')
 
 
 
