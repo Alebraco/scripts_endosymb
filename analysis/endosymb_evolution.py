@@ -84,7 +84,7 @@ def sge_data(mode='mean', seq_type='protein'):
 
 def seg_plot(df, seq_type='protein'):
     suffix = f'_{seq_type}' if seq_type != 'dna' else ''
-    plt.figure(figsize=(16,12))
+    plt.figure(figsize=(8, 6))
     scatter = plt.scatter(
         x = df['distance'],         
         y = df['size'],  
