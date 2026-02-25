@@ -9,4 +9,4 @@
 
 source ~/.bashrc
 conda activate /usr/local/usrapps/metastrain/asoneto/annotation/
-python3 -u scripts_endosymb/analysis/endosymb_evolution.py
+python3 -u scripts_endosymb/analysis/endosymb_evolution.py --seq-type dna
