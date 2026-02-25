@@ -583,17 +583,17 @@ def rate_shift_plot(df, position, color_by = 'distance', annotate=False):
 
         cbar = plt.colorbar(scatter)
         cbar.set_label(cbar_label, rotation=270, labelpad=25, fontsize=20)
-        cbar.ax.tick_params(labelsize=18)
+        cbar.ax.tick_params(labelsize=20)
         
         plt.axline((0, 0), slope=1, color='gray', linestyle='--', linewidth=1, label='y=x (No shift)')
         plt.xlim(-0.05, 1.05)
         plt.ylim(-0.05, 1.05)
 
         plt.title(f'{mut.replace("r","")} Rate Shift\n{site_label}', fontsize=24, fontweight='bold')
-        plt.xlabel('Free-Living Relatives', fontsize=20, fontweight='bold')
-        plt.ylabel('Endosymbionts', fontsize=20, fontweight='bold')
-        plt.tick_params(axis='both', labelsize=18)
-        plt.legend(fontsize=18)
+        plt.xlabel('Free-Living Relatives', fontsize=24, fontweight='bold')
+        plt.ylabel('Endosymbionts', fontsize=24, fontweight='bold')
+        plt.tick_params(axis='both', labelsize=20)
+        plt.legend(fontsize=20)
         plt.tight_layout()
         mut_file = mut.replace('→', '_')
         prefix = site_file_prefix.get(position, position)
@@ -803,10 +803,10 @@ def combined_sites_boxplot(strip=False):
                         alpha=0.4,
                         legend=False
                         )
-        ax.set_title(f'{mut.replace("r","")} Rates by Site', fontsize=18, fontweight='bold')
+        ax.set_title(f'{mut.replace("r","")} Rates by Site', fontsize=24, fontweight='bold')
         ax.set_xlabel('')
         ax.set_xticks([0,1,2])
-        ax.set_xticklabels(display_labels, fontsize=18)
+        ax.set_xticklabels(display_labels, fontsize=22)
         
         ax.set_ylabel('Mutation Rate', fontsize=22, fontweight='bold')
         ax.tick_params(axis='y', labelsize=18)
@@ -855,7 +855,7 @@ def combined_sites_boxplot(strip=False):
                         )
         plt.title(f'{mut.replace("r","")} Rates by Site', fontsize=30, fontweight='bold')
         plt.xlabel('Codon Site', fontsize=26, fontweight='bold')
-        plt.xticks([0,1,2], display_labels, fontsize=22)
+        plt.xticks([0,1,2], display_labels, fontsize=24)
 
         plt.ylabel('Mutation Rate', fontsize=26, fontweight='bold')
         plt.yticks(fontsize=22)
@@ -864,7 +864,7 @@ def combined_sites_boxplot(strip=False):
         plt.grid(True, which="major", axis="y", ls="-", alpha=0.5)
         plt.grid(True, which="minor", axis="y", ls=":", alpha=0.2)
 
-        plt.legend(title='Group', fontsize = 18, title_fontsize = 20)
+        plt.legend(title='Group', fontsize = 22, title_fontsize = 24)
         mut_file = mut.replace('→', '_').replace('r', '')
         outpath_single = os.path.join(plot_dir, f'{mut_file}_sites_boxplot.pdf')
 
