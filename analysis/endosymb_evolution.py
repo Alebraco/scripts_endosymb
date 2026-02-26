@@ -84,7 +84,7 @@ def sge_data(mode='mean', seq_type='protein'):
 
 def seg_plot(df, seq_type='protein'):
     suffix = f'_{seq_type}' if seq_type != 'dna' else ''
-    plt.figure(figsize=(8, 6))
+    plt.figure(figsize=(12,8))
     scatter = plt.scatter(
         x = df['distance'],         
         y = df['size'],  
@@ -98,10 +98,10 @@ def seg_plot(df, seq_type='protein'):
     cbar.set_label('GC Content (%)', fontsize=18, fontweight='bold')
     cbar.ax.tick_params(labelsize=14)
 
-    plt.xlabel('Median Evolutionary Distance', fontsize=22, fontweight='bold')
-    plt.ylabel('Genome Size (Mb)' , fontsize=22, fontweight='bold')
+    plt.xlabel('Median Evolutionary Distance', fontsize=20, fontweight='bold')
+    plt.ylabel('Genome Size (Mb)' , fontsize=20, fontweight='bold')
     plt.tick_params(axis='both', labelsize=14)
-    plt.title('The Evolution of Endosymbionts\nGenome Size, GC Content, and Evolutionary Distance', fontsize=24, fontweight='bold')
+    plt.title('The Evolution of Endosymbionts\nGenome Size, GC Content, and Evolutionary Distance', fontsize=22, fontweight='bold')
     plt.gca().yaxis.set_major_formatter(plt.FuncFormatter(lambda x, p: f'{x/1e6:.1f} Mb'))
 
     plt.tight_layout()
