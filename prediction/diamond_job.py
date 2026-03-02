@@ -44,7 +44,7 @@ def run_diamond(path, threads = 8, max_parallel = 20, wait=True):
     
     n_jobs = len(tasks)
     job_name = f'transposase_batch[1-{n_jobs}]%{max_parallel}'
-    logs_dir = os.path.join(path, 'transpred_logs')
+    logs_dir = 'transpred_logs/'
     os.makedirs(logs_dir, exist_ok=True)
 
     cmd = (
@@ -80,8 +80,3 @@ def run_diamond(path, threads = 8, max_parallel = 20, wait=True):
     if wait:
         print('Waiting for DIAMOND jobs to finish.')
         subprocess.run(['bwait', '-w', f'done({job_id})'], check=True)
-
-if __name__ == '__main__':
-    path = 'endosymb+relatives'
-    run_diamond(path)
-    print('Done with DIAMOND searches of transposases.')

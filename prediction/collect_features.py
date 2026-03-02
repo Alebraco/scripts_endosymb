@@ -13,6 +13,7 @@ if __name__ == '__main__':
     # Clustering with labeled groups (use auto_classify to determine group based on filename)
     path = 'endosymb+relatives'
 
+    print('Starting feature collection process.')
     frames = []
     gcsize_data = genome_gcsize(path)
     for species, accessions in gcsize_data.items():
@@ -26,6 +27,7 @@ if __name__ == '__main__':
     gcsize_df = pd.DataFrame(frames)
 
     # Structure must be path/proteins/species/*.faa
+    print('Running DIAMOND searches for transposases.')
     run_diamond(path, threads=8, wait=True, max_parallel=20)
     print('Done with DIAMOND searches of transposases.')
     
