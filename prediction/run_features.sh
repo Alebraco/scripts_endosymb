@@ -9,4 +9,4 @@
 
 source ~/.bashrc
 conda activate /usr/local/usrapps/metastrain/asoneto/annotation
-python scripts_endosymb/prediction/collect_features.py
+python -u scripts_endosymb/prediction/collect_features.py
