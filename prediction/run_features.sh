@@ -8,5 +8,5 @@
 #BSUB -e %J.err
 
 source ~/.bashrc
-conda activate /usr/local/usrapps/metastrain/asoneto/transposase/
+conda activate /usr/local/usrapps/metastrain/asoneto/annotation
 python scripts_endosymb/prediction/collect_features.py
