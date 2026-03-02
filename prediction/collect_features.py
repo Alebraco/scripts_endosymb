@@ -6,10 +6,10 @@ import pandas as pd
 
 from diamond_job import run_diamond
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'analysis'))
-from analysis.gcsize_dict import genome_gcsize
-from analysis.transposase_analysis import processing_transposase
-from analysis.igs_lengths import collect_gff_stats
-from analysis.utils import files_dir
+from gcsize_dict import genome_gcsize
+from transposase_analysis import processing_transposase
+from igs_lengths import collect_gff_stats
+from utils import files_dir
 
 if __name__ == '__main__':
     # Clustering with labeled groups (use auto_classify to determine group based on filename)
