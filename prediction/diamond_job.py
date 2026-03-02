@@ -37,7 +37,7 @@ def run_diamond(path, threads = 8, max_parallel = 20, wait=True):
         print('No new DIAMOND jobs to run.')
         return
     
-    task_file = os.path.join(path, 'diamond_tasks.tsv')
+    task_file = 'diamond_tasks.tsv'
     with open(task_file, 'w') as f:
         for faa_file, outfile in tasks:
             f.write(f'{faa_file}\t{outfile}\n')
