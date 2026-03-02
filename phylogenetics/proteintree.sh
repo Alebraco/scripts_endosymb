@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #BSUB -n 4
-#BSUB -R "rusage[mem=20GB] span[hosts=1]"
+#BSUB -R "rusage[mem=65GB] span[hosts=1]"
 #BSUB -J "iqtree[25, 37]%5"
 #BSUB -W 150:00
 #BSUB -e tree_logs/%J_%I.err
