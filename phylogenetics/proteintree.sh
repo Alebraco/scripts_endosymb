@@ -2,7 +2,7 @@
 
 #BSUB -n 4
 #BSUB -R "rusage[mem=20GB] span[hosts=1]"
-#BSUB -J "iqtree[20, 25, 31, 36, 37]%5"
+#BSUB -J "iqtree[25, 37]%5"
 #BSUB -W 150:00
 #BSUB -e tree_logs/%J_%I.err
 #BSUB -o tree_logs/%J_%I.out
@@ -50,9 +50,9 @@ trimal -in "$CONCATENATE" -out "$TEMP_FASTA" -fasta -seqoverlap 50 -resoverlap 0
 SEQS=$(grep -c '>' "$TEMP_FASTA")
 
 if [[ $SEQS -gt 3 ]]; then
-    iqtree -s $TEMP_FASTA -m MFP -bb 1000 -T 4 -pre "$OUTDIR/$SPECIES"
+    iqtree -s $TEMP_FASTA -m LG+R7 -bb 1000 -T 4 -pre "$OUTDIR/$SPECIES"
 elif [[ $SEQS -le 2 ]]; then
     echo "Skipping $SPECIES, only $SEQS sequences to compare."
 else
-    iqtree -s $TEMP_FASTA -m MFP -T 4 -pre "$OUTDIR/$SPECIES"
+    iqtree -s $TEMP_FASTA -m LG+R7 -T 4 -pre "$OUTDIR/$SPECIES"
 fi
