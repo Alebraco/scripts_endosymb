@@ -45,6 +45,6 @@ fi
 
 echo "All jobs done, running Python script."
 
-python scripts_endosymb/prediction/collect_features.py --path endosymb+relatives
+python -u scripts_endosymb/prediction/collect_features.py --path endosymb+relatives
 echo "Feature collection complete."
 

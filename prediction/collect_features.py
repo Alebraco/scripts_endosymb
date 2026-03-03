@@ -5,7 +5,6 @@ import os
 import sys
 import pandas as pd
 
-from diamond_job import run_diamond
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'analysis'))
 from gcsize_dict import genome_gcsize
 from transposase_analysis import processing_transposase
