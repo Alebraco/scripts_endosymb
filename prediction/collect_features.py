@@ -1,3 +1,6 @@
+#!/usr/bin/env python3
+
+import argparse
 import os
 import sys
 import pandas as pd
@@ -7,15 +10,18 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'analysis'))
 from gcsize_dict import genome_gcsize
 from transposase_analysis import processing_transposase
 from igs_lengths import collect_gff_stats
-from utils import files_dir
+from utils import files_dir, load_or_compute, genome_gcsize_json_path
 
-if __name__ == '__main__':
-    # Clustering with labeled groups (use auto_classify to determine group based on filename)
-    path = 'endosymb+relatives'
+def main():
+    parser = argparse.ArgumentParser(description='Collect and merge genome features.')
+    parser.add_argument('--path', help='Path to process')
+    args = parser.parse_args()
+
+    path = args.path
 
     print('Starting feature collection process.')
     frames = []
-    gcsize_data = genome_gcsize(path)
+    gcsize_data = load_or_compute(genome_gcsize_json_path(path), genome_gcsize, path)
     for species, accessions in gcsize_data.items():
         for accn, metadata in accessions.items():
             frames.append({
@@ -25,11 +31,7 @@ if __name__ == '__main__':
                 'Genome_Size': metadata['size']
             })
     gcsize_df = pd.DataFrame(frames)
-
-    # Structure must be path/proteins/species/*.faa
-    print('Running DIAMOND searches for transposases.')
-    run_diamond(path, threads=8, wait=True, max_parallel=20)
-    print('Done with DIAMOND searches of transposases.')
+    print('Done with GC content and genome size analysis.')
     
     transposase_df = processing_transposase(path, auto_classify=True)
     print('Done with transposase analysis.')
@@ -44,3 +46,7 @@ if __name__ == '__main__':
 
     merged_df.to_csv(os.path.join(files_dir, 'combined_features.csv'), index=False)
     print('All features saved to combined_features.csv')
+
+
+if __name__ == '__main__':
+    main()

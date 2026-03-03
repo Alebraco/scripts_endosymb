@@ -32,12 +32,11 @@ columns = ['qseqid',
 use_columns = ['sseqid', 'pident', 'sstart', 'send', 'slen']
 
 def processing_transposase(path, group_label = None, auto_classify = False):
-    """
-    base_path: The directory containing the 'transposase' folder.
-               e.g. 'path/to/group' or 'path/to/general_folder'
+    '''
+    path: The directory containing the 'transposase' folder.
     group_label: Optional string to label the 'Group' column. 
-                 If None, defaults to 'Ungrouped'.
-    """
+                 If None, it is 'Ungrouped'.
+    '''
     results = []
 
     target_dir = os.path.join(path, 'transposase')

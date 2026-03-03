@@ -1,4 +1,5 @@
 #!/bin/bash
+
 #BSUB -J IS[1-111]%10
 #BSUB -W 20:00
 #BSUB -q bobay
@@ -10,8 +11,8 @@
 source ~/.bashrc
 conda activate /usr/local/usrapps/metastrain/asoneto/transposase
 
-TRANS_DB="files/IS_db_fixed.dmnd"
-INPUT_DIRS=('endosymb_only/proteins' 'relatives_only/proteins')
+TRANS_DB=($TRANS_DB)
+INPUT_DIRS=($INPUT_DIRS)
 
 START_IND=$((($LSB_JOBINDEX - 1) * 60))
 END_IND=$(($START_IND + 59))
