@@ -159,7 +159,7 @@ if __name__ == "__main__":
     master_igs = []
     master_gene = []
 
-    csv_names = ['meanIGS.csv', 'all_IGS_data.csv', 'mean_gene_lengths.csv']
+    csv_names = ['meanIGS.csv', 'all_IGS_data.csv', 'mean_gene_lengths.csv', 'gene_counts.csv']
     files = all(os.path.exists(os.path.join(files_dir, f)) for f in csv_names)
 
     if not files:
