@@ -17,6 +17,33 @@ group_colors = {
     'Free-Living Relatives' : '#66C2A5',
 }
 
+# Minimal boxplot for gene counts by group
+gene_counts_path = os.path.join(files_dir, 'gene_counts.csv')
+if os.path.exists(gene_counts_path):
+    gene_counts_df = pd.read_csv(gene_counts_path)
+    gene_counts_df['Group'] = gene_counts_df['Group'].replace({
+        'endosymb_only': 'Endosymbionts',
+        'relatives_only': 'Free-Living Relatives',
+    })
+    gene_counts_df = gene_counts_df[gene_counts_df['Group'].isin(['Endosymbionts', 'Free-Living Relatives'])]
+
+    plt.figure(figsize=(6, 6))
+    sns.boxplot(
+        data=gene_counts_df,
+        x='Group',
+        y='Gene_Count',
+        order=['Endosymbionts', 'Free-Living Relatives'],
+        palette=group_colors,
+    )
+    plt.xlabel('Group')
+    plt.ylabel('Gene Count')
+    plt.title('Gene Count by Group')
+    plt.tight_layout()
+    plt.savefig(os.path.join(plot_dir, 'gene_count_boxplot.pdf'))
+    plt.close()
+else:
+    print(f'Warning: gene_counts.csv not found at {gene_counts_path}. Skipping gene count boxplot.')
+
 #Box Plots with all data points
 df_boxplot = pd.read_csv(os.path.join(files_dir, 'all_IGS_data.csv'))
 df_boxplot['Group'] = df_boxplot['Group'].replace({
