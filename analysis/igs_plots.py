@@ -33,6 +33,7 @@ if os.path.exists(gene_counts_path):
         x='Group',
         y='Gene_Count',
         order=['Endosymbionts', 'Free-Living Relatives'],
+        hue='Group',
         palette=group_colors,
     )
     plt.xlabel('Group')
