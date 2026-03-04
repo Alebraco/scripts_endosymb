@@ -36,7 +36,7 @@ if os.path.exists(gene_counts_path):
         hue='Group',
         palette=group_colors,
     )
-    plt.stripplot(
+    sns.stripplot(
         data=gene_counts_df,
         x='Group',
         y='Gene_Count',
