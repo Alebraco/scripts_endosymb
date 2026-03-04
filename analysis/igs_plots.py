@@ -36,6 +36,13 @@ if os.path.exists(gene_counts_path):
         hue='Group',
         palette=group_colors,
     )
+    plt.stripplot(
+        data=gene_counts_df,
+        x='Group',
+        y='Gene_Count',
+        color='black',
+        alpha=0.7,
+    )
     plt.xlabel('Group')
     plt.ylabel('Gene Count')
     plt.title('Gene Count by Group')
