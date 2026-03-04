@@ -34,10 +34,10 @@ if os.path.exists(gene_counts_path):
         x='Group',
         y='Gene_Count',
         order=['Endosymbionts', 'Free-Living Relatives'],
+        hue='Group',
         palette=group_colors,
         fliersize=0
     )
-
 
     g_end = gene_counts_df.loc[gene_counts_df['Group'] == 'Endosymbionts', 'Gene_Count'].dropna()
     g_rel = gene_counts_df.loc[gene_counts_df['Group'] == 'Free-Living Relatives', 'Gene_Count'].dropna()
@@ -58,7 +58,7 @@ if os.path.exists(gene_counts_path):
         test_name = 'Mann-Whitney U'
         stat, pval = stats.mannwhitneyu(g_end, g_rel, alternative='two-sided')
 
-    ax.text(0.5, 0.95, f'{test_name}: p={pval:.3g}', transform=ax.transAxes,
+    ax.text(0.5, 0.95, f'{test_name}: p={pval}', transform=ax.transAxes,
             ha='center', va='top', fontsize=10)
 
     plt.xlabel('Group')
