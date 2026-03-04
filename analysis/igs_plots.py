@@ -50,7 +50,7 @@ if os.path.exists(gene_counts_path):
     # If data is normally distributed, use Welch's t-test; otherwise, use Mann-Whitney U test
     if p_sh_end is not None and p_sh_rel is not None:
         use_ttest = (p_sh_end > 0.05 and p_sh_rel > 0.05)
-        print(f'Shapiro-Wilk p-values: Endosymbionts={p_sh_end:.4g}, Free-Living Relatives={p_sh_rel:.4g}. Using {"Welch t-test" if use_ttest else "Mann-Whitney U test"}.')
+    print(f'Shapiro-Wilk p-values: Endosymbionts={p_sh_end:.4g}, Free-Living Relatives={p_sh_rel:.4g}. Using {"Welch t-test" if use_ttest else "Mann-Whitney U test"}.')
 
     if use_ttest:
         test_name = 'Welch t-test'
