@@ -6,6 +6,7 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import seaborn as sns
 import numpy as np
+from scipy import stats
 from delta_matrix import delta_matrix
 from gcsize_dict import genome_gcsize
 from utils import files_dir, genome_gcsize_json_path, load_or_compute, group_names
@@ -28,16 +29,38 @@ if os.path.exists(gene_counts_path):
     gene_counts_df = gene_counts_df[gene_counts_df['Group'].isin(['Endosymbionts', 'Free-Living Relatives'])]
 
     plt.figure(figsize=(6, 6))
-    sns.boxplot(
+    ax = sns.boxplot(
         data=gene_counts_df,
         x='Group',
         y='Gene_Count',
         order=['Endosymbionts', 'Free-Living Relatives'],
-        hue='Group',
         palette=group_colors,
         fliersize=0
     )
-    
+
+
+    g_end = gene_counts_df.loc[gene_counts_df['Group'] == 'Endosymbionts', 'Gene_Count'].dropna()
+    g_rel = gene_counts_df.loc[gene_counts_df['Group'] == 'Free-Living Relatives', 'Gene_Count'].dropna()
+
+    # Shapiro-Wilk to check normality
+    p_sh_end = stats.shapiro(g_end).pvalue if 3 <= len(g_end) <= 5000 else None
+    p_sh_rel = stats.shapiro(g_rel).pvalue if 3 <= len(g_rel) <= 5000 else None
+
+    use_ttest = False
+    # If data is normally distributed, use Welch's t-test; otherwise, use Mann-Whitney U test
+    if p_sh_end is not None and p_sh_rel is not None:
+        use_ttest = (p_sh_end > 0.05 and p_sh_rel > 0.05)
+
+    if use_ttest:
+        test_name = 'Welch t-test'
+        stat, pval = stats.ttest_ind(g_end, g_rel, equal_var=False, nan_policy='omit')
+    else:
+        test_name = 'Mann-Whitney U'
+        stat, pval = stats.mannwhitneyu(g_end, g_rel, alternative='two-sided')
+
+    ax.text(0.5, 0.95, f'{test_name}: p={pval:.3g}', transform=ax.transAxes,
+            ha='center', va='top', fontsize=10)
+
     plt.xlabel('Group')
     plt.ylabel('Gene Count')
     plt.title('Gene Count by Group')
