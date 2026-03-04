@@ -58,7 +58,7 @@ if os.path.exists(gene_counts_path):
         test_name = 'Mann-Whitney U'
         stat, pval = stats.mannwhitneyu(g_end, g_rel, alternative='two-sided')
 
-    ax.text(0.5, 0.95, f'{test_name}: p={pval}', transform=ax.transAxes,
+    ax.text(0.5, 0.95, f'{test_name}: p={pval:.10g}', transform=ax.transAxes,
             ha='center', va='top', fontsize=10)
 
     plt.xlabel('Group')
