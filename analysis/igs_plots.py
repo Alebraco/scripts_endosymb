@@ -35,13 +35,15 @@ if os.path.exists(gene_counts_path):
         order=['Endosymbionts', 'Free-Living Relatives'],
         hue='Group',
         palette=group_colors,
+        fliersize=0
     )
     sns.stripplot(
         data=gene_counts_df,
         x='Group',
         y='Gene_Count',
-        color='black',
-        alpha=0.7,
+        hue='Group',
+        palette=group_colors,
+        alpha=0.2,
     )
     plt.xlabel('Group')
     plt.ylabel('Gene Count')
