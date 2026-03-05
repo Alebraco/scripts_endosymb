@@ -91,8 +91,8 @@ if os.path.exists(gene_lengths):
         fliersize=0
     )
 
-    g_end = gene_lengths_df.loc[gene_lengths_df['Group'] == 'Endosymbionts', 'Gene_Length'].dropna()
-    g_rel = gene_lengths_df.loc[gene_lengths_df['Group'] == 'Free-Living Relatives', 'Gene_Length'].dropna()
+    g_end = gene_lengths_df.loc[gene_lengths_df['Group'] == 'Endosymbionts', 'mean_gene_length'].dropna()
+    g_rel = gene_lengths_df.loc[gene_lengths_df['Group'] == 'Free-Living Relatives', 'mean_gene_length'].dropna()
 
     # Shapiro-Wilk to check normality
     p_sh_end = stats.shapiro(g_end).pvalue if 3 <= len(g_end) <= 5000 else None
