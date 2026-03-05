@@ -39,6 +39,17 @@ group_names = {
     "endosymb_only": "Endosymbionts Only",
 }
 
+fourfold_codons = {
+        'GCT', 'GCC', 'GCA', 'GCG',   # Ala
+        'CGT', 'CGC', 'CGA', 'CGG',   # Arg
+        'GGT', 'GGC', 'GGA', 'GGG',   # Gly
+        'CCT', 'CCC', 'CCA', 'CCG',   # Pro
+        'ACT', 'ACC', 'ACA', 'ACG',   # Thr
+        'GTT', 'GTC', 'GTA', 'GTG',   # Val
+        'CTT', 'CTC', 'CTA', 'CTG',   # Leu
+        'TCT', 'TCC', 'TCA', 'TCG'    # Ser
+    }
+
 def gc_codon_json_path(group):
     """
     Path to the GC codon (GC3) JSON for a given group.

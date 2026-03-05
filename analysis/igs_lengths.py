@@ -5,7 +5,7 @@ import gffutils
 import pandas as pd
 from utils import files_dir
 
-def gff_processing(file_path):
+def gff_features(file_path):
     db = gffutils.create_db(file_path, dbfn=':memory:', force = True, 
                             keep_order = True, merge_strategy = 'merge',
                             sort_attribute_values = True)
@@ -17,6 +17,8 @@ def gff_processing(file_path):
     current_seqid = None
 
     target_features = ['gene', 'CDS', 'rRNA']
+    cds_coords = []
+    gene_coords = []
 
     for feature in db.all_features(order_by = ('seqid', 'start', 'end')):
         if feature.featuretype not in target_features:
@@ -41,9 +43,11 @@ def gff_processing(file_path):
             # Record CDS lengths
             if feature.featuretype == 'CDS':
                 cds_lengths.append(length)
+                cds_coords.append((feature.seqid, start, end, feature.strand))
             # Record gene lengths
             if feature.featuretype == 'gene':
                 gene_lengths.append(length)
+                gene_coords.append((feature.seqid, start, end, feature.strand))
 
             # Calculate IGS sizes if not pseudo gene
             if IGS_start:
@@ -55,8 +59,9 @@ def gff_processing(file_path):
                 IGS_start = end
 
     final_lengths = gene_lengths if len(gene_lengths) > 0 else cds_lengths
+    final_coords = gene_coords if len(gene_coords) > 0 else cds_coords
 
-    return IGS_sizes, final_lengths
+    return IGS_sizes, final_lengths, final_coords
 
 def collect_gff_stats(path, group_label = None, auto_classify = False):
     '''
@@ -74,22 +79,12 @@ def collect_gff_stats(path, group_label = None, auto_classify = False):
         return [], []
     print(f"Processing GFF files in: {target_dir}")
 
-    for sp in os.listdir(target_dir):
-        sp_path = os.path.join(target_dir, sp)
-        
-        if not os.path.isdir(sp_path):
-            continue
-        
-        spname = sp.replace('_endosymbiont','').replace('_', ' ')
-
-        for file in os.listdir(sp_path):
-            if not file.lower().endswith('.gff'):
-                continue
-            
+    def process_gff_files(base_dir, spname, gff_files):
+        for file in gff_files:
             filename = file.replace('.gff', '')
-            file_path = os.path.join(sp_path, file)
+            file_path = os.path.join(base_dir, file)
 
-            IGS_sizes, gene_lengths = gff_processing(file_path)
+            IGS_sizes, gene_lengths, gene_coords = gff_features(file_path)
 
             if auto_classify:
                 if '_genomic' in file:
@@ -102,17 +97,30 @@ def collect_gff_stats(path, group_label = None, auto_classify = False):
             for size in IGS_sizes:
                 all_igs_data.append({
                     'Group': current_group,
-                    'Species': spname, 
-                    'IGS_Size': size, 
+                    'Species': spname,
+                    'IGS_Size': size,
                     'File': filename
                 })
             for length in gene_lengths:
                 all_gene_data.append({
                     'Group': current_group,
-                    'Species': spname, 
+                    'Species': spname,
                     'Gene_Length': length,
                     'File': filename
                 })
+
+    species_dirs = [entry for entry in os.listdir(target_dir) if os.path.isdir(os.path.join(target_dir, entry))]
+
+    for sp in species_dirs:
+        sp_path = os.path.join(target_dir, sp)
+        spname = sp.replace('_endosymbiont', '').replace('_', ' ')
+        gff_files = [file for file in os.listdir(sp_path) if file.lower().endswith('.gff')]
+        process_gff_files(sp_path, spname, gff_files)
+
+    flat_gff_files = [file for file in os.listdir(target_dir) if file.lower().endswith('.gff')]
+    if flat_gff_files:
+        process_gff_files(target_dir, 'Unknown', flat_gff_files)
+
     return all_igs_data, all_gene_data
 
 def save_summary_stats(all_igs_data, all_gene_data, prefix=''):

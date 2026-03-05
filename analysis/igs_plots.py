@@ -50,7 +50,7 @@ if os.path.exists(gene_counts_path):
     # If data is normally distributed, use Welch's t-test; otherwise, use Mann-Whitney U test
     if p_sh_end is not None and p_sh_rel is not None:
         use_ttest = (p_sh_end > 0.05 and p_sh_rel > 0.05)
-        
+
     if use_ttest:
         test_name = 'Welch t-test'
         stat, pval = stats.ttest_ind(g_end, g_rel, equal_var=False, nan_policy='omit')
@@ -70,6 +70,59 @@ if os.path.exists(gene_counts_path):
     plt.close()
 else:
     print(f'Warning: gene_counts.csv not found at {gene_counts_path}. Skipping gene count boxplot.')
+
+gene_lengths = os.path.join(files_dir, 'mean_gene_lengths.csv')
+if os.path.exists(gene_lengths):
+    gene_lengths_df = pd.read_csv(gene_lengths)
+    gene_lengths_df['Group'] = gene_lengths_df['Group'].replace({
+        'endosymb_only': 'Endosymbionts',
+        'relatives_only': 'Free-Living Relatives',
+    })
+    gene_lengths_df = gene_lengths_df[gene_lengths_df['Group'].isin(['Endosymbionts', 'Free-Living Relatives'])]
+
+    plt.figure(figsize=(6, 6))
+    ax = sns.boxplot(
+        data=gene_lengths_df,
+        x='Group',
+        y='Gene_Length',
+        order=['Endosymbionts', 'Free-Living Relatives'],
+        hue='Group',
+        palette=group_colors,
+        fliersize=0
+    )
+
+    g_end = gene_lengths_df.loc[gene_lengths_df['Group'] == 'Endosymbionts', 'Gene_Length'].dropna()
+    g_rel = gene_lengths_df.loc[gene_lengths_df['Group'] == 'Free-Living Relatives', 'Gene_Length'].dropna()
+
+    # Shapiro-Wilk to check normality
+    p_sh_end = stats.shapiro(g_end).pvalue if 3 <= len(g_end) <= 5000 else None
+    p_sh_rel = stats.shapiro(g_rel).pvalue if 3 <= len(g_rel) <= 5000 else None
+
+    use_ttest = False
+    # If data is normally distributed, use Welch's t-test; otherwise, use Mann-Whitney U test
+    if p_sh_end is not None and p_sh_rel is not None:
+        use_ttest = (p_sh_end > 0.05 and p_sh_rel > 0.05)
+        
+    if use_ttest:
+        test_name = 'Welch t-test'
+        stat, pval = stats.ttest_ind(g_end, g_rel, equal_var=False, nan_policy='omit')
+    else:
+        test_name = 'Mann-Whitney U'
+        stat, pval = stats.mannwhitneyu(g_end, g_rel, alternative='two-sided')
+
+    ax.text(0.5, 0.95, f'{test_name}: p={pval:.4g}', transform=ax.transAxes,
+            ha='center', va='top', fontsize=10)
+    print(f'{test_name} result: statistic={stat:.4f}, p-value={pval:.4g}')
+
+    plt.xlabel('Group')
+    plt.ylabel('Gene Length')
+    plt.title('Gene Length by Group')
+    plt.tight_layout()
+    plt.savefig(os.path.join(plot_dir, 'gene_length_boxplot.pdf'))
+    plt.close()
+else:
+    print(f'Warning: gene_lengths.csv not found at {gene_lengths}. Skipping gene length boxplot.')
+
 
 #Box Plots with all data points
 df_boxplot = pd.read_csv(os.path.join(files_dir, 'all_IGS_data.csv'))

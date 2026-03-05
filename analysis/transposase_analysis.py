@@ -47,20 +47,13 @@ def processing_transposase(path, group_label = None, auto_classify = False):
     
     default_group = group_label if group_label else 'Ungrouped'
 
-    for species in os.listdir(target_dir):
-        sp_name = species.replace('_endosymbiont', '').replace('_', ' ')
-        species_path = os.path.join(target_dir, species)
-
-        if not os.path.isdir(species_path):
-            continue
-
-        tsv_files = [file for file in os.listdir(species_path) if file.endswith('.tsv')]
+    def process_tsv_files(base_dir, sp_name, tsv_files):
         total_genomes = len(tsv_files)
 
         for file in tsv_files:
-            file_path = os.path.join(species_path, file)
+            file_path = os.path.join(base_dir, file)
 
-            complete, partial, total, families = 0,0,0,0
+            complete, partial, total, families = 0, 0, 0, 0
             fam_list = None
 
             if auto_classify:
@@ -90,7 +83,7 @@ def processing_transposase(path, group_label = None, auto_classify = False):
             results.append({
                 'Group': current_group,
                 'Species': sp_name,
-                'File': file.replace('.tsv',''),
+                'File': file.replace('.tsv', ''),
                 'Total_Genomes': total_genomes,
                 'Complete_Transposases': complete,
                 'Partial_Transposases': partial,
@@ -98,6 +91,18 @@ def processing_transposase(path, group_label = None, auto_classify = False):
                 'IS_Families': fam_list,
                 'Unique_Families': families
             })
+
+    species_dirs = [entry for entry in os.listdir(target_dir) if os.path.isdir(os.path.join(target_dir, entry))]
+
+    for species in species_dirs:
+        sp_name = species.replace('_endosymbiont', '').replace('_', ' ')
+        species_path = os.path.join(target_dir, species)
+        tsv_files = [file for file in os.listdir(species_path) if file.endswith('.tsv')]
+        process_tsv_files(species_path, sp_name, tsv_files)
+
+    flat_tsv_files = [file for file in os.listdir(target_dir) if file.endswith('.tsv')]
+    if flat_tsv_files:
+        process_tsv_files(target_dir, 'Unknown', flat_tsv_files)
 
     if results:
         return pd.DataFrame(results)

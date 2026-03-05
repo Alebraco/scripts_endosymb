@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 from gc_calculate import calculate_gc_content
-from utils import gc_codon_json_path
+from utils import gc_codon_json_path, fourfold_codons
 from Bio.SeqRecord import SeqRecord
 from Bio.Seq import Seq
 from Bio import SeqIO
@@ -18,16 +18,7 @@ def gc_codon_dict(group, save_to_file = True):
         group (str): endosymb_only, endosymb+relatives, relatives_only
         save_to_file (boolean): Saves dictionary as json file
     '''
-    fourfold_codons = {
-        'GCT', 'GCC', 'GCA', 'GCG',   # Ala
-        'CGT', 'CGC', 'CGA', 'CGG',   # Arg
-        'GGT', 'GGC', 'GGA', 'GGG',   # Gly
-        'CCT', 'CCC', 'CCA', 'CCG',   # Pro
-        'ACT', 'ACC', 'ACA', 'ACG',   # Thr
-        'GTT', 'GTC', 'GTA', 'GTG',   # Val
-        'CTT', 'CTC', 'CTA', 'CTG',   # Leu
-        'TCT', 'TCC', 'TCA', 'TCG'    # Ser
-    }
+
     gc_data = {}
 
     output_dirs = {
