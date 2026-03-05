@@ -84,7 +84,7 @@ if os.path.exists(gene_lengths):
     ax = sns.boxplot(
         data=gene_lengths_df,
         x='Group',
-        y='Gene_Length',
+        y='mean_gene_length',
         order=['Endosymbionts', 'Free-Living Relatives'],
         hue='Group',
         palette=group_colors,
