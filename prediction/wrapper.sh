@@ -33,12 +33,22 @@ JOB_ID=$(bsub \
         -e prediction_logs/logs_IS/%J_%I.err \
         -o prediction_logs/logs_IS/%J_%I.out \
         -env "INPUT_DIRS='${INPUT_DIRS[*]}',TRANS_DB='$TRANS_DB'" \
-        bash scripts_endosymb/analysis/run_transposase.sh | grep -oP '\d+')
+        bash scripts_endosymb/analysis/run_transposase.sh | grep -oP '(?<=<)\d+(?=>)')
 
 echo "Submitted job array with ID $JOB_ID"
 
-while bjobs $JOB_ID 2>/dev/null | grep -qE 'RUN|PEND'; do
-    sleep 60
+while true; do
+    job=$(bjobs "$JOB_ID" 2>&1) 
+    if echo $job | grep -qE 'RUN|PEND'; then
+        sleep 60
+        continue
+    fi
+
+    if echo $job | grep -q 'is not found' || [ -z "$job" ]; then
+        echo "Job $JOB_ID not found. Assuming all jobs completed."
+        break
+    fi
+    break
 done
 
 if bjobs -d $JOB_ID 2>/dev/null | grep -q 'EXIT'; then
