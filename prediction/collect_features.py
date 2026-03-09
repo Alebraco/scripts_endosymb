@@ -9,13 +9,12 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'analysis'))
 from transposase_analysis import processing_transposase
 from sequence_features import collect_codon_stats
 from igs_lengths import collect_gff_stats
-from utils import files_dir
 
 def main():
     parser = argparse.ArgumentParser(description='Collect and merge genome features.')
     parser.add_argument('--path', required=True, help='Path to process')
     parser.add_argument('--infer', action='store_true', help='Inference mode: do not auto-classify by filename, default to Ungrouped')
-    parser.add_argument('--force', action='store_true', help='Recompute features even if combined_features.csv already exists')
+    parser.add_argument('--force', action='store_true', help='Recompute features even if output file already exists')
     args = parser.parse_args()
 
     path = args.path
@@ -71,6 +70,14 @@ def main():
     merged_df = merged_df[merged_df['Gene_Count'] > 0]
     merged_df['Transposase_Per_Gene'] = merged_df['Total_Transposases'] / merged_df['Gene_Count']
     merged_df['Delta_GC2_4'] = merged_df['GC2'] - merged_df['GC4']
+
+    transposase_files = set(transposase_df['File'].unique())
+    final_files = set(merged_df['File'].unique())
+    dropped_files = transposase_files - final_files
+    if dropped_files:
+        print(f'Warning: {len(dropped_files)} files were dropped due to missing data.')
+    else:
+        print('All files successfully merged.')
 
     os.makedirs(feature_dir, exist_ok=True)
     merged_df.to_csv(output_csv, index=False)
