@@ -10,20 +10,58 @@ from scipy import stats
 import seaborn as sns
 from utils import files_dir
 from collections import Counter
+from utils import fourfold_families
 
 csv_path = os.path.join(files_dir,'fourfold_gc_content.csv')
 detailed_csv_path = os.path.join(files_dir,'fourfold_gc_detailed.csv')
 plot_dir = os.path.join('plots', 'fourfold_bias')
 os.makedirs(plot_dir, exist_ok=True)
 
+def compute_fourfold_bias(seq):
+    # Compute GC4 bias for a given a DNA sequence string
+    counts = {aa: {'A': 0, 'C': 0, 'G': 0, 'T': 0} for aa in fourfold_families.values()}
+
+    for i in range(0, len(seq) - 2, 3):
+        codon = seq[i:i+3]
+        prefix = codon[0:2]
+        third_base = codon[2]
+
+        if prefix in fourfold_families.keys() and third_base in 'ACGT':
+            counts[fourfold_families[prefix]][third_base] += 1
+    
+    total_gc4 = 0
+    total_count = 0
+    gc_values = []
+    aa_dict = {}
+
+    for aa, nuc_counts in counts.items():
+        gc_count = nuc_counts['G'] + nuc_counts['C']
+        sum_count = sum(nuc_counts.values())
+
+        if sum_count > 0:
+            gc4_aa = round((gc_count / sum_count) * 100, 2)
+            gc_values.append(gc4_aa)
+            aa_dict[aa] = {'gc4': gc4_aa}
+            total_gc4 += gc_count
+            total_count += sum_count
+            
+    if total_count == 0:
+        return None
+    
+    overall_gc4 = round((total_gc4 / total_count) * 100, 2)
+
+    for aa in aa_dict:
+        # Store overall GC4 for each amino acid to calculate bias later
+        # Overall GC4 is the same for all amino acids
+        aa_dict[aa]['overall_gc4'] = overall_gc4
+        aa_dict[aa]['bias'] = abs(round(aa_dict[aa]['gc4'] - overall_gc4, 2))
+
+    return aa_dict
+
 def fourfold_gc_content():
     '''
     Compares global and fourfold amino acid-specific GC4 across species between two groups.
     '''
-    fourfold_families = {
-        'GC': 'Ala', 'GG': 'Gly', 'CC': 'Pro', 'AC': 'Thr', 
-        'GT': 'Val', 'CG': 'Arg4', 'CT': 'Leu4', 'TC': 'Ser4'
-    }
     groups = {'relatives_only': 'Relatives', 'endosymb_only': 'Endosymbionts'}
     all_data = []
     detailed_data = []

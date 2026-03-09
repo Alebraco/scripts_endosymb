@@ -39,6 +39,11 @@ group_names = {
     "endosymb_only": "Endosymbionts Only",
 }
 
+fourfold_families = {
+        'GC': 'Ala', 'GG': 'Gly', 'CC': 'Pro', 'AC': 'Thr', 
+        'GT': 'Val', 'CG': 'Arg4', 'CT': 'Leu4', 'TC': 'Ser4'
+    }
+
 fourfold_codons = {
         'GCT', 'GCC', 'GCA', 'GCG',   # Ala
         'CGT', 'CGC', 'CGA', 'CGG',   # Arg

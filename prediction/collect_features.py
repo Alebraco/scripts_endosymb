@@ -45,8 +45,12 @@ def main():
     igs_df = igs_df.rename(columns={'IGS_Size': 'Mean_IGS_Size'})
     print('Done with IGS analysis.')
 
-    gene_df = pd.DataFrame(gene_data).groupby(['File']).size().reset_index(name='Gene_Count')
-    print('Done with gene count analysis.')
+    gene_df = pd.DataFrame(gene_data)
+    gene_count_df = gene_df.groupby(['File']).size().reset_index(name='Gene_Count')
+    gene_length_df = gene_df.groupby(['File'])['Gene_Length'].mean().reset_index(name='mean_gene_length')
+    gene_df = pd.merge(gene_count_df, gene_length_df, on='File')
+
+    print('Done with gene length and count analysis.')
 
     codon_stats_df = collect_codon_stats(path, auto_classify=classify_flag)
     print('Done with GC metrics.')
@@ -57,6 +61,7 @@ def main():
 
     merged_df = merged_df[merged_df['Gene_Count'] > 0]
     merged_df['Transposase_Per_Gene'] = merged_df['Total_Transposases'] / merged_df['Gene_Count']
+    merged_df['Delta_GC2_4'] = merged_df['GC2'] - merged_df['GC4']
 
 
     merged_df.to_csv(os.path.join(files_dir, 'combined_features.csv'), index=False)

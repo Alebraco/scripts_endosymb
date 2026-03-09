@@ -54,6 +54,8 @@ def gff_features(file_path):
                 IGS_size = start - IGS_start - 1
                 if IGS_size > 0:
                     IGS_sizes.append(IGS_size)
+                else:
+                    IGS_sizes.append(0)
 
             if IGS_start is None or end > IGS_start:
                 IGS_start = end
