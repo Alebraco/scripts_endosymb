@@ -3,8 +3,8 @@
 #BSUB -J pipeline_wrapper
 #BSUB -W 24:00
 #BSUB -q bobay
-#BSUB -e prediction_logs/feature_wrapper.err
-#BSUB -o prediction_logs/feature_wrapper.out
+#BSUB -e feature_wrapper.err
+#BSUB -o feature_wrapper.out
 #BSUB -R "rusage[mem=16GB] span[hosts=1]"
 #BSUB -n 1
 
