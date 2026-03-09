@@ -20,13 +20,35 @@ ALL_FILES=($(find ${INPUT_DIRS[@]} -type f -name "*.faa" | sort))
 
 for ((i=START_IND; i<=END_IND && i<${#ALL_FILES[@]}; i++)); do
     FAA_FILE=${ALL_FILES[$i]}
-    ACCESSION=$(basename $FAA_FILE .faa)
-    SP_NAME=$(basename $(dirname $FAA_FILE))
-    GROUP=$(basename $(dirname $(dirname $(dirname $FAA_FILE))))
+    ACCESSION=$(basename "$FAA_FILE" .faa)
 
-    TRANS_DIR="${GROUP}/transposase"
-    OUTFILE="${TRANS_DIR}/${SP_NAME}/${ACCESSION}.tsv"
-    mkdir -p $(dirname $OUTFILE)
+    IN_DIR=""
+    for cand in "${INPUT_DIRS[@]}"; do
+        cand="${cand%/}"
+        [[ "$FAA_FILE" == "$cand/"* ]] && IN_DIR="$cand" && break
+    done
+
+    if [[ -z "$IN_DIR" ]]; then
+        OUTFILE="transposase/Unknown/${ACCESSION}.tsv"
+    else
+        # Get relative path from input directory to FAA file
+        REL_PATH="${FAA_FILE#"$IN_DIR"/}"
+        SP_NAME=$(dirname "$REL_PATH")
+        
+        [[ "$SP_NAME" == "." ]] && SP_NAME="Unknown"
+
+        OUTPUT_ROOT="$(dirname "$IN_DIR")/transposase"
+        OUTFILE="${OUTPUT_ROOT}/${SP_NAME}/${ACCESSION}.tsv"
+    fi
+
+    mkdir -p "$(dirname "$OUTFILE")"
+
+    if [[ -f "$OUTFILE" ]]; then
+        echo "Skipping existing transposase file: $OUTFILE"
+        continue
+    fi
+
+    echo "Processing $FAA_FILE -> $OUTFILE"
 
     diamond blastp \
         --db $TRANS_DB \

@@ -131,7 +131,7 @@ df_boxplot['Group'] = df_boxplot['Group'].replace({
     'relatives_only': 'Free-Living Relatives',
 })
 df_boxplot = df_boxplot[df_boxplot['Group'].isin(['Endosymbionts','Free-Living Relatives'])]
-df_boxplot_median = df_boxplot.groupby(['Group', 'Species', 'File'])['IGS_Size'].median().reset_index()
+df_boxplot_median = df_boxplot.groupby(['Group', 'Species', 'File'])['IGS_Size'].mean().reset_index()
 
 plt.figure(figsize=(12,12))
 sns.boxplot(data = df_boxplot_median, x = 'IGS_Size', y = 'Species', hue = 'Group',

@@ -31,7 +31,7 @@ columns = ['qseqid',
            'slen']
 use_columns = ['sseqid', 'pident', 'sstart', 'send', 'slen']
 
-def processing_transposase(path, group_label = None, auto_classify = False):
+def processing_transposase(path, group_label = None, auto_classify = False, get_fam_list = True):
     '''
     path: The directory containing the 'transposase' folder.
     group_label: Optional string to label the 'Group' column. 
@@ -54,7 +54,7 @@ def processing_transposase(path, group_label = None, auto_classify = False):
             file_path = os.path.join(base_dir, file)
 
             complete, partial, total, families = 0, 0, 0, 0
-            fam_list = None
+            fam_list = []
 
             if auto_classify:
                 if '_genomic' in file:
@@ -72,25 +72,32 @@ def processing_transposase(path, group_label = None, auto_classify = False):
                 df = df[~df['sseqid'].str.contains('Accessory', case=False)]
 
                 if not df.empty:
+                    df = df.copy()
                     df['coverage'] = (df['send'] - df['sstart'] + 1) / df['slen']
                     complete = len(df[df['coverage'] >= coverage_threshold])
                     partial = len(df[df['coverage'] < coverage_threshold])
                     total = complete + partial
+                    
+                    if get_fam_list:
+                        raw_fams = df['sseqid'].str.split('_').str[0].str.split('//').str[1]
+                        fam_list = raw_fams.to_list()
+                        families = len(fam_list)
 
-                    fam_list = df['sseqid'].str.split('_').str[0].str.split('//').str[1].tolist()
-                    families = len(set(fam_list)) if fam_list else 0
-
-            results.append({
+            row = {
                 'Group': current_group,
                 'Species': sp_name,
                 'File': file.replace('.tsv', ''),
                 'Total_Genomes': total_genomes,
-                'Complete_Transposases': complete,
-                'Partial_Transposases': partial,
-                'Total_Transposases': total,
-                'IS_Families': fam_list,
-                'Unique_Families': families
-            })
+                'Complete': complete,
+                'Partial': partial,
+                'Total': total,
+            }
+
+            if get_fam_list:
+                row['IS_Families'] = fam_list
+                row['Unique_Families'] = families
+                
+            results.append(row)
 
     species_dirs = [entry for entry in os.listdir(target_dir) if os.path.isdir(os.path.join(target_dir, entry))]
 

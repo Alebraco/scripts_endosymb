@@ -15,11 +15,20 @@ def main():
     parser = argparse.ArgumentParser(description='Collect and merge genome features.')
     parser.add_argument('--path', required=True, help='Path to process')
     parser.add_argument('--infer', action='store_true', help='Inference mode: do not auto-classify by filename, default to Ungrouped')
+    parser.add_argument('--force', action='store_true', help='Recompute features even if combined_features.csv already exists')
     args = parser.parse_args()
 
     path = args.path
     if not os.path.exists(path):
         raise FileNotFoundError(f'Input path does not exist: {path}')
+
+    feature_dir = os.path.join(path, 'feature_files')
+    output_csv = os.path.join(feature_dir, 'combined_features.csv')
+
+    if os.path.exists(output_csv) and not args.force:
+        print(f'Found existing feature file: {output_csv}')
+        print('Skipping analysis. Use --force to recompute.')
+        return
 
     print('Starting feature collection process.')
 
@@ -63,8 +72,8 @@ def main():
     merged_df['Transposase_Per_Gene'] = merged_df['Total_Transposases'] / merged_df['Gene_Count']
     merged_df['Delta_GC2_4'] = merged_df['GC2'] - merged_df['GC4']
 
-
-    merged_df.to_csv(os.path.join(path, 'combined_features.csv'), index=False)
+    os.makedirs(feature_dir, exist_ok=True)
+    merged_df.to_csv(output_csv, index=False)
     print('All features saved to combined_features.csv')
 
 
