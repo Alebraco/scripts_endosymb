@@ -64,7 +64,7 @@ def main():
     merged_df['Delta_GC2_4'] = merged_df['GC2'] - merged_df['GC4']
 
 
-    merged_df.to_csv(os.path.join(files_dir, 'combined_features.csv'), index=False)
+    merged_df.to_csv(os.path.join(path, 'combined_features.csv'), index=False)
     print('All features saved to combined_features.csv')
 
 
