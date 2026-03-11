@@ -63,12 +63,12 @@ def main():
     codon_stats_df = collect_codon_stats(path, auto_classify=classify_flag)
     print('Done with GC metrics.')
 
-    merged_df = pd.merge(transposase_df, igs_df, on='File', how='inner')
-    merged_df = pd.merge(merged_df, gene_df, on='File', how='inner')
-    merged_df = pd.merge(merged_df, codon_stats_df, on='File', how='inner')
+    merged_df = pd.merge(transposase_df, igs_df, on=['Group', 'Species', 'File'], how='inner')
+    merged_df = pd.merge(merged_df, gene_df, on=['Group', 'Species', 'File'], how='inner')
+    merged_df = pd.merge(merged_df, codon_stats_df, on=['Group', 'Species', 'File'], how='inner')
 
     merged_df = merged_df[merged_df['Gene_Count'] > 0]
-    merged_df['Transposase_Per_Gene'] = merged_df['Total_Transposases'] / merged_df['Gene_Count']
+    merged_df['Transposase_Per_Gene'] = merged_df['Total'] / merged_df['Gene_Count']
     merged_df['Delta_GC2_4'] = merged_df['GC2'] - merged_df['GC4']
 
     transposase_files = set(transposase_df['File'].unique())

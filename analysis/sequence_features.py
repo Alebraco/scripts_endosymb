@@ -44,9 +44,21 @@ def compute_gc_metrics(coordinates, seq_dict):
 def collect_codon_stats(path, group_label = None, auto_classify = False):
     
     data = []
-    for roots, dirs, files in os.walk(path):
+    target_dir = os.path.join(path, 'genomes')
+
+    if not os.path.exists(target_dir):
+        print(f'Warning: Genomes directory not found at {target_dir}. Skipping codon stats collection.')
+        target_dir = path
+
+    for roots, dirs, files in os.walk(target_dir):
         for filename in files:
             if filename.endswith('.gff'):
+
+                rel_path = os.path.relpath(roots, target_dir)
+                if rel_path == '.':
+                    sp_name = 'Unknown'
+                else:
+                    sp_name = rel_path.replace('_endosymbiont', '').replace('_', ' ')
 
                 if auto_classify:
                     current_group = 'relatives_only' if '_genomic' in filename else 'endosymb_only'
@@ -71,6 +83,7 @@ def collect_codon_stats(path, group_label = None, auto_classify = False):
                     print(f'File: {filename}, GC2: {gc2:.4f}, GC4: {gc4:.4f}')
                     data.append({
                         'Group': current_group,
+                        'Species': sp_name,
                         'File': clean_filename, 
                         'GC2': gc2, 
                         'GC4': gc4, 
