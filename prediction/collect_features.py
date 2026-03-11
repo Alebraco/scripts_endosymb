@@ -38,7 +38,7 @@ def main():
         classify_flag = True
         print('Running in training mode (auto classification enabled).')
 
-    transposase_df = processing_transposase(path, auto_classify=classify_flag)
+    transposase_df = processing_transposase(path, auto_classify=classify_flag, get_fam_list = False)
     if transposase_df is None or transposase_df.empty:
         print('No transposase records found. Exiting.')
         return
