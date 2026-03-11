@@ -42,6 +42,7 @@ def main():
     if transposase_df is None or transposase_df.empty:
         print('No transposase records found. Exiting.')
         return
+    transposase_df = transposase_df.rename(columns={'Total': 'Total_Transposases'})
     print('Done with transposase analysis.')
 
     igs_data, gene_data = collect_gff_stats(path, auto_classify=classify_flag)
@@ -49,14 +50,14 @@ def main():
         print('No IGS or gene records found. Exiting.')
         return
 
-    igs_df = pd.DataFrame(igs_data).groupby(['File'])['IGS_Size'].mean().reset_index()
+    igs_df = pd.DataFrame(igs_data).groupby(['Group', 'Species', 'File'])['IGS_Size'].mean().reset_index()
     igs_df = igs_df.rename(columns={'IGS_Size': 'Mean_IGS_Size'})
     print('Done with IGS analysis.')
 
     gene_df = pd.DataFrame(gene_data)
-    gene_count_df = gene_df.groupby(['File']).size().reset_index(name='Gene_Count')
-    gene_length_df = gene_df.groupby(['File'])['Gene_Length'].mean().reset_index(name='mean_gene_length')
-    gene_df = pd.merge(gene_count_df, gene_length_df, on='File')
+    gene_count_df = gene_df.groupby(['Group', 'Species', 'File']).size().reset_index(name='Gene_Count')
+    gene_length_df = gene_df.groupby(['Group', 'Species', 'File'])['Gene_Length'].mean().reset_index(name='mean_gene_length')
+    gene_df = pd.merge(gene_count_df, gene_length_df, on=['Group', 'Species', 'File'])
 
     print('Done with gene length and count analysis.')
 
@@ -68,8 +69,21 @@ def main():
     merged_df = pd.merge(merged_df, codon_stats_df, on=['Group', 'Species', 'File'], how='inner')
 
     merged_df = merged_df[merged_df['Gene_Count'] > 0]
-    merged_df['Transposase_Per_Gene'] = merged_df['Total'] / merged_df['Gene_Count']
+    merged_df['Transposase_Per_Gene'] = merged_df['Total_Transposases'] / merged_df['Gene_Count']
     merged_df['Delta_GC2_4'] = merged_df['GC2'] - merged_df['GC4']
+
+    keep_cols = [
+        'Group', 
+        'Species', 
+        'File',   
+        'GC4',
+        'Delta_GC2_4', 
+        'AV_Bias', 
+        'Rest_Bias',
+        'Transposase_Per_Gene', 
+        'Mean_IGS_Size'
+    ]
+    merged_df = merged_df[keep_cols]
 
     transposase_files = set(transposase_df['File'].unique())
     final_files = set(merged_df['File'].unique())
