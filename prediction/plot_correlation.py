@@ -4,7 +4,12 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 from sklearn.decomposition import PCA
-from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import StandardScaler, LabelEncoder
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.model_selection import StratifiedGroupKFold, cross_val_predict
+from sklearn.metrics import confusion_matrix, classification_report, accuracy_score, ConfusionMatrixDisplay
+from sklearn.inspection import permutation_importance
+from utils import feature_columns
 import plotly.express as px
 import numpy as np
 import os
@@ -16,7 +21,7 @@ def plot_correlation(csv_path, outpath):
     plot_path = os.path.join(outpath, 'feature_correlation.pdf')
     df = pd.read_csv(csv_path)
 
-    features = df.drop(columns=['Group', 'Species', 'File'])
+    features = df[feature_columns]
 
     corr = features.corr()
 
@@ -38,6 +43,7 @@ def plot_correlation(csv_path, outpath):
 def run_pca(csv_path, outpath):
     plot_path = os.path.join(outpath, 'pca_plot.pdf')
     interactive_path = os.path.join(outpath, 'pca_plot.html')
+    loadings_path = os.path.join(outpath, 'pca_loadings.csv')
     df = pd.read_csv(csv_path)
     
     df['Group'] = df['Group'].replace({
@@ -45,10 +51,9 @@ def run_pca(csv_path, outpath):
         'relatives_only': 'Free-Living Relatives'
     })
     
-    features = ['Delta_GC2_4', 'GC4', 'AV_Bias', 'Rest_Bias', 'Transposase_Per_Gene', 'Mean_IGS_Size']
-    
-    df_ml = df.set_index(['Group', 'Species', 'File'])
-    X = df_ml[features]
+    y = ['Group', 'Species', 'File']
+    df_ml = df.set_index(y)
+    X = df_ml[feature_columns]
     
     # Standardize data
     scaler = StandardScaler()
@@ -61,8 +66,6 @@ def run_pca(csv_path, outpath):
     pca_df = pca_df.reset_index() 
     
     var_explained = pca.explained_variance_ratio_
-    print(f"PC1 explains {var_explained[0]*100:.1f}% of the variance")
-    print(f"PC2 explains {var_explained[1]*100:.1f}% of the variance")
 
     plt.figure(figsize=(8, 6))
     sns.scatterplot(
@@ -74,6 +77,8 @@ def run_pca(csv_path, outpath):
     )
 
     plt.title('PCA of Genomic Features', fontsize=16, fontweight='bold')
+    plt.xlabel(f'Principal Component 1 ({var_explained[0]*100:.1f}%)')
+    plt.ylabel(f'Principal Component 2 ({var_explained[1]*100:.1f}%)')
     plt.legend(title='Group')
     plt.tight_layout()
     plt.savefig(plot_path)
@@ -90,7 +95,95 @@ def run_pca(csv_path, outpath):
     fig.write_html(interactive_path)
     print(f"Interactive PCA Plot saved to {interactive_path}")
 
-    return X, df['Group']
+    loadings_df = pd.DataFrame(
+        pca.components_.T,
+        columns=['PC1_Loading', 'PC2_Loading'],
+        index=feature_columns
+    )
+    loadings_df = loadings_df.sort_values('PC1_Loading', key=abs, ascending=False)
+    loadings_df.to_csv(loadings_path)
+    print(f"PCA loadings saved to {loadings_path}")
+
+    return X, df[y]
+
+def run_random_forest(X, y_encoded, groups, le, outpath, n_splits=5):
+    rf = RandomForestClassifier(
+        n_estimators=500, 
+        max_depth=None, 
+        class_weight="balanced",
+        random_state=28,
+        n_jobs=-1,
+    )
+
+    cv = StratifiedGroupKFold(
+        n_splits=5,
+        shuffle=True,
+        random_state=28)
+
+    y_pred = cross_val_predict(rf, X, y_encoded, groups=groups, cv=cv)
+    y_prob = cross_val_predict(rf, X, y_encoded, groups=groups, cv=cv, method="predict_proba")
+
+    acc = accuracy_score(y_encoded, y_pred)
+    class_names = le.classes_
+    print(f"  RF CV accuracy: {round(acc, 3)}")
+
+    report = classification_report(y_encoded, y_pred, target_names=class_names)
+    print('Classification Report:\n', report)
+    with open(os.path.join(outpath, 'rf_classification_report.txt'), "w") as f:
+        f.write(report)
+
+
+    # Confusion matrix
+    cm = confusion_matrix(y_encoded, y_pred)
+    fig, ax = plt.subplots(figsize=(6, 5))
+    ConfusionMatrixDisplay(cm, display_labels=class_names).plot(ax=ax, cmap="Blues")
+    ax.set_title(f"RF Confusion Matrix (CV Accuracy: {round(acc, 2)})")
+
+    plt.tight_layout()
+    fig.savefig(os.path.join(outpath, 'rf_confusion_matrix.pdf'))
+    plt.close(fig)
+
+
+    prob_df = pd.DataFrame({
+        'File': X.index.get_level_values('File'),
+        'Species': groups,
+        'True_Label': le.inverse_transform(y_encoded),
+        'Predicted_Label': le.inverse_transform(y_pred),
+        'Endosymb_Probability': y_prob[:, 0]
+    })
+    prob_path = os.path.join(outpath, 'rf_prediction_probabilities.csv')
+    prob_df.to_csv(prob_path, index=False)
+    print(f"Prediction probabilities saved to {prob_path}")
+
+    # Fit on full data for importance
+    rf.fit(X, y_encoded)
+    # Gini importances
+    imp = pd.DataFrame({
+        'feature': feature_columns,
+        'importance': rf.feature_importances_,
+    }).sort_values('importance', ascending=True)
+
+    fig, ax = plt.subplots(figsize=(8, 5))
+    ax.barh(imp['feature'], imp['importance'])
+    ax.set_xlabel('Gini Importance (Model Contribution)')
+    ax.set_title('Feature Importance of Random Forest')
+    plt.tight_layout()
+    fig.savefig(os.path.join(outpath, 'rf_feature_importance.pdf'))
+    plt.close(fig)
+
+    # Permutation importances
+    perm = permutation_importance(rf, X, y_encoded, n_repeats=30,
+                                  random_state=28, n_jobs=-1)
+    perm_df = pd.DataFrame({
+        'feature': feature_columns,
+        'importance_mean': perm.importances_mean,
+        'importance_std': perm.importances_std,
+    }).sort_values('importance_mean', ascending=False)
+    perm_df.to_csv(os.path.join(outpath, 'rf_permutation_importance.csv'), index=False)
+
+    print('Random Forest analysis complete. Feature importance and permutation importance saved.')
+
+    return rf
 
 if __name__ == "__main__":
     path = 'endosymb+relatives'
@@ -98,4 +191,11 @@ if __name__ == "__main__":
     outpath = os.path.join(path, feature_dir)
 
     plot_correlation(input_path, outpath)
+
     X, y = run_pca(input_path, outpath)
+
+    le = LabelEncoder()
+    y_encoded = le.fit_transform(y['Group'])
+    groups = y['Species']
+
+    rf_model = run_random_forest(X, y_encoded, groups, le, outpath)

@@ -18,6 +18,8 @@ import pickle
 
 files_dir = "files"
 
+feature_columns = ['Delta_GC2_4', 'GC4', 'AV_Bias', 'Rest_Bias', 'Transposase_Per_Gene', 'Mean_IGS_Size']
+
 titles = {
     "distance": "Patristic Distance",
     "size": "ΔGenome Size",

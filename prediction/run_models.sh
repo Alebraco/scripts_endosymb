@@ -1,11 +1,11 @@
 #!/bin/bash
 #BSUB -J models
-#BSUB -W 24:00
+#BSUB -W 10:00
 #BSUB -q bobay
 #BSUB -e %J.err
 #BSUB -o %J.out
-#BSUB -R "rusage[mem=16GB] span[hosts=1]"
-#BSUB -n 1
+#BSUB -R "rusage[mem=8GB] span[hosts=1]"
+#BSUB -n 8
 
 source ~/.bashrc
 conda activate /usr/local/usrapps/metastrain/asoneto/annotation
