@@ -5,6 +5,7 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
+import plotly.express as px
 import numpy as np
 import os
 
@@ -36,6 +37,7 @@ def plot_correlation(csv_path, outpath):
 
 def run_pca(csv_path, outpath):
     plot_path = os.path.join(outpath, 'pca_plot.pdf')
+    interactive_path = os.path.join(outpath, 'pca_plot.html')
     df = pd.read_csv(csv_path)
     
     df['Group'] = df['Group'].replace({
@@ -68,16 +70,25 @@ def run_pca(csv_path, outpath):
         hue='Group',
         palette={'Endosymbionts': '#FC8D62', 'Free-Living Relatives': '#66C2A5'},
         data=pca_df,
-        s=100, alpha=0.8, edgecolor='k'
+        s=50, alpha=0.8, edgecolor='k'
     )
 
     plt.title('PCA of Genomic Features', fontsize=16, fontweight='bold')
-    plt.xlabel(f'Principal Component 1 ({var_explained[0]*100:.1f}%)')
-    plt.ylabel(f'Principal Component 2 ({var_explained[1]*100:.1f}%)')
     plt.legend(title='Group')
     plt.tight_layout()
     plt.savefig(plot_path)
     print(f"PCA Plot saved to {plot_path}")
+
+    fig = px.scatter(pca_df, 
+                     x='PC1', 
+                     y='PC2', 
+                     color='Group', 
+                     hover_data=['Species', 'File'], 
+                     color_discrete_map={'Endosymbionts': '#FC8D62', 'Free-Living Relatives': '#66C2A5'},
+                     title='Interactive PCA of Genomic Features')
+    
+    fig.write_html(interactive_path)
+    print(f"Interactive PCA Plot saved to {interactive_path}")
 
     return X, df['Group']
 
