@@ -9,10 +9,13 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import StratifiedGroupKFold, cross_val_predict
 from sklearn.metrics import confusion_matrix, classification_report, accuracy_score, ConfusionMatrixDisplay
 from sklearn.inspection import permutation_importance
-from utils import feature_columns
 import plotly.express as px
 import numpy as np
 import os
+
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'analysis'))
+from utils import feature_columns
+
 
 feature_dir = 'feature_files'
 features_df = 'combined_features.csv'
