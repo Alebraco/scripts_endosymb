@@ -7,4 +7,7 @@
 #BSUB -R "rusage[mem=16GB] span[hosts=1]"
 #BSUB -n 1
 
+source ~/.bashrc
+conda activate /usr/local/usrapps/metastrain/asoneto/annotation
+
 python3 -u scripts_endosymb/prediction/plot_correlation.py
