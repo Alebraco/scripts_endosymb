@@ -128,7 +128,7 @@ def run_pca(csv_path, outpath):
         hue='Display_Label',
         palette=custom_palette,
         data=pca_df[bg_mask],
-        s=60, aplha=0.5
+        s=60, alpha=0.5
     )
     sns.scatterplot(
         x='PC1', y='PC2',
