@@ -48,8 +48,10 @@ def plot_feature_distributions(X, y, outpath):
     plot_df = X.copy()
     plot_df['Group'] = y['Group'].values
 
-    for feature in feature_columns:
-        fig, ax = plt.subplots(figsize=(6, 5))
+    fig, axes = plt.subplots(2, 3, figsize=(15, 10))
+    axes = axes.flatten()
+    for i, feature in enumerate(feature_columns):
+        ax = axes[i]
         
         sns.boxplot(data=plot_df, x='Group', y=feature, 
                     color='white', width=0.5, fliersize=0, ax=ax)
@@ -58,11 +60,12 @@ def plot_feature_distributions(X, y, outpath):
                       alpha=0.6, jitter=True, hue='Group', legend=False,
                       palette={'Endosymbionts': '#FC8D62', 'Free-Living Relatives': '#66C2A5'}, ax=ax)
         
-        ax.set_title(f'Distribution of {feature}')
-        plt.tight_layout()
-        
-        fig.savefig(os.path.join(outpath, f'dist_{feature}.pdf'))
-        plt.close(fig)
+        ax.set_title(f'{feature}', fontweight='bold')
+        ax.set_xlabel('')
+
+    plt.tight_layout()    
+    fig.savefig(os.path.join(outpath, f'feature_distributions_grid.pdf'))
+    plt.close(fig)
     print("Feature distribution plots saved.")
 
 def run_pca(csv_path, outpath):
@@ -108,8 +111,8 @@ def run_pca(csv_path, outpath):
     )
 
     custom_palette = {
-        'Endosymbionts': "#FC8E623B",          # Highly transparent orange
-        'Free-Living Relatives': '#66C2A540',  # Highly transparent green
+        'Endosymbionts': "#D3D3D3",         
+        'Free-Living Relatives': "#D2E1DCC1",  
         'Sodalis': '#E31A1C',                  # Bright Red
         'Serratia symbiotica': "#3C00FF",      # Bright Blue
         'Richelia': '#6A3D9A' ,                 # Deep Purple
@@ -118,13 +121,21 @@ def run_pca(csv_path, outpath):
         'Spiroplasma': "#00F7FF",                 # Bright Orange
     }
 
+    bg_mask = pca_df['Display_Label'].isin(['Endosymbionts', 'Free-Living Relatives'])
     plt.figure(figsize=(9, 7))
     sns.scatterplot(
         x='PC1', y='PC2',
         hue='Display_Label',
         palette=custom_palette,
-        data=pca_df,
-        s=60, edgecolor='k'
+        data=pca_df[bg_mask],
+        s=60, aplha=0.5
+    )
+    sns.scatterplot(
+        x='PC1', y='PC2',
+        hue='Display_Label',
+        palette=custom_palette,
+        data=pca_df[~bg_mask],
+        s=60, aplha=0.8, legend=False
     )
 
     plt.title('PCA of Genomic Features', fontsize=16, fontweight='bold')
