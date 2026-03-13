@@ -128,7 +128,7 @@ def run_pca(csv_path, outpath):
         hue='Display_Label',
         palette=custom_palette,
         data=pca_df[bg_mask],
-        s=60, alpha=0.5, legend=False
+        s=60, alpha=0.5
     )
     sns.scatterplot(
         x='PC1', y='PC2',
@@ -142,7 +142,11 @@ def run_pca(csv_path, outpath):
     plt.title('PCA of Genomic Features', fontsize=16, fontweight='bold')
     plt.xlabel(f'Principal Component 1 ({var_explained[0]*100:.1f}%)')
     plt.ylabel(f'Principal Component 2 ({var_explained[1]*100:.1f}%)')
-    plt.legend(title='Group')
+
+    handles, labels = plt.gca().get_legend_handles_labels()
+    by_label = dict(zip(labels, handles))
+    plt.legend(by_label.values(), by_label.keys(), title='Group', loc='best')
+    
     plt.tight_layout()
     plt.savefig(plot_path)
     print(f"PCA Plot saved to {plot_path}")
