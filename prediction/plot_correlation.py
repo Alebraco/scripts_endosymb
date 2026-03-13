@@ -135,6 +135,7 @@ def run_pca(csv_path, outpath):
         hue='Display_Label',
         palette=custom_palette,
         data=pca_df[~bg_mask],
+        style='Group',
         s=60, alpha=0.8
     )
 
