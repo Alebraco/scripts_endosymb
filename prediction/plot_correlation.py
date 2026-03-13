@@ -44,6 +44,27 @@ def plot_correlation(csv_path, outpath):
         print(f"Highly correlated features (>0.9): {to_drop}")
 
 
+def plot_feature_distributions(csv_path, outpath):
+    df = pd.read_csv(csv_path)
+    for feature in feature_columns:
+        fig, ax = plt.subplots(figsize=(6, 5))
+        
+        # The Boxplot for global trends
+        sns.boxplot(data=df, x='Group', y=feature, 
+                    color='white', width=0.5, fliersize=0, ax=ax)
+        
+        # The Stripplot for individual genomes (shows the outliers)
+        sns.stripplot(data=df, x='Group', y=feature, 
+                      alpha=0.6, jitter=True, hue='Group', legend=False,
+                      palette={'Endosymbionts': '#FC8D62', 'Free-Living Relatives': '#66C2A5'}, ax=ax)
+        
+        ax.set_title(f'Distribution of {feature}')
+        plt.tight_layout()
+        
+        fig.savefig(os.path.join(outpath, f'dist_{feature}.pdf'))
+        plt.close(fig)
+    print("Feature distribution plots saved.")
+
 def run_pca(csv_path, outpath):
     plot_path = os.path.join(outpath, 'pca_plot.pdf')
     interactive_path = os.path.join(outpath, 'pca_plot.html')
@@ -71,13 +92,39 @@ def run_pca(csv_path, outpath):
     
     var_explained = pca.explained_variance_ratio_
 
-    plt.figure(figsize=(8, 6))
+    # plt.figure(figsize=(8, 6))
+    # sns.scatterplot(
+    #     x='PC1', y='PC2',
+    #     hue='Group',
+    #     palette={'Endosymbionts': '#FC8D62', 'Free-Living Relatives': '#66C2A5'},
+    #     data=pca_df,
+    #     s=50, alpha=0.8, edgecolor='k'
+    # )
+
+    suspects = ['Sodalis', 'Serratia symbiotica', 'Richelia']
+    
+    pca_df['Display_Label'] = pca_df.apply(
+        lambda row: row['Species'] if row['Species'] in suspects else row['Group'], axis=1
+    )
+
+    custom_palette = {
+        'Endosymbionts': "#FC8E623B",          # Highly transparent orange
+        'Free-Living Relatives': '#66C2A540',  # Highly transparent green
+        'Sodalis': '#E31A1C',                  # Bright Red
+        'Serratia symbiotica': "#3C00FF",      # Bright Blue
+        'Richelia': '#6A3D9A' ,                 # Deep Purple
+        'Arsenophonus': "#B9D70D",                # Bright Orange
+        'Rickettsia': "#33A02C",                 # Bright Green
+        'Spiroplasma': "#00F7FF",                 # Bright Orange
+    }
+
+    plt.figure(figsize=(9, 7))
     sns.scatterplot(
         x='PC1', y='PC2',
-        hue='Group',
-        palette={'Endosymbionts': '#FC8D62', 'Free-Living Relatives': '#66C2A5'},
+        hue='Display_Label',
+        palette=custom_palette,
         data=pca_df,
-        s=50, alpha=0.8, edgecolor='k'
+        s=60, edgecolor='k'
     )
 
     plt.title('PCA of Genomic Features', fontsize=16, fontweight='bold')
@@ -197,6 +244,8 @@ if __name__ == "__main__":
     plot_correlation(input_path, outpath)
 
     X, y = run_pca(input_path, outpath)
+
+    plot_feature_distributions(input_path, outpath)
 
     le = LabelEncoder()
     y_encoded = le.fit_transform(y['Group'])
