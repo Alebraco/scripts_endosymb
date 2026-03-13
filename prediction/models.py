@@ -9,7 +9,7 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import StratifiedGroupKFold, cross_val_predict
 from sklearn.metrics import confusion_matrix, classification_report, accuracy_score, ConfusionMatrixDisplay
 from sklearn.inspection import permutation_importance
-from scipy.clusters.hierarchy import dendrogram, linkage
+from scipy.clusters.hierarchy import fcluster, linkage
 import plotly.express as px
 import numpy as np
 import sys
@@ -259,8 +259,49 @@ def run_random_forest(X, y_encoded, groups, le, outpath, n_splits=5):
 
     return rf
 
+def plot_dendrogram(X, y_df, outpath):
+    df = X.copy()
+    scaler = StandardScaler()
+    scaled_X = pd.DataFrame(
+        scaler.fit_transform(df),
+        columns=df.columns,
+        index=df.index
+    )
 
+    group_ls = {'Endosymbionts': '#FC8D62', 'Free-Living Relatives': '#66C2A5'}
+    group_cols = y_df['Group'].map(group_ls).rename('Lifestyle')
 
+    suspects = ['Sodalis', 'Serratia symbiotica', 'Richelia', 'Arsenophonus', 'Rickettsia', 'Spiroplasma']
+    custom_palette = {
+        'Sodalis': '#E31A1C',                  # Bright Red
+        'Serratia symbiotica': "#3C00FF",      # Bright Blue
+        'Richelia': '#6A3D9A' ,                 # Deep Purple
+        'Arsenophonus': "#B9D70D",                # Bright Orange
+        'Rickettsia': "#33A02C",                 # Bright Green
+        'Spiroplasma': "#00F7FF",                 # Bright Orange
+    }
+
+    species_colors = y_df['Species'].apply(
+        lambda x: custom_palette.get(x, "#534A4A")
+    ).rename('Species')
+
+    row_colors = pd.concat([group_cols, species_colors], axis=1)
+
+    print('Individual genome linkage:')
+    cg = sns.clustermap(
+        scaled_X,
+        method='ward',
+        metric='euclidean',
+        cmap = 'vlag',
+        row_colors=row_colors,
+        yticklabels=False,
+        xticklabels=True,
+        figsize=(10, 15)
+    )
+    cg.ax_heatmap.set_title('Hierarchical Clustering of Genomic Features', fontsize=16, fontweight='bold')
+    clusterpath = os.path.join(outpath, 'feature_clustering_dendrogram.pdf')
+    cg.savefig(clusterpath)
+    plt.close()
 
 
 if __name__ == "__main__":
@@ -279,3 +320,5 @@ if __name__ == "__main__":
     groups = y['Species']
 
     rf_model = run_random_forest(X, y_encoded, groups, le, outpath)
+
+    plot_dendrogram(X, y, outpath)
