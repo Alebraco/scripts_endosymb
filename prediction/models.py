@@ -9,7 +9,6 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import StratifiedGroupKFold, cross_val_predict
 from sklearn.metrics import confusion_matrix, classification_report, accuracy_score, ConfusionMatrixDisplay
 from sklearn.inspection import permutation_importance
-from scipy.clusters.hierarchy import fcluster, linkage
 import plotly.express as px
 import numpy as np
 import sys
