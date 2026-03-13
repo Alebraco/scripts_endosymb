@@ -10,4 +10,4 @@
 source ~/.bashrc
 conda activate /usr/local/usrapps/metastrain/asoneto/annotation
 
-python3 -u scripts_endosymb/prediction/plot_correlation.py
+python3 -u scripts_endosymb/prediction/models.py
