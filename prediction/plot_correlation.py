@@ -128,14 +128,14 @@ def run_pca(csv_path, outpath):
         hue='Display_Label',
         palette=custom_palette,
         data=pca_df[bg_mask],
-        s=60, alpha=0.5
+        s=60, alpha=0.5, legend=False
     )
     sns.scatterplot(
         x='PC1', y='PC2',
         hue='Display_Label',
         palette=custom_palette,
         data=pca_df[~bg_mask],
-        s=60, alpha=0.8, legend=False
+        s=60, alpha=0.8
     )
 
     plt.title('PCA of Genomic Features', fontsize=16, fontweight='bold')
