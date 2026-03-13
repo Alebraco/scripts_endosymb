@@ -144,9 +144,15 @@ def run_pca(csv_path, outpath):
     plt.ylabel(f'Principal Component 2 ({var_explained[1]*100:.1f}%)')
 
     handles, labels = plt.gca().get_legend_handles_labels()
-    by_label = dict(zip(labels, handles))
-    plt.legend(by_label.values(), by_label.keys(), title='Group', loc='best')
-    
+    clean_labels = []
+    clean_handles = []
+    for handle, label in zip(handles, labels):
+        if label not in ['Group', 'Display_Label'] and label not in clean_labels:
+            clean_labels.append(label)
+            clean_handles.append(handle)
+
+    plt.legend(clean_handles, clean_labels, title='Group', loc='best', title='Species/Group')
+
     plt.tight_layout()
     plt.savefig(plot_path)
     print(f"PCA Plot saved to {plot_path}")
