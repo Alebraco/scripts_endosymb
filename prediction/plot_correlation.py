@@ -44,17 +44,17 @@ def plot_correlation(csv_path, outpath):
         print(f"Highly correlated features (>0.9): {to_drop}")
 
 
-def plot_feature_distributions(csv_path, outpath):
-    df = pd.read_csv(csv_path)
+def plot_feature_distributions(X, y, outpath):
+    plot_df = X.copy()
+    plot_df['Group'] = y['Group'].values
+
     for feature in feature_columns:
         fig, ax = plt.subplots(figsize=(6, 5))
         
-        # The Boxplot for global trends
-        sns.boxplot(data=df, x='Group', y=feature, 
+        sns.boxplot(data=plot_df, x='Group', y=feature, 
                     color='white', width=0.5, fliersize=0, ax=ax)
         
-        # The Stripplot for individual genomes (shows the outliers)
-        sns.stripplot(data=df, x='Group', y=feature, 
+        sns.stripplot(data=plot_df, x='Group', y=feature, 
                       alpha=0.6, jitter=True, hue='Group', legend=False,
                       palette={'Endosymbionts': '#FC8D62', 'Free-Living Relatives': '#66C2A5'}, ax=ax)
         
@@ -101,7 +101,7 @@ def run_pca(csv_path, outpath):
     #     s=50, alpha=0.8, edgecolor='k'
     # )
 
-    suspects = ['Sodalis', 'Serratia symbiotica', 'Richelia']
+    suspects = ['Sodalis', 'Serratia symbiotica', 'Richelia', 'Arsenophonus', 'Rickettsia', 'Spiroplasma']
     
     pca_df['Display_Label'] = pca_df.apply(
         lambda row: row['Species'] if row['Species'] in suspects else row['Group'], axis=1
@@ -245,7 +245,7 @@ if __name__ == "__main__":
 
     X, y = run_pca(input_path, outpath)
 
-    plot_feature_distributions(input_path, outpath)
+    plot_feature_distributions(X, y, outpath)
 
     le = LabelEncoder()
     y_encoded = le.fit_transform(y['Group'])
