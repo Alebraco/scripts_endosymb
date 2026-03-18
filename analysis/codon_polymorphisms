@@ -1,0 +1,45 @@
+from itertools import combinations
+from Bio import SeqIO
+import pandas as pd
+from utils import group_names
+import os
+
+dir = 'dna_concatenates'
+positions = ['first_sites', 'second_sites', 'third_sites']
+
+
+def find_valid_pairs():
+    valid_pairs_dict = {}
+    for folder, label in group_names.items():
+        dna_dir = os.path.join(folder, dir)
+        if not os.path.isdir(dna_dir):
+            continue
+
+        for filename in os.listdir(dna_dir):    
+            if filename.endswith('.fasta'):
+                file_path = os.path.join(dna_dir, filename)
+                sp_name = filename.replace('_endosymbiont.fasta', '').replace('concatenate_', '').replace('_', ' ')
+                
+                sequences = list(SeqIO.parse(file_path, 'fasta'))
+
+                if sp_name not in valid_pairs_dict:
+                    valid_pairs_dict[sp_name] = []
+
+                for rec1, rec2 in combinations(sequences, 2):
+                    sec1, sec2 = str(rec1.seq), str(rec2.seq)
+                    matches = sum(1 for a, b in zip(sec1, sec2) if a == b and a != '-') 
+                    total_sites = sum(1 for a, b in zip(sec1, sec2) if a != '-' and b != '-')
+                    if total_sites == 0:
+                        continue
+
+                    pid = matches / total_sites
+                    if 0.7 < pid < 0.95:
+                            valid_pairs_dict[sp_name].append({
+                                'id1': rec1.id,
+                                'id2': rec2.id,
+                                'pid': pid,
+                                'group': label
+                            })
+    return valid_pairs_dict
+                    
+def codon_polymorphisms():

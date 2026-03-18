@@ -9,7 +9,6 @@ import matplotlib.pyplot as plt
 from scipy import stats
 import seaborn as sns
 from utils import files_dir
-from collections import Counter
 from utils import fourfold_families
 
 csv_path = os.path.join(files_dir,'fourfold_gc_content.csv')
