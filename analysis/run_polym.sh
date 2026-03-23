@@ -5,6 +5,7 @@
 #BSUB -n 1
 #BSUB -R "rusage[mem=4GB]"
 #BSUB -W 24:00
+#BSUB -q bobay
 
 source ~/.bashrc
 conda activate /usr/local/usrapps/metastrain/asoneto/annotation
