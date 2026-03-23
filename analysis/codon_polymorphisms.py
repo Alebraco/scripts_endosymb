@@ -120,11 +120,13 @@ def plot_codon_polymorphisms(df):
     sns.boxplot(
         data=melted, x='position', y='poly_freq', hue='group',
         order=['First', 'Second', 'Fourfold (3rd)'],
-        palette='Set2', width=0.5, showfliers=False
+        palette = {'Endosymbionts': '#FC8D62FF', 'Relatives': '#66C2A5FF'},
+        width=0.5, showfliers=False
     )
     plt.title('Polymorphism Frequency by Codon Position and Group', fontsize=20, fontweight='bold')
-    plt.xlabel('Codon Position', fontsize=16)
-    plt.ylabel('Polymorphism Frequency', fontsize=16)
+    plt.xlabel('Codon Position', fontsize=16, fontweight='bold')
+    plt.ylabel('Polymorphism Frequency', fontsize=16, fontweight='bold')
+    plt.legend(title='Group', fontsize=14, title_fontsize=14)
     plt.tight_layout()
     outpath = os.path.join(plot_dir, 'codon_polymorphisms_boxplot.pdf')
     plt.savefig(outpath)
@@ -171,10 +173,10 @@ def plot_codon_polymorphisms_scatter(df):
         plt.xlim(-0.05, 1.05)
         plt.ylim(-0.05, 1.05)
 
-        plt.xlabel('Free-Living Relatives', fontsize=12)
-        plt.ylabel('Endosymbionts', fontsize=12)
+        plt.xlabel('Free-Living Relatives', fontsize=14, fontweight='bold')
+        plt.ylabel('Endosymbionts', fontsize=14, fontweight='bold')
         plt.title(f'Polymorphism Frequency\n{position_labels[pos]} Position',
-                  fontsize=14, fontweight='bold')
+                  fontsize=16, fontweight='bold')
         plt.tight_layout()
         outpath = os.path.join(plot_dir, f'scatter_{pos}.pdf')
         plt.savefig(outpath, bbox_inches='tight')
