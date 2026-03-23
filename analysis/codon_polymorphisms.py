@@ -103,12 +103,21 @@ def plot_codon_polymorphisms(df):
     plot_dir = os.path.join('plots', 'codon_polymorphisms')
     os.makedirs(plot_dir, exist_ok=True)
 
+    group_rename = {
+        'Endosymbionts Only': 'Endosymbionts',
+        'Free-Living Relatives Only': 'Relatives',
+    }
+    df = df.copy()
+    df['group'] = df['group'].replace(group_rename)
+
     med = df.groupby(['group', 'species'])[['poly_first', 'poly_second', 'poly_fourfold']].median().reset_index()
     melted = med.melt(
         id_vars=['group', 'species'],
         value_vars=['poly_first', 'poly_second', 'poly_fourfold'],
         var_name='position', value_name='poly_freq'
     )
+    
+
     position_labels = {
         'poly_first': 'First',
         'poly_second': 'Second',
