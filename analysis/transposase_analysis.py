@@ -35,7 +35,7 @@ def processing_transposase(path, group_label = None, auto_classify = False, get_
     '''
     path: The directory containing the 'transposase' folder.
     group_label: Optional string to label the 'Group' column. 
-                 If None, it is 'Ungrouped'.
+                 If None, it is 'Unknown'.
     '''
     results = []
 
@@ -45,7 +45,7 @@ def processing_transposase(path, group_label = None, auto_classify = False, get_
         print(f"Directory not found: {target_dir}")
         return None
     
-    default_group = group_label if group_label else 'Ungrouped'
+    default_group = group_label if group_label else 'Unknown'
 
     def process_tsv_files(base_dir, sp_name, tsv_files):
         total_genomes = len(tsv_files)

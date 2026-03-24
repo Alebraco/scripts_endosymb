@@ -11,6 +11,7 @@ from sklearn.metrics import confusion_matrix, classification_report, accuracy_sc
 from sklearn.inspection import permutation_importance
 import plotly.express as px
 import numpy as np
+from joblib import dump, load
 import sys
 import os
 
@@ -194,7 +195,7 @@ def run_pca(csv_path, outpath, label_recent=False, interactive=False):
     loadings_df.to_csv(loadings_path)
     print(f"PCA loadings saved to {loadings_path}")
 
-    return X, df[y]
+    return X, df[y], scaler
 
 def run_random_forest(X, y_encoded, groups, le, outpath, n_splits=5, suffix=''):
     rf = RandomForestClassifier(
@@ -304,7 +305,7 @@ if __name__ == "__main__":
 
     plot_correlation(input_path, outpath)
 
-    X, y = run_pca(input_path, outpath)
+    X, y, scaler = run_pca(input_path, outpath)
 
     plot_feature_distributions(X, y, outpath)
 
@@ -314,3 +315,30 @@ if __name__ == "__main__":
 
     rf_model = run_random_forest(X, y_encoded, groups, le, outpath)
     rf_reduced_model = rf_reduced(X, y_encoded, groups, le, outpath)
+
+    # Serialize the model
+    model_path = os.path.join('files', 'rf_model.joblib')
+    os.makedirs('files', exist_ok=True)
+    dump((rf_model, scaler, le), model_path)
+
+    # Use on new genomes
+    infer_path = os.path.join('ncbi_query', feature_dir, features_df)
+    if os.path.exists(infer_path):
+        rf_infer, scaler_infer, le_infer = load(model_path)
+        unknown_df = pd.read_csv(infer_path)
+        X_unk = unknown_df[feature_columns]
+        X_unk_scaled = scaler_infer.transform(X_unk)
+        probs = rf_infer.predict_proba(X_unk_scaled)
+        preds = le_infer.inverse_transform(rf_infer.predict(X_unk_scaled))
+        endosymb_idx = list(le_infer.classes_).index('endosymb_only')
+        results_df = pd.DataFrame({
+            'Species': unknown_df['Species'],
+            'File': unknown_df['File'],
+            'Predicted_Label': preds,
+            'Endosymb_Probability': probs[:, endosymb_idx],
+            'Confidence': [max(p, 1 - p) for p in probs[:, endosymb_idx]],
+            'Low_Confidence': [max(p, 1 - p) < 0.6 for p in probs[:, endosymb_idx]],
+        })
+        results_path = os.path.join('ncbi_query', feature_dir, 'rf_predictions.csv')
+        results_df.to_csv(results_path, index=False)
+        print(f"Predictions for new genomes saved to {results_path}")

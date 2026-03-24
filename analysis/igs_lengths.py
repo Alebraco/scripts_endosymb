@@ -1,79 +1,102 @@
 #!/usr/bin/env python3
 
 import os
-import gffutils
 import pandas as pd
+from joblib import Parallel, delayed
 from utils import files_dir
 
+TARGET_TYPES = {'gene', 'CDS', 'rRNA'}
+
 def gff_features(file_path):
-    db = gffutils.create_db(file_path, dbfn=':memory:', force = True, 
-                            keep_order = True, merge_strategy = 'merge',
-                            sort_attribute_values = True)
-    
-    IGS_sizes = []
+
+    seqs = {}
+
+    with open(file_path) as fh:
+        for line in fh:
+            if line.startswith('#'):
+                continue
+            parts = line.rstrip('\n').split('\t')
+            if len(parts) < 9:
+                continue
+            ftype = parts[2]
+            if ftype not in TARGET_TYPES:
+                continue
+
+            # Parse attributes column for pseudo=true
+            pseudo = False
+            for attr in parts[8].split(';'):
+                if attr.strip().lower().startswith('pseudo='):
+                    pseudo = attr.split('=', 1)[1].strip().lower() == 'true'
+                    break
+            if pseudo:
+                continue
+
+            seqid  = parts[0]
+            start  = int(parts[3])
+            end    = int(parts[4])
+            strand = parts[6]
+
+            if seqid not in seqs:
+                seqs[seqid] = []
+            seqs[seqid].append((start, end, ftype, strand))
+
+    IGS_sizes   = []
     gene_lengths = []
-    cds_lengths = []
-    IGS_start = None
-    current_seqid = None
+    cds_lengths  = []
+    gene_coords  = []
+    cds_coords   = []
 
-    target_features = ['gene', 'CDS', 'rRNA']
-    cds_coords = []
-    gene_coords = []
+    for seqid, features in seqs.items():
+        features.sort(key=lambda x: (x[0], x[1]))  # sort by start, then end
 
-    for feature in db.all_features(order_by = ('seqid', 'start', 'end')):
-        if feature.featuretype not in target_features:
-            continue
-        
-        if current_seqid != feature.seqid:
-            current_seqid = feature.seqid
-            IGS_start = None
-            
-        # Determine pseudogene status
-        pseudo = False
-        if 'pseudo' in feature.attributes:
-            if feature.attributes['pseudo'][0].lower() == 'true':
-                pseudo = True
-        
-        start = feature.start
-        end = feature.end
-        length = end - start + 1
+        igs_frontier = None  # rightmost end position seen so far on this contig
+        for start, end, ftype, strand in features:
+            length = end - start + 1
 
-        # Only consider true genes
-        if not pseudo:
-            # Record CDS lengths
-            if feature.featuretype == 'CDS':
+            if ftype == 'CDS':
                 cds_lengths.append(length)
-                cds_coords.append((feature.seqid, start, end, feature.strand))
-            # Record gene lengths
-            if feature.featuretype == 'gene':
+                cds_coords.append((seqid, start, end, strand))
+            elif ftype == 'gene':
                 gene_lengths.append(length)
-                gene_coords.append((feature.seqid, start, end, feature.strand))
+                gene_coords.append((seqid, start, end, strand))
 
-            # Calculate IGS sizes if not pseudo gene
-            if IGS_start:
-                IGS_size = start - IGS_start - 1
-                if IGS_size > 0:
-                    IGS_sizes.append(IGS_size)
-                else:
-                    IGS_sizes.append(0)
+            if igs_frontier is not None:
+                IGS_sizes.append(max(start - igs_frontier - 1, 0))
 
-            if IGS_start is None or end > IGS_start:
-                IGS_start = end
+            if igs_frontier is None or end > igs_frontier:
+                igs_frontier = end
 
-    final_lengths = gene_lengths if len(gene_lengths) > 0 else cds_lengths
-    final_coords = gene_coords if len(gene_coords) > 0 else cds_coords
+    final_lengths = gene_lengths if gene_lengths else cds_lengths
+    final_coords  = gene_coords  if gene_coords  else cds_coords
 
     return IGS_sizes, final_lengths, final_coords
 
-def collect_gff_stats(path, group_label = None, auto_classify = False):
-    '''
-    Process a directory of genomes in GFF format
-    Extracts IGS sizes and gene lengths.
-    '''
-    all_igs_data = []
-    all_gene_data = []
 
-    default_group = group_label if group_label else 'Ungrouped'
+def _process_single_gff(file_path, sp_name, auto_classify, default_group):
+
+    filename = os.path.basename(file_path).replace('.gff', '')
+
+    IGS_sizes, gene_lengths, _ = gff_features(file_path)
+
+    if auto_classify:
+        current_group = 'relatives_only' if '_genomic' in filename else 'endosymb_only'
+    else:
+        current_group = default_group
+
+    igs_rows = [
+        {'Group': current_group, 'Species': sp_name, 'IGS_Size': size, 'File': filename}
+        for size in IGS_sizes
+    ]
+    gene_rows = [
+        {'Group': current_group, 'Species': sp_name, 'Gene_Length': length, 'File': filename}
+        for length in gene_lengths
+    ]
+    return igs_rows, gene_rows
+
+
+def collect_gff_stats(path, group_label=None, auto_classify=False, n_jobs=-1):
+
+    default_group = group_label if group_label else 'Unknown'
 
     target_dir = os.path.join(path, 'genomes')
     if not os.path.exists(target_dir):
@@ -81,56 +104,45 @@ def collect_gff_stats(path, group_label = None, auto_classify = False):
         return [], []
     print(f"Processing GFF files in: {target_dir}")
 
-    def process_gff_files(base_dir, spname, gff_files):
-        for file in gff_files:
-            filename = file.replace('.gff', '')
-            file_path = os.path.join(base_dir, file)
+    gff_tasks = []
 
-            IGS_sizes, gene_lengths, gene_coords = gff_features(file_path)
-
-            if auto_classify:
-                if '_genomic' in file:
-                    current_group = 'relatives_only'
-                else:
-                    current_group = 'endosymb_only'
-            else:
-                current_group = default_group
-
-            for size in IGS_sizes:
-                all_igs_data.append({
-                    'Group': current_group,
-                    'Species': spname,
-                    'IGS_Size': size,
-                    'File': filename
-                })
-            for length in gene_lengths:
-                all_gene_data.append({
-                    'Group': current_group,
-                    'Species': spname,
-                    'Gene_Length': length,
-                    'File': filename
-                })
-
-    species_dirs = [entry for entry in os.listdir(target_dir) if os.path.isdir(os.path.join(target_dir, entry))]
-
+    species_dirs = [
+        entry for entry in os.listdir(target_dir)
+        if os.path.isdir(os.path.join(target_dir, entry))
+    ]
     for sp in species_dirs:
         sp_path = os.path.join(target_dir, sp)
-        spname = sp.replace('_endosymbiont', '').replace('_', ' ')
-        gff_files = [file for file in os.listdir(sp_path) if file.lower().endswith('.gff')]
-        process_gff_files(sp_path, spname, gff_files)
+        sp_name = sp.replace('_endosymbiont', '').replace('_', ' ')
+        for fname in os.listdir(sp_path):
+            if fname.lower().endswith('.gff'):
+                gff_tasks.append((os.path.join(sp_path, fname), sp_name))
 
-    flat_gff_files = [file for file in os.listdir(target_dir) if file.lower().endswith('.gff')]
-    if flat_gff_files:
-        process_gff_files(target_dir, 'Unknown', flat_gff_files)
+    flat_gff_files = [f for f in os.listdir(target_dir) if f.lower().endswith('.gff')]
+    for fname in flat_gff_files:
+        gff_tasks.append((os.path.join(target_dir, fname), 'Unknown'))
+
+    if not gff_tasks:
+        return [], []
+
+    print(f"  Found {len(gff_tasks)} GFF files to process.")
+
+    results = Parallel(n_jobs=n_jobs, backend='loky')(
+        delayed(_process_single_gff)(fp, sp, auto_classify, default_group)
+        for fp, sp in gff_tasks
+    )
+
+    all_igs_data  = [row for igs_rows, _         in results for row in igs_rows]
+    all_gene_data = [row for _,        gene_rows  in results for row in gene_rows]
 
     return all_igs_data, all_gene_data
+
 
 def save_summary_stats(all_igs_data, all_gene_data, prefix=''):
     '''
     Saves summary statistics for IGS sizes and gene lengths to CSV files.
     '''
 
-    if all_igs_data:                    
+    if all_igs_data:
         df = pd.DataFrame(all_igs_data)
 
         summary_df = df.groupby(['Group', 'Species', 'File'])['IGS_Size'].mean().reset_index()

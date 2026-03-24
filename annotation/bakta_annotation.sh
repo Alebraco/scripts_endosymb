@@ -1,35 +1,32 @@
 #!/bin/bash
-#BSUB -J bakta[1-561]
-#BSUB -n 1
-#BSUB -R "rusage[mem=20GB] span[hosts=1]"
-#BSUB -e %J_%I.err
-#BSUB -o %J_%I.out
-#BSUB -W 50:00
 
 source ~/.bashrc
 conda activate /usr/local/usrapps/metastrain/asoneto/annotation/
-outdir="bakta_results"
-genome_dir="merged_candidates"
 
-genomes=($(find $genome_dir -type f -name "*.fna" | sort))
+BAKTA_DB="/rs1/researchers/l/ljbobay/asoneto/endosymb/bakta_db/db/"
+INPUT_DIR=($INPUT_DIR)
+OUTDIR=($OUTDIR)
+OUTPATH="$INPUT_DIR/$OUTDIR"
 
-start_index=$((($LSB_JOBINDEX - 1) * 10))
-end_index=$(($start_index + 9))
+GENOMES=($(find $INPUT_DIR -type f -name "*.fna" | sort))
 
-for ((i=start_index; i<=end_index && i<${#genomes[@]}; i++)); do
-    genome=${genomes[$i]}
-    subpath=${genome#$genome_dir/}
-    subpath=${subpath%.fna}
-    outpath=$outdir/$subpath/
+START_INDEX=$((($LSB_JOBINDEX - 1) * 10))
+END_INDEX=$(($START_INDEX + 9))
 
-    prefix=$(basename $genome .fna)
+for ((i=START_INDEX; i<=END_INDEX && i<${#GENOMES[@]}; i++)); do
+    GENOME=${GENOMES[$i]}
+    SUBPATH=${GENOME#$INPUT_DIR/}
+    SUBPATH=${SUBPATH%.fna}
+    ANNOTPATH=$OUTPATH/$SUBPATH/
 
-    echo "Batch $LSB_JOBINDEX: Annotating $prefix"
-    PYTHONWARNINGS="ignore" bakta --db /rs1/researchers/l/ljbobay/asoneto/endosymb/bakta_db/db/ \
-        --output $outpath \
-        --prefix $prefix \
-        --threads 1 \
-        $genome
+    PREFIX=$(basename $GENOME .fna)
+
+    echo "Batch $LSB_JOBINDEX: Annotating $PREFIX"
+    bakta --db $BAKTA_DB \
+        --output $ANNOTPATH \
+        --prefix $PREFIX \
+        --threads 8 \
+        $GENOME
 done
 
 conda deactivate

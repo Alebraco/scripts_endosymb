@@ -13,7 +13,7 @@ from igs_lengths import collect_gff_stats
 def main():
     parser = argparse.ArgumentParser(description='Collect and merge genome features.')
     parser.add_argument('--path', required=True, help='Path to process')
-    parser.add_argument('--infer', action='store_true', help='Inference mode: do not auto-classify by filename, default to Ungrouped')
+    parser.add_argument('--infer', action='store_true', help='Inference mode: do not auto-classify by filename, default to Unknown')
     parser.add_argument('--force', action='store_true', help='Recompute features even if output file already exists')
     args = parser.parse_args()
 
@@ -33,7 +33,7 @@ def main():
 
     if args.infer:
         classify_flag = False
-        print('Running in inference mode (auto classification disabled; Group defaults to Ungrouped).')
+        print('Running in inference mode (auto classification disabled; Group defaults to Unknown).')
     else:
         classify_flag = True
         print('Running in training mode (auto classification enabled).')
