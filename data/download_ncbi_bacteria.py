@@ -20,7 +20,7 @@ def download_file(url, dest_path):
     if os.path.exists(dest_path):
         return
     try:
-        subprocess.run(['wget', '-q', '-O', dest_path, url])
+        subprocess.run(['curl', '-o', dest_path, url])
     except Exception as e:
         raise RuntimeError(f"Failed to download {url}: {e}")
     
