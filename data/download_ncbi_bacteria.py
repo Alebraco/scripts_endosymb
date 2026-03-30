@@ -54,7 +54,7 @@ def filter_assemblies(df, max_per_species):
 
     # 2. Drop assemblies excluded from RefSeq
     if "excluded_from_refseq" in df.columns:
-        df = df[df["excluded_from_refseq"].isna() | (df["excluded_from_refseq"].str.strip() == "")].copy()
+        df = df[df["excluded_from_refseq"].isna() | (df["excluded_from_refseq"].str.strip().isin(["", "na"]))].copy()
         print(f"  After removing excluded assemblies:{len(df)}")
 
     # 3. Drop non-standard-code lineages
