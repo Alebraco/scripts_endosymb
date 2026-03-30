@@ -84,7 +84,7 @@ def collect_codon_stats(path, group_label=None, auto_classify=False, n_jobs=-1):
     target_dir = os.path.join(path, 'genomes')
 
     if not os.path.exists(target_dir):
-        print(f'Warning: Genomes directory not found at {target_dir}. Skipping codon stats collection.')
+        print(f'Warning: Genomes directory not found at {target_dir}.')
         target_dir = path
 
     tasks = []
@@ -98,7 +98,7 @@ def collect_codon_stats(path, group_label=None, auto_classify=False, n_jobs=-1):
     if not tasks:
         return pd.DataFrame()
 
-    print(f"  Found {len(tasks)} GFF files for codon stats — running with n_jobs={n_jobs}")
+    print(f"  Found {len(tasks)} GFF files for codon stats.")
 
     results = Parallel(n_jobs=n_jobs, backend='loky')(
         delayed(_process_single_genome)(gff_path, sp_name, auto_classify, default_group)
