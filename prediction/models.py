@@ -226,9 +226,11 @@ def run_random_forest(X, y_encoded, groups, le, outpath, n_splits=5, suffix=''):
     # Confusion matrix
     cm = confusion_matrix(y_encoded, y_pred)
     fig, ax = plt.subplots(figsize=(6, 5))
+    plt.rcParams.update({'font.size': 13})
     ConfusionMatrixDisplay(cm, display_labels=class_names).plot(ax=ax, cmap="Blues")
     ax.set_title(f"RF Confusion Matrix (CV Accuracy: {round(acc, 2)})")
-
+    ax.set_xlabel('Predicted Label', fontweight='bold')
+    ax.set_ylabel('True Label', fontweight='bold')
     plt.tight_layout()
     fig.savefig(os.path.join(outpath, f'rf_confusion_matrix{suffix}.pdf'))
     plt.close(fig)
@@ -263,15 +265,24 @@ def run_random_forest(X, y_encoded, groups, le, outpath, n_splits=5, suffix=''):
     # Fit on full data for importance
     rf.fit(X, y_encoded)
     # Gini importances
+    label_map = {
+        'Delta_GC2_4': '\u0394GC2-4',
+        'GC4':         'GC4 Content',
+        'AV_Bias':     'Ala/Val Bias',
+        'Rest_Bias':   'Rest of AA Bias',
+        'Transposase_Per_Gene': 'Transposase Density',
+        'Mean_IGS_Size': 'Mean IGS Size',
+    }
     imp = pd.DataFrame({
-        'feature': feature_columns,
+        'feature': [label_map.get(f, f) for f in feature_columns],
         'importance': rf.feature_importances_,
     }).sort_values('importance', ascending=True)
 
     fig, ax = plt.subplots(figsize=(8, 5))
+    plt.rcParams.update({'font.size': 14})
     ax.barh(imp['feature'], imp['importance'])
-    ax.set_xlabel('Gini Importance (Model Contribution)')
-    ax.set_title('Feature Importance of Random Forest')
+    ax.set_xlabel('Gini Importance (Model Contribution)', fontweight='bold')
+    ax.set_title('Feature Importance (Gini)', fontweight='bold')
     plt.tight_layout()
     fig.savefig(os.path.join(outpath, f'rf_feature_importance{suffix}.pdf'))
     plt.close(fig)

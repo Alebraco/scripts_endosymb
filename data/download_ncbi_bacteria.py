@@ -125,7 +125,7 @@ def download_genomes(df, outdir):
 def load_genbank_mags(local_path):
     """Download and parse GenBank assembly_summary.txt, filtering to MAGs only."""
     if not os.path.exists(local_path):
-        print("Downloading GenBank assembly summary …")
+        print("Downloading GenBank assembly summary.")
         download_file(GENBANK_SUMMARY_URL, local_path)
         print(f"  Saved to {local_path}")
     else:
@@ -141,7 +141,7 @@ def load_genbank_mags(local_path):
         print("'assembly_type' column not found, ignoring MAG filtering.")
         return pd.DataFrame()
 
-    print(f"  MAGs found in GenBank: {len(df):,}")
+    print(f"  MAGs found in GenBank: {len(df)}")
     return df
 
 
@@ -186,7 +186,7 @@ def main():
             df_filtered = pd.concat([df_filtered, df_mags_filtered], ignore_index=True)
             print(f"\nCombined total (RefSeq + MAGs): {len(df_filtered)}")
 
-    print(f"\nDownloading {len(df_filtered):,} genomes to {args.outdir}/genomes/ …\n")
+    print(f"\nDownloading {len(df_filtered)} genomes to {args.outdir}/genomes/\n")
     download_genomes(df_filtered, outdir=args.outdir)   # download all selected assemblies
 
 if __name__ == "__main__":
