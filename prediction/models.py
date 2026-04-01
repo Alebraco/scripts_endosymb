@@ -226,9 +226,8 @@ def run_random_forest(X, y_encoded, groups, le, outpath, n_splits=5, suffix=''):
     # Confusion matrix
     cm = confusion_matrix(y_encoded, y_pred)
     fig, ax = plt.subplots(figsize=(6, 5))
-    plt.rcParams.update({'font.size': 13})
     ConfusionMatrixDisplay(cm, display_labels=class_names).plot(ax=ax, cmap="Blues")
-    ax.set_title(f"RF Confusion Matrix (CV Accuracy: {round(acc, 2)})")
+    ax.set_title(f"Confusion Matrix (CV Accuracy: {round(acc, 2)})", fontweight='bold')
     ax.set_xlabel('Predicted Label', fontweight='bold')
     ax.set_ylabel('True Label', fontweight='bold')
     plt.tight_layout()
