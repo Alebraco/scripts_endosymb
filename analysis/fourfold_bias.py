@@ -204,6 +204,15 @@ def plot_results(df, detailed_df, p_val):
     #Amino acid specific boxplots
     plt.figure(figsize=(10, 6))
     detailed_df = pd.read_csv(detailed_csv_path)
+
+    for (aa, group), gdf in detailed_df.groupby(['amino_acid', 'group']):
+        q1, q3 = gdf['gc4_percent'].quantile([0.25, 0.75])
+        iqr = q3 - q1
+        outliers = gdf[gdf['gc4_percent'] > q3 + 1.5 * iqr]
+        if not outliers.empty:
+            print(f"\n{aa} — {group}:")
+            print(outliers[['species', 'gc4_percent']].to_string(index=False))
+    
     sns.boxplot(
         x='amino_acid', 
         y='gc4_percent', 
