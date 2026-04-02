@@ -169,6 +169,52 @@ plt.savefig(os.path.join(plot_dir, 'IGS_mean_boxplot.pdf'))
 plt.close()
 
 
+# IGS std boxplot (per-genome within-genome standard deviation)
+genome_std_path = os.path.join(files_dir, 'genome_std_IGS.csv')
+if os.path.exists(genome_std_path):
+    std_df = pd.read_csv(genome_std_path)
+    std_df['Group'] = std_df['Group'].replace({
+        'endosymb_only': 'Endosymbionts',
+        'relatives_only': 'Free-Living Relatives',
+    })
+    std_df = std_df[std_df['Group'].isin(['Endosymbionts', 'Free-Living Relatives'])]
+
+    g_end = std_df.loc[std_df['Group'] == 'Endosymbionts', 'std_IGS'].dropna()
+    g_rel = std_df.loc[std_df['Group'] == 'Free-Living Relatives', 'std_IGS'].dropna()
+
+    p_sh_end = stats.shapiro(g_end).pvalue if 3 <= len(g_end) <= 5000 else None
+    p_sh_rel = stats.shapiro(g_rel).pvalue if 3 <= len(g_rel) <= 5000 else None
+
+    use_ttest = False
+    if p_sh_end is not None and p_sh_rel is not None:
+        use_ttest = (p_sh_end > 0.05 and p_sh_rel > 0.05)
+
+    if use_ttest:
+        test_name = 'Welch t-test'
+        stat, pval = stats.ttest_ind(g_end, g_rel, equal_var=False, nan_policy='omit')
+    else:
+        test_name = 'Mann-Whitney U'
+        stat, pval = stats.mannwhitneyu(g_end, g_rel, alternative='two-sided')
+
+    plt.figure(figsize=(12, 12))
+    ax = sns.boxplot(data=std_df, x='Group', y='std_IGS', hue='Group',
+                     palette=group_colors, hue_order=list(group_colors.keys()), fliersize=0)
+    sns.stripplot(data=std_df, x='Group', y='std_IGS', color='black', alpha=0.7)
+    ax.text(0.5, 0.95, f'{test_name}: p={pval:.4g}', transform=ax.transAxes,
+            ha='center', va='top', fontsize=14)
+    print(f'IGS std {test_name} result: statistic={stat:.4f}, p-value={pval:.4g}')
+    plt.title('Within-Genome IGS Standard Deviation by Group', fontsize=24, fontweight='bold')
+    plt.xticks(fontsize=18)
+    plt.xlabel('Group', fontsize=20, fontweight='bold')
+    plt.yticks(fontsize=18)
+    plt.ylabel('IGS Std Dev (bp)', fontsize=20, fontweight='bold')
+    plt.tight_layout()
+    plt.savefig(os.path.join(plot_dir, 'IGS_std_boxplot.pdf'))
+    plt.close()
+else:
+    print(f'Warning: genome_std_IGS.csv not found at {genome_std_path}. Skipping IGS std boxplot.')
+
+
 # Scatterplot
 
 pivot_df = summary_df.pivot_table(index='Species', columns='Group', values='mean_mean_IGS').reset_index()
