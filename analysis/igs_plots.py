@@ -142,7 +142,7 @@ def plot_igs_std_boxplot():
     test_name, stat, pval = stat_test(g_end, g_rel)
     print(f'IGS std {test_name} result: statistic={stat:.4f}, p-value={pval:.4g}')
 
-    plt.figure(figsize=(10, 10))
+    plt.figure(figsize=(12, 12))
     ax = sns.boxplot(data=df, x='Group', y='std_IGS', hue='Group',
                      palette=group_colors, hue_order=GROUPS, fliersize=0)
     # sns.stripplot(data=df, x='Group', y='std_IGS', hue='Group',
