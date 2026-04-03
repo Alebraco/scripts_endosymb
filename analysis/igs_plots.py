@@ -142,11 +142,11 @@ def plot_igs_std_boxplot():
     test_name, stat, pval = stat_test(g_end, g_rel)
     print(f'IGS std {test_name} result: statistic={stat:.4f}, p-value={pval:.4g}')
 
-    plt.figure(figsize=(12, 12))
+    plt.figure(figsize=(8, 8))
     ax = sns.boxplot(data=df, x='Group', y='std_IGS', hue='Group',
                      palette=group_colors, hue_order=GROUPS, fliersize=0)
-    sns.stripplot(data=df, x='Group', y='std_IGS', hue='Group',
-                  palette=group_colors, hue_order=GROUPS, alpha=0.7, legend=False)
+    # sns.stripplot(data=df, x='Group', y='std_IGS', hue='Group',
+                #   palette=group_colors, hue_order=GROUPS, alpha=0.7, legend=False)
     ax.text(0.5, 0.95, f'{test_name}: p={pval:.4g}', transform=ax.transAxes,
             ha='center', va='top', fontsize=14)
     plt.title('Within-Genome IGS Standard Deviation by Group', fontsize=24, fontweight='bold')
