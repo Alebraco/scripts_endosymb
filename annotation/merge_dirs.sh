@@ -9,7 +9,7 @@ types=("proteins" "genomes" "cds" "gbff_files")
 
 for dir_type in "${types[@]}"; do
 
-    echo "--- Merging $dir_type ---"
+    echo "Merging $dir_type."
 
     # Define origin and destination based on the directory type
     origin=endosymb_only/$dir_type

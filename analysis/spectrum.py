@@ -557,7 +557,7 @@ def rate_shift_plot(df, position, color_by = 'distance', annotate=False):
                               c=current_metric,
                               cmap=cmap,
                               edgecolors='black',
-                              s=150,
+                              s=200,
                               alpha=0.85,
                               vmin=vmin_val,
                               vmax=vmax_threshold,
@@ -636,7 +636,7 @@ def rate_shift_plot_gc(df, position, annotate=False):
                               c=current_gcs,
                               cmap='viridis',
                               edgecolors='black',
-                              s=150,
+                              s=200,
                               alpha=0.85,
                               zorder=2,
                               label='Species' if annotate else None)
