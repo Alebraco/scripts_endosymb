@@ -31,5 +31,6 @@ bsub -J "bakta[1-${NJOBS}]%30" \
      -e "$WORKDIR/bakta_logs/%J_%I.err" \
      -o "$WORKDIR/bakta_logs/%J_%I.out" \
      -W 200:00 \
+     -q bobay
      -env "INPUT_DIR='$WORKDIR/$INPUT_DIR',OUTDIR='$OUTDIR',GENOME_LIST='$GENOME_LIST',WORKDIR='$WORKDIR'" \
      bash scripts_endosymb/annotation/bakta_annotation.sh
