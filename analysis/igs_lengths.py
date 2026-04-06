@@ -148,11 +148,12 @@ def save_summary_stats(all_igs_data, all_gene_data, prefix=''):
         genome_stats = df.groupby(['Group', 'Species', 'File'])['IGS_Size'].agg(
             mean_IGS='mean', std_IGS='std'
         ).reset_index()
-        std_name = f'{prefix}genome_std_IGS.csv' if prefix else 'genome_std_IGS.csv'
+        std_name = f'{prefix}genome_IGS.csv' if prefix else 'genome_IGS.csv'
         genome_stats.to_csv(os.path.join(files_dir, std_name), index=False)
 
         summary_df = genome_stats.groupby(['Group', 'Species']).agg(
             mean_mean_IGS=('mean_IGS', 'mean'),
+            mean_std_IGS=('std_IGS', 'mean'),
             num_genomes=('File', 'count')
         ).reset_index()
 
@@ -185,7 +186,7 @@ if __name__ == "__main__":
     master_igs = []
     master_gene = []
 
-    csv_names = ['meanIGS.csv', 'all_IGS_data.csv', 'genome_std_IGS.csv', 'mean_gene_lengths.csv', 'gene_counts.csv']
+    csv_names = ['meanIGS.csv', 'all_IGS_data.csv', 'genome_IGS.csv', 'mean_gene_lengths.csv', 'gene_counts.csv']
     files = all(os.path.exists(os.path.join(files_dir, f)) for f in csv_names)
 
     if not files:

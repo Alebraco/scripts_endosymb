@@ -24,6 +24,7 @@ for ((i=start_index; i<=end_index && i<${#all_files[@]}; i++)); do
         --output $scratch_out \
         --prefix $prefix \
         --threads 8 \
+        --force \
         $genome
 
     cp -a $scratch_out/. $dest/

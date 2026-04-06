@@ -126,9 +126,9 @@ def plot_igs_mean_boxplot(summary_df):
 
 
 def plot_igs_std_boxplot():
-    genome_std_path = os.path.join(files_dir, 'genome_std_IGS.csv')
+    genome_std_path = os.path.join(files_dir, 'genome_IGS.csv')
     if not os.path.exists(genome_std_path):
-        print(f'Warning: genome_std_IGS.csv not found at {genome_std_path}. Skipping IGS std boxplot.')
+        print(f'Warning: genome_IGS.csv not found at {genome_std_path}. Skipping IGS std boxplot.')
         return
 
     df = pd.read_csv(genome_std_path)
@@ -156,6 +156,38 @@ def plot_igs_std_boxplot():
     plt.ylabel('IGS Std Dev (bp)', fontsize=20, fontweight='bold')
     plt.tight_layout()
     plt.savefig(os.path.join(plot_dir, 'IGS_std_boxplot.pdf'))
+    plt.close()
+
+
+def plot_igs_std_species_boxplot():
+    mean_path = os.path.join(files_dir, 'meanIGS.csv')
+    if not os.path.exists(mean_path):
+        print(f'Warning: meanIGS.csv not found at {mean_path}. Skipping IGS species std boxplot.')
+        return
+
+    df = pd.read_csv(mean_path)
+    df['Group'] = df['Group'].replace(GROUP_RENAME)
+    df = df[df['Group'].isin(GROUPS)]
+    threshold = df['mean_std_IGS'].quantile(0.90)
+    df = df[df['mean_std_IGS'] <= threshold]
+
+    g_end = df.loc[df['Group'] == 'Endosymbionts', 'mean_std_IGS'].dropna()
+    g_rel = df.loc[df['Group'] == 'Free-Living Relatives', 'mean_std_IGS'].dropna()
+    test_name, stat, pval = stat_test(g_end, g_rel)
+    print(f'IGS species std {test_name} result: statistic={stat:.4f}, p-value={pval:.4g}')
+
+    plt.figure(figsize=(12, 12))
+    ax = sns.boxplot(data=df, x='Group', y='mean_std_IGS', hue='Group',
+                     palette=group_colors, hue_order=GROUPS, fliersize=0)
+    ax.text(0.5, 0.95, f'{test_name}: p={pval:.4g}', transform=ax.transAxes,
+            ha='center', va='top', fontsize=14)
+    plt.title('Mean Within-Genome IGS Standard Deviation by Group\n(Per Species)', fontsize=24, fontweight='bold')
+    plt.xticks(fontsize=18)
+    plt.xlabel('Group', fontsize=20, fontweight='bold')
+    plt.yticks(fontsize=18)
+    plt.ylabel('Mean IGS Std Dev (bp)', fontsize=20, fontweight='bold')
+    plt.tight_layout()
+    plt.savefig(os.path.join(plot_dir, 'IGS_std_species_boxplot.pdf'))
     plt.close()
 
 
@@ -268,6 +300,7 @@ if __name__ == '__main__':
     summary_df = load_summary_df()
     plot_igs_mean_boxplot(summary_df)
     plot_igs_std_boxplot()
+    plot_igs_std_species_boxplot()
     plot_igs_scatterplot(summary_df)
     corr_df = build_corr_df(summary_df)
     plot_igs_correlations(corr_df)
