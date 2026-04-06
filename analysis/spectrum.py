@@ -557,7 +557,7 @@ def rate_shift_plot(df, position, color_by = 'distance', annotate=False):
                               c=current_metric,
                               cmap=cmap,
                               edgecolors='black',
-                              s=100,
+                              s=150,
                               alpha=0.85,
                               vmin=vmin_val,
                               vmax=vmax_threshold,
@@ -582,7 +582,7 @@ def rate_shift_plot(df, position, color_by = 'distance', annotate=False):
                 )
 
         cbar = plt.colorbar(scatter)
-        cbar.set_label(cbar_label, rotation=270, labelpad=25, fontsize=20)
+        cbar.set_label(cbar_label, rotation=90, labelpad=25, fontsize=20, fontweight='bold')
         cbar.ax.tick_params(labelsize=20)
         
         plt.axline((0, 0), slope=1, color='gray', linestyle='--', linewidth=1, label='y=x (No shift)')
@@ -636,7 +636,7 @@ def rate_shift_plot_gc(df, position, annotate=False):
                               c=current_gcs,
                               cmap='viridis',
                               edgecolors='black',
-                              s=100,
+                              s=150,
                               alpha=0.85,
                               zorder=2,
                               label='Species' if annotate else None)
@@ -658,7 +658,7 @@ def rate_shift_plot_gc(df, position, annotate=False):
             )
             
         cbar = plt.colorbar(scatter)
-        cbar.set_label('Endosymbiont GC Content (%)', rotation=270, labelpad=25, fontsize=20)
+        cbar.set_label('Endosymbiont GC Content (%)', rotation=90, labelpad=25, fontsize=20, fontweight='bold')
         cbar.ax.tick_params(labelsize=18)
         
         plt.axline((0, 0), slope=1, color='gray', linestyle='--', linewidth=1, label='y=x (No shift)')

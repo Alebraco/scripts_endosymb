@@ -90,7 +90,7 @@ def seg_plot(df, seq_type='protein'):
         y = df['size'],  
         c = df['gc'],
         cmap = 'viridis', 
-        s = 50, 
+        s = 100, 
         edgecolors = 'black',
         linewidths = 0.5
         )
