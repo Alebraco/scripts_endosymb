@@ -12,7 +12,9 @@ INPUT_DIR="ncbi_bacteria"
 OUTDIR="bakta_results"
 GENOME_LIST="$WORKDIR/bakta_genome_list.txt"
 
-find "$WORKDIR/$INPUT_DIR" -type f -name "*.fna" | sort > "$GENOME_LIST"
+if [ ! -f "$GENOME_LIST" ]; then
+    find "$WORKDIR/$INPUT_DIR" -type f -name "*.fna" | sort > "$GENOME_LIST"
+fi
 NGENOMES=$(wc -l < "$GENOME_LIST")
 
 if [ "$NGENOMES" -eq 0 ]; then
