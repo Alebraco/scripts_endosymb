@@ -4,29 +4,29 @@ source ~/.bashrc
 conda activate /usr/local/usrapps/metastrain/asoneto/annotation/
 
 BAKTA_DB="/rs1/researchers/l/ljbobay/asoneto/endosymb/bakta_db/db/"
-INPUT_DIR=($INPUT_DIR)
-OUTDIR=($OUTDIR)
-OUTPATH="$INPUT_DIR/$OUTDIR"
+all_files=($(cat "$GENOME_LIST"))
+start_index=$((($LSB_JOBINDEX - 1) * 100))
+end_index=$(($start_index + 99))
 
-GENOMES=($(find $INPUT_DIR -type f -name "*.fna" | sort))
+for ((i=start_index; i<=end_index && i<${#all_files[@]}; i++)); do
+    genome=${all_files[$i]}
+    prefix=$(basename $genome .fna)
+    subpath=${genome#$INPUT_DIR/}
+    subpath=${subpath%.fna}
 
-START_INDEX=$((($LSB_JOBINDEX - 1) * 10))
-END_INDEX=$(($START_INDEX + 9))
+    scratch_out="/share/metastrain/asoneto/endosymb/bakta_results/$subpath"
+    dest="$WORKDIR/$OUTDIR/$subpath"
+    mkdir -p $scratch_out
+    mkdir -p $dest
 
-for ((i=START_INDEX; i<=END_INDEX && i<${#GENOMES[@]}; i++)); do
-    GENOME=${GENOMES[$i]}
-    SUBPATH=${GENOME#$INPUT_DIR/}
-    SUBPATH=${SUBPATH%.fna}
-    ANNOTPATH=$OUTPATH/$SUBPATH/
-
-    PREFIX=$(basename $GENOME .fna)
-
-    echo "Batch $LSB_JOBINDEX: Annotating $PREFIX"
+    echo "Batch $LSB_JOBINDEX: Annotating $prefix"
     bakta --db $BAKTA_DB \
-        --output $ANNOTPATH \
-        --prefix $PREFIX \
+        --output $scratch_out \
+        --prefix $prefix \
         --threads 8 \
-        $GENOME
+        $genome
+
+    cp -a $scratch_out/. $dest/
 done
 
 conda deactivate
