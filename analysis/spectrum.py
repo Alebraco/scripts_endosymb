@@ -681,7 +681,7 @@ def rate_shift_plot_gc(df, position, annotate=False):
 
 def gc_equilibrium(df):
     '''
-    GC equilibrium plot comparing observed GC content to predicted equilibrium GC based on mutation rates.
+    GC equilibrium plot comparing observed GC content to predicted equilibrium GC based on substitution rates.
     '''
 
     r_gc_at, r_at_gc = mutation_types[0], mutation_types[1]
@@ -801,12 +801,12 @@ def combined_sites_boxplot(strip=False):
                         alpha=0.4,
                         legend=False
                         )
-        ax.set_title(f'{mut.replace("r","")} Rates by Site', fontsize=24, fontweight='bold')
+        ax.set_title(f'{mut.replace("r","")} Substitution Frequency by Site', fontsize=24, fontweight='bold')
         ax.set_xlabel('')
         ax.set_xticks([0,1,2])
         ax.set_xticklabels(display_labels, fontsize=22)
         
-        ax.set_ylabel('Mutation Rate', fontsize=22, fontweight='bold')
+        ax.set_ylabel(f'{mut.replace("r","")} Substitution Frequency', fontsize=22, fontweight='bold')
         ax.tick_params(axis='y', labelsize=18)
         ax.set_ylim(-0.05, 1)
 
@@ -817,7 +817,7 @@ def combined_sites_boxplot(strip=False):
             ax.legend(title='Group', fontsize=16, title_fontsize=18)
         else:
             ax.get_legend().remove()
-    fig.suptitle('Comparison of Mutation Rates Across Codon Sites', fontsize=26, fontweight='bold')
+    fig.suptitle('Comparison of Substitution Frequencies Across Codon Sites', fontsize=26, fontweight='bold')
     fig.supxlabel('Codon Site', fontsize=22, fontweight='bold')
 
     plt.tight_layout()
@@ -851,11 +851,11 @@ def combined_sites_boxplot(strip=False):
                         legend=False,
                         ax = ax
                         )
-        plt.title(f'{mut.replace("r","")} Rates by Site', fontsize=30, fontweight='bold')
+        plt.title(f'{mut.replace("r","")} Substitution Frequency by Site', fontsize=30, fontweight='bold')
         plt.xlabel('Codon Site', fontsize=26, fontweight='bold')
         plt.xticks([0,1,2], display_labels, fontsize=24)
 
-        plt.ylabel('Mutation Rate', fontsize=26, fontweight='bold')
+        plt.ylabel(f'{mut.replace("r","")} Substitution Frequency', fontsize=26, fontweight='bold')
         plt.yticks(fontsize=22)
         plt.ylim(-0.05, 1)
 
