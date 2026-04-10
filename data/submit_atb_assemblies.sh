@@ -7,24 +7,16 @@
 #SBATCH --cpus-per-task=1
 
 # Wrapper script: reads the assembly batch index to determine how many batches
-# exist, then launches run_atb_assemblies.sh as a SLURM array job.
-#
-# One array task = one assembly tar.xz batch = N genomes to extract.
-# Tasks are throttled to 10 running at a time (%10) to avoid hammering
-# the ATB download servers.
+# exist, then launches run_atb_worker.sh as a SLURM array job.
 #
 # Usage:
 #   sbatch data/submit_atb_assemblies.sh
 #
 # Must be run after download_atb_bacteria.py has generated the batch index.
-# Edit OUTDIR below to match the --outdir you passed to that script.
+# Can be submitted at the same time as submit_atb_bakta.sh
 
-# Root output directory — must match what was passed to download_atb_bacteria.py
 OUTDIR="atb_bacteria"
-
-# Directory containing this script; used to locate run_atb_assemblies.sh
 SCRIPT_DIR="$(dirname "$0")"
-
 INDEX="${OUTDIR}/asm_batch_index.tsv"
 
 if [[ ! -f "$INDEX" ]]; then
@@ -33,7 +25,6 @@ if [[ ! -f "$INDEX" ]]; then
     exit 1
 fi
 
-# Count lines = number of assembly batches = upper bound for the array
 N=$(wc -l < "$INDEX")
 
 if [[ "$N" -eq 0 ]]; then
@@ -45,6 +36,7 @@ mkdir -p "${OUTDIR}/logs"
 
 echo "Found $N assembly batches — submitting array job 1-${N}."
 sbatch --array=1-${N}%10 \
+       --export=ALL,MODE=assemblies \
        --output="${OUTDIR}/logs/asm_%A_%a.out" \
        --error="${OUTDIR}/logs/asm_%A_%a.err" \
-       "${SCRIPT_DIR}/run_atb_assemblies.sh"
+       "${SCRIPT_DIR}/run_atb_worker.sh"
