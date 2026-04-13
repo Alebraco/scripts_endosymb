@@ -87,7 +87,20 @@ if [[ "$MODE" == "assemblies" ]]; then
         fi
     done < <(awk -F'\t' -v tar="$TAR_XZ" 'NR>1 && $4==tar {print $1"\t"$2"\t"$3}' "$MANIFEST")
 
-else 
+else
+    # Bakta JSONs live inside a subdirectory within the tar whose name we
+    # don't know ahead of time.  Extract the whole archive to a temp dir,
+    # then find and move only the samples we need.
+    TMP_DIR="${DL_DIR}/tmp_${SLURM_JOB_ID}_${SLURM_ARRAY_TASK_ID}"
+    mkdir -p "${TMP_DIR}"
+    echo "Extracting full bakta archive to ${TMP_DIR}"
+    tar -xf "${TARBALL}" -C "${TMP_DIR}"
+    if [[ $? -ne 0 ]]; then
+        echo "ERROR: tar extraction failed for ${TAR_XZ}"
+        rm -rf "${TMP_DIR}"
+        exit 1
+    fi
+
     while IFS=$'\t' read -r SAMPLE SPECIES; do
         SPECIES_DIR="${OUT_DIR}/$(echo "${SPECIES}" | tr ' ' '_' | tr '/' '_' | tr -d "'")"
         DEST="${SPECIES_DIR}/${SAMPLE}.bakta.json"
@@ -97,16 +110,31 @@ else
             continue
         fi
 
+        # Locate the JSON inside the extracted tree
+        SRC=$(find "${TMP_DIR}" -name "${SAMPLE}.bakta.json" -o -name "${SAMPLE}.bakta.json.gz" | head -1)
+
+        if [[ -z "$SRC" ]]; then
+            echo "WARN: ${SAMPLE}.bakta.json not found in ${TAR_XZ}"
+            continue
+        fi
+
         mkdir -p "${SPECIES_DIR}"
 
-        tar -xf "${TARBALL}" "${SAMPLE}.bakta.json" -O > "${DEST}"
-        if [[ $? -eq 0 && -s "${DEST}" ]]; then
+        if [[ "$SRC" == *.gz ]]; then
+            gzip -dc "$SRC" > "${DEST}"
+        else
+            cp "$SRC" "${DEST}"
+        fi
+
+        if [[ -s "${DEST}" ]]; then
             EXTRACTED=$((EXTRACTED + 1))
         else
             echo "WARN: extraction failed for ${SAMPLE} from ${TAR_XZ}"
             rm -f "${DEST}"
         fi
     done < <(awk -F'\t' -v tar="$TAR_XZ" 'NR>1 && $6==tar {print $1"\t"$2}' "$MANIFEST")
+
+    rm -rf "${TMP_DIR}"
 fi
 
 echo "Batch ${TAR_XZ}: extracted=${EXTRACTED} skipped=${SKIPPED}"

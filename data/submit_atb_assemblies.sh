@@ -16,7 +16,7 @@
 # Can be submitted at the same time as submit_atb_bakta.sh
 
 OUTDIR="atb_bacteria"
-SCRIPT_DIR="$(dirname "$0")"
+SCRIPT_DIR="scripts_endosymb/data/"
 INDEX="${OUTDIR}/asm_batch_index.tsv"
 
 if [[ ! -f "$INDEX" ]]; then
