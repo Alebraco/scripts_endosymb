@@ -1,10 +1,15 @@
 import pandas as pd
 import numpy as np
 from sklearn.preprocessing import StandardScaler
+import argparse
 import joblib
 import os
 
-df = pd.read_csv('endosymb+relatives/feature_files/combined_features.csv')
+parser = argparse.ArgumentParser()
+parser.add_argument('--base_path')
+args = parser.parse_args()
+
+df = pd.read_csv(f'{args.base_path}/feature_files/combined_features.csv')
 
 feature_columns = ['GC4', 'AV_Bias','Rest_Bias',
                    'Transposase_Per_Gene','Mean_IGS_Size']
