@@ -16,11 +16,11 @@ feature_columns = ['GC4', 'AV_Bias','Rest_Bias',
 scaler = StandardScaler()
 df[feature_columns] = scaler.fit_transform(df[feature_columns])
 
-df['Symbiotic_Status'] = df['Group'].map({'Endosymbiont': 1, 'Free-living': 0})
+df['is_endosymbiont'] = df['Group'].map({'endosymb_only': 1, 'relatives_only': 0})
 species_cat = df['Species'].astype('category')
 df['clade_idx'] = species_cat.cat.codes
 
-endosymb_mask = df['Symbiotic_Status'] == 1
+endosymb_mask = df['is_endosymbiont'] == 1
 df['endosymb_idx'] = -1
 df.loc[endosymb_mask, 'endosymb_idx'] = np.arange(endosymb_mask.sum())
 
@@ -29,6 +29,6 @@ df.to_csv('endosymb+relatives/feature_files/processed/processed_bayesian_data.cs
 joblib.dump(scaler, 'endosymb+relatives/feature_files/processed/bayesian_scaler.joblib')
 
 print(f'Genomes: {len(df)}')
-print(f'Endosymbionts: {df["Symbiotic_Status"].sum()}')
+print(f'Endosymbionts: {df["is_endosymbiont"].sum()}')
 print(f'Clades: {df["clade_idx"].nunique()}')
 print(f'Features: {feature_columns}')
