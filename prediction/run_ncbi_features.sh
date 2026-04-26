@@ -14,8 +14,9 @@ conda activate /usr/local/usrapps/metastrain/asoneto/annotation
 mkdir -p prediction_logs/logs_IS
 
 # CONFIGURE
-BASE_PATH="ncbi_bacteria"
+BASE_PATH="${1:-ncbi_bacteria}"
 INPUT_DIRS=("$BASE_PATH/proteins")
+echo "Using BASE_PATH=$BASE_PATH"
 TRANS_DB="files/IS_db_fixed.dmnd"
 
 

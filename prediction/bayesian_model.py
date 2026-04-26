@@ -1,5 +1,6 @@
 import pymc as pm
 import numpy as np
+import pytensor.tensor as pt
 
 def build_prototype(df, feature='GC4'):
     """Single-feature hierarchical model for transition parameter estimation."""
@@ -24,17 +25,17 @@ def build_prototype(df, feature='GC4'):
         mu_clade = pm.Normal('mu_clade', mu=mu_global, 
                              sigma=sigma_clade, shape=n_clades)
         
-        # Endosymbiont-specific decay signal
+        # Transition parameters
         theta_endo = pm.HalfNormal('theta_endo', sigma=1, 
                                     shape=n_endo)
-        theta_free = pm.HalfNormal('theta_free', mu=0, sigma=0.01,
+        theta_free = pm.HalfNormal('theta_free', sigma=0.01,
                                   shape=n_free)
         
         # Build full theta
-        theta = pm.math.zeros_like(y, dtype='floatX')
-        theta = pm.math.set_subtensor(
+        theta = pt.zeros(len(y))
+        theta = pt.set_subtensor(
             theta[endo_positions], theta_endo)
-        theta = pm.math.set_subtensor(
+        theta = pt.set_subtensor(
             theta[free_positions], theta_free)
         
         # Expected value
