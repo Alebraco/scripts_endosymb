@@ -8,12 +8,9 @@
 
 # Wrapper: builds a species list from atb_bacteria/annotations/, then submits
 # a SLURM array where each task unpacks one species' Bakta JSONs into the
-# feature-pipeline layout (.faa in proteins/, .gff co-located with .fna in genomes/).
+# feature-pipeline layout
 #
 # Run after submit_atb_assemblies.sh and submit_atb_bakta.sh have both finished.
-#
-# Usage:
-#   sbatch data/submit_atb_unpack.sh
 
 OUTDIR="atb_bacteria"
 SCRIPT_DIR="$(dirname "$0")"
@@ -44,8 +41,7 @@ sbatch --array=1-${N}%20 \
        --output="${OUTDIR}/logs/unpack_%A_%a.out" \
        --error="${OUTDIR}/logs/unpack_%A_%a.err" \
        --export=ALL,SPECIES_LIST="${SPECIES_LIST}",OUTDIR="${OUTDIR}" \
-       --wrap "set -e; \
-               source ~/.bashrc; \
+       --wrap "source ~/.bashrc; \
                conda activate endosymb; \
                SPECIES=\$(sed -n \"\${SLURM_ARRAY_TASK_ID}p\" \"${SPECIES_LIST}\"); \
                python ${SCRIPT_DIR}/unpack_bakta_json.py \
