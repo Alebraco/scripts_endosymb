@@ -253,7 +253,13 @@ def make_cluster_plots(df, results):
               f"Run prediction/posterior_analysis.py first.")
         return
 
-    clusters = pd.read_csv(CLUSTER_CSV)[["File", "stage"]].dropna()
+    clusters = (
+        pd.read_csv(CLUSTER_CSV)[["File", "bgmm_prob", "stage"]]
+        .dropna()
+        .sort_values("bgmm_prob", ascending=False)
+        .drop_duplicates(subset="File")
+        [["File", "stage"]]
+    )
     merged = df.merge(clusters, on="File", how="inner")
     print(f"Cluster-merged rows: {len(merged)} / {len(df)}")
     if merged.empty:
