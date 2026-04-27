@@ -209,7 +209,7 @@ def make_plots(df, results):
     x_line = np.linspace(df["theta_mean"].min(), df["theta_mean"].max(), 200)
     ax.plot(x_line, m * x_line + b, color="gray", linewidth=1.5, zorder=5)
     ax.set_xlabel(r"Posterior mean $\theta$", fontsize=13)
-    ax.set_ylabel("Median distance to relatives (protein)", fontsize=13)
+    ax.set_ylabel("Median distance to relatives", fontsize=13)
     ax.set_title(
         rf"$\theta$ vs distance-to-relatives  "
         rf"(Spearman $\rho={rho:.3f}$, p={p:.2e}, n={len(df)})",
@@ -233,7 +233,7 @@ def make_plots(df, results):
     ax.set_xlabel(r"Posterior mean $\theta$", fontsize=13)
     ax.set_ylabel("Genome size", fontsize=13)
     ax.set_title(
-        rf"$\theta$ vs genome size  "
+        rf"$\theta$ vs Genome Size  "
         rf"(Spearman $\rho={rho:.3f}$, p={p:.2e}, n={len(df)})",
         fontsize=13,
     )
