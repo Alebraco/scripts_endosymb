@@ -28,7 +28,7 @@ from utils import (
 )
 
 THETA_CSV = os.path.join("files", "theta_all_genomes.csv")
-CLUSTER_CSV = os.path.join("prediction", "endosymbiont_clusters.csv")
+CLUSTER_CSV = os.path.join("files", "endosymbiont_clusters.csv")
 GROUP = "endosymb+relatives"
 OUT_CSV = os.path.join(files_dir, "theta_correlations.csv")
 OUT_STATS = os.path.join(files_dir, "theta_correlations_stats.txt")
