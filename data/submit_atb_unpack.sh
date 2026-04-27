@@ -15,7 +15,7 @@
 # Run after submit_atb_assemblies.sh and submit_atb_bakta.sh have both finished.
 
 OUTDIR="/rsstu/users/l/ljbobay/recombination/asoneto/atb_bacteria"
-SCRIPT_DIR="$(dirname "$0")"
+SCRIPT_DIR="rs1/researchers/l/ljbobay/asoneto/endosymb/scripts_endosymb/data"
 ANN_DIR="${OUTDIR}/annotations"
 SPECIES_LIST="${OUTDIR}/unpack_species_list.txt"
 
@@ -64,7 +64,7 @@ while [[ $start -le $N ]]; do
          -e "${OUTDIR}/logs/unpack_%J_%I.err" \
          -env "SPECIES_LIST=${SPECIES_LIST},OUTDIR=${OUTDIR}" \
          "source ~/.bashrc; \
-          conda activate endosymb; \
+          conda activate /usr/local/usrapps/metastrain/asoneto/annotation; \
           SPECIES=\$(sed -n \"\${LSB_JOBINDEX}p\" \"${SPECIES_LIST}\"); \
           python ${SCRIPT_DIR}/unpack_bakta_json.py \
               --annotations-dir ${OUTDIR}/annotations \
