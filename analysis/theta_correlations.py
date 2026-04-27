@@ -205,6 +205,9 @@ def make_plots(df, results):
     )
     cbar = plt.colorbar(sc)
     cbar.set_label("Genome size (Mb)", fontsize=12)
+    m, b = np.polyfit(df["theta_mean"], df["median_distance"], 1)
+    x_line = np.linspace(df["theta_mean"].min(), df["theta_mean"].max(), 200)
+    ax.plot(x_line, m * x_line + b, color="gray", linewidth=1.5, zorder=5)
     ax.set_xlabel(r"Posterior mean $\theta$", fontsize=13)
     ax.set_ylabel("Median distance to relatives (protein)", fontsize=13)
     ax.set_title(
@@ -223,6 +226,9 @@ def make_plots(df, results):
         s=40, edgecolors="black", linewidths=0.3, alpha=0.85,
         color="#2f6690",
     )
+    m, b = np.polyfit(df["theta_mean"], df["genome_size"], 1)
+    x_line = np.linspace(df["theta_mean"].min(), df["theta_mean"].max(), 200)
+    ax.plot(x_line, m * x_line + b, color="gray", linewidth=1.5, zorder=5)
     ax.yaxis.set_major_formatter(plt.FuncFormatter(lambda x, _p: f"{x/1e6:.1f} Mb"))
     ax.set_xlabel(r"Posterior mean $\theta$", fontsize=13)
     ax.set_ylabel("Genome size", fontsize=13)
