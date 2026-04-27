@@ -25,16 +25,17 @@ def process_sample(json_path, sample, species, proteins_dir, genomes_dir, force)
     os.makedirs(os.path.dirname(gff_path), exist_ok=True)
 
     with tempfile.TemporaryDirectory() as tmp:
+        out_dir = os.path.join(tmp, 'out')
         result = subprocess.run(
-            ['bakta_io', '--output', tmp, '--prefix', sample, json_path],
+            ['bakta_io', '--output', out_dir, '--prefix', sample, json_path],
             capture_output=True, text=True,
         )
         if result.returncode != 0:
             print(f'ERROR: bakta_io failed for {json_path}: {result.stderr}', file=sys.stderr)
             return 'error'
 
-        tmp_faa = os.path.join(tmp, f'{sample}.faa')
-        tmp_gff = os.path.join(tmp, f'{sample}.gff')
+        tmp_faa = os.path.join(out_dir, f'{sample}.faa')
+        tmp_gff = os.path.join(out_dir, f'{sample}.gff')
         if not os.path.exists(tmp_faa) or not os.path.exists(tmp_gff):
             print(f'ERROR: bakta_io did not produce expected files for {json_path}', file=sys.stderr)
             return 'error'
