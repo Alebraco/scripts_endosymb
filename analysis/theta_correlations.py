@@ -35,6 +35,22 @@ OUT_MISMATCHES = os.path.join(files_dir, "theta_correlations_mismatches.txt")
 PLOT_DIR = os.path.join("plots", "theta_correlations")
 
 
+def lookup_species_matrix(species, distance_matrices):
+    """Try name normalizations to find a species' distance matrix.
+
+    Matrix keys use underscores instead of spaces and may carry an
+    '_endosymbiont' suffix that is absent from the theta CSV Species column.
+    """
+    for key in (
+        species,
+        species.replace(" ", "_"),
+        species.replace(" ", "_") + "_endosymbiont",
+    ):
+        if key in distance_matrices:
+            return distance_matrices[key]
+    return None
+
+
 def resolve_endo_id(file_value, matrix_index):
     """Return the matrix-index entry that matches the theta-table File value.
 
@@ -80,7 +96,7 @@ def build_table():
         species = row["Species"]
         file_value = row["File"]
 
-        matrix = distance_matrices.get(species)
+        matrix = lookup_species_matrix(species, distance_matrices)
         if matrix is None:
             skipped["no_species_matrix"] += 1
             mismatches.append(("no_species_matrix", species, file_value, ""))
