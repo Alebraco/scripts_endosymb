@@ -15,7 +15,7 @@
 # Run after submit_atb_assemblies.sh and submit_atb_bakta.sh have both finished.
 
 OUTDIR="/rsstu/users/l/ljbobay/recombination/asoneto/atb_bacteria"
-SCRIPT_DIR="rs1/researchers/l/ljbobay/asoneto/endosymb/scripts_endosymb/data"
+SCRIPT_DIR="/rs1/researchers/l/ljbobay/asoneto/endosymb/scripts_endosymb/data"
 ANN_DIR="${OUTDIR}/annotations"
 SPECIES_LIST="${OUTDIR}/unpack_species_list.txt"
 
