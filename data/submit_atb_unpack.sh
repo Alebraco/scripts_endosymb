@@ -58,10 +58,11 @@ while [[ $start -le $N ]]; do
     echo "Submitting chunk ${start}-${end}..."
     bsub -J "atb_unpack[${start}-${end}]%${CONCURRENT}" \
          -W 02:00 \
-         -M 4000 \
+         -R "rusage[mem=2GB] span[hosts=1]" \
          -n 1 \
          -o "${OUTDIR}/logs/unpack_%J_%I.out" \
          -e "${OUTDIR}/logs/unpack_%J_%I.err" \
+         -q bobay \
          -env "SPECIES_LIST=${SPECIES_LIST},OUTDIR=${OUTDIR}" \
          "source ~/.bashrc; \
           conda activate /usr/local/usrapps/metastrain/asoneto/annotation; \
