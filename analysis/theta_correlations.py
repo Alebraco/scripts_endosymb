@@ -27,7 +27,7 @@ from utils import (
     genome_gcsize_json_path,
 )
 
-THETA_CSV = os.path.join("prediction", "theta_all_genomes.csv")
+THETA_CSV = os.path.join("files", "theta_all_genomes.csv")
 GROUP = "endosymb+relatives"
 OUT_CSV = os.path.join(files_dir, "theta_correlations.csv")
 OUT_STATS = os.path.join(files_dir, "theta_correlations_stats.txt")
