@@ -28,11 +28,15 @@ from utils import (
 )
 
 THETA_CSV = os.path.join("files", "theta_all_genomes.csv")
+CLUSTER_CSV = os.path.join("prediction", "endosymbiont_clusters.csv")
 GROUP = "endosymb+relatives"
 OUT_CSV = os.path.join(files_dir, "theta_correlations.csv")
 OUT_STATS = os.path.join(files_dir, "theta_correlations_stats.txt")
 OUT_MISMATCHES = os.path.join(files_dir, "theta_correlations_mismatches.txt")
 PLOT_DIR = os.path.join("plots", "theta_correlations")
+
+STAGE_ORDER = ["recent", "transitional", "reduced", "ancient"]
+STAGE_COLORS = dict(zip(STAGE_ORDER, plt.cm.viridis(np.linspace(0.2, 0.9, 4))))
 
 
 def _name_variants(species):
@@ -243,6 +247,73 @@ def make_plots(df, results):
     print(f"Plots written to {PLOT_DIR}/")
 
 
+def make_cluster_plots(df, results):
+    if not os.path.exists(CLUSTER_CSV):
+        print(f"Skipping cluster plots: {CLUSTER_CSV} not found. "
+              f"Run prediction/posterior_analysis.py first.")
+        return
+
+    clusters = pd.read_csv(CLUSTER_CSV)[["File", "stage"]].dropna()
+    merged = df.merge(clusters, on="File", how="inner")
+    print(f"Cluster-merged rows: {len(merged)} / {len(df)}")
+    if merged.empty:
+        print("No rows after merging with cluster data.")
+        return
+
+    os.makedirs(PLOT_DIR, exist_ok=True)
+    stages_present = [s for s in STAGE_ORDER if s in merged["stage"].unique()]
+
+    rho, p = results[("theta_mean", "median_distance")]["spearman"]
+    fig, ax = plt.subplots(figsize=(8, 6))
+    for stage in stages_present:
+        sub = merged[merged["stage"] == stage]
+        ax.scatter(
+            sub["theta_mean"], sub["median_distance"],
+            color=STAGE_COLORS[stage], label=stage.capitalize(),
+            s=40, edgecolors="black", linewidths=0.3, alpha=0.85,
+        )
+    m, b = np.polyfit(merged["theta_mean"], merged["median_distance"], 1)
+    x_line = np.linspace(merged["theta_mean"].min(), merged["theta_mean"].max(), 200)
+    ax.plot(x_line, m * x_line + b, color="gray", linewidth=1.5, zorder=5)
+    ax.legend(title="Stage", fontsize=11)
+    ax.set_xlabel(r"Posterior mean $\theta$", fontsize=13)
+    ax.set_ylabel("Median distance to relatives", fontsize=13)
+    ax.set_title(
+        rf"$\theta$ vs distance-to-relatives  "
+        rf"(Spearman $\rho={rho:.3f}$, p={p:.2e}, n={len(merged)})",
+        fontsize=13,
+    )
+    plt.tight_layout()
+    plt.savefig(os.path.join(PLOT_DIR, "theta_vs_distance_clusters.pdf"))
+    plt.close()
+
+    rho, p = results[("theta_mean", "genome_size")]["spearman"]
+    fig, ax = plt.subplots(figsize=(8, 6))
+    for stage in stages_present:
+        sub = merged[merged["stage"] == stage]
+        ax.scatter(
+            sub["theta_mean"], sub["genome_size"],
+            color=STAGE_COLORS[stage], label=stage.capitalize(),
+            s=40, edgecolors="black", linewidths=0.3, alpha=0.85,
+        )
+    m, b = np.polyfit(merged["theta_mean"], merged["genome_size"], 1)
+    x_line = np.linspace(merged["theta_mean"].min(), merged["theta_mean"].max(), 200)
+    ax.plot(x_line, m * x_line + b, color="gray", linewidth=1.5, zorder=5)
+    ax.yaxis.set_major_formatter(plt.FuncFormatter(lambda x, _p: f"{x/1e6:.1f} Mb"))
+    ax.legend(title="Stage", fontsize=11)
+    ax.set_xlabel(r"Posterior mean $\theta$", fontsize=13)
+    ax.set_ylabel("Genome size", fontsize=13)
+    ax.set_title(
+        rf"$\theta$ vs Genome Size  "
+        rf"(Spearman $\rho={rho:.3f}$, p={p:.2e}, n={len(merged)})",
+        fontsize=13,
+    )
+    plt.tight_layout()
+    plt.savefig(os.path.join(PLOT_DIR, "theta_vs_size_clusters.pdf"))
+    plt.close()
+    print(f"Cluster plots written to {PLOT_DIR}/")
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--force", action="store_true",
@@ -260,6 +331,7 @@ def main():
 
     results = run_correlations(df)
     make_plots(df, results)
+    make_cluster_plots(df, results)
 
 
 if __name__ == "__main__":
