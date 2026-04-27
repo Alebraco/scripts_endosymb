@@ -31,6 +31,7 @@ THETA_CSV = os.path.join("files", "theta_all_genomes.csv")
 GROUP = "endosymb+relatives"
 OUT_CSV = os.path.join(files_dir, "theta_correlations.csv")
 OUT_STATS = os.path.join(files_dir, "theta_correlations_stats.txt")
+OUT_MISMATCHES = os.path.join(files_dir, "theta_correlations_mismatches.txt")
 PLOT_DIR = os.path.join("plots", "theta_correlations")
 
 
@@ -73,6 +74,7 @@ def build_table():
     rows = []
     skipped = {"no_species_matrix": 0, "no_relatives": 0,
                "id_unresolved": 0, "no_size_entry": 0}
+    mismatches = []
 
     for _, row in endo.iterrows():
         species = row["Species"]
@@ -81,16 +83,21 @@ def build_table():
         matrix = distance_matrices.get(species)
         if matrix is None:
             skipped["no_species_matrix"] += 1
+            mismatches.append(("no_species_matrix", species, file_value, ""))
             continue
 
         relatives = [idx for idx in matrix.index if "_genomic" in idx]
         if not relatives:
             skipped["no_relatives"] += 1
+            mismatches.append(("no_relatives", species, file_value, ""))
             continue
 
         endo_id = resolve_endo_id(file_value, matrix.index)
         if endo_id is None:
             skipped["id_unresolved"] += 1
+            endo_ids_in_matrix = [i for i in matrix.index if "_genomic" not in i]
+            mismatches.append(("id_unresolved", species, file_value,
+                               "|".join(endo_ids_in_matrix)))
             print(f"  unresolved: {species} / {file_value}")
             continue
 
@@ -118,8 +125,14 @@ def build_table():
     print(f"Retained {len(rows)} / {len(endo)} endosymbionts. "
           f"Skipped: {skipped}")
 
-    df = pd.DataFrame(rows)
     os.makedirs(files_dir, exist_ok=True)
+    with open(OUT_MISMATCHES, "w") as f:
+        f.write("reason\tspecies\tfile_value\tmatrix_endo_ids\n")
+        for reason, species, file_value, extra in mismatches:
+            f.write(f"{reason}\t{species}\t{file_value}\t{extra}\n")
+    print(f"Wrote {OUT_MISMATCHES} ({len(mismatches)} entries)")
+
+    df = pd.DataFrame(rows)
     df.to_csv(OUT_CSV, index=False)
     print(f"Wrote {OUT_CSV}")
     return df
