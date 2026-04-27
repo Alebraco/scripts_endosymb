@@ -35,20 +35,32 @@ OUT_MISMATCHES = os.path.join(files_dir, "theta_correlations_mismatches.txt")
 PLOT_DIR = os.path.join("plots", "theta_correlations")
 
 
+def _name_variants(species):
+    base = species.replace(" ", "_")
+    return (species, base, base + "_endosymbiont")
+
+
 def lookup_species_matrix(species, distance_matrices):
     """Try name normalizations to find a species' distance matrix.
 
     Matrix keys use underscores instead of spaces and may carry an
     '_endosymbiont' suffix that is absent from the theta CSV Species column.
     """
-    for key in (
-        species,
-        species.replace(" ", "_"),
-        species.replace(" ", "_") + "_endosymbiont",
-    ):
+    for key in _name_variants(species):
         if key in distance_matrices:
             return distance_matrices[key]
     return None
+
+
+def lookup_species_gcsize(species, genome_dataset):
+    """Try name normalizations to find a species' genome-size entry.
+
+    Genome directories follow the same convention as tree directories.
+    """
+    for key in _name_variants(species):
+        if key in genome_dataset:
+            return genome_dataset[key]
+    return {}
 
 
 def resolve_endo_id(file_value, matrix_index):
@@ -121,7 +133,7 @@ def build_table():
             [matrix.loc[endo_id, rel_id] for rel_id in relatives]
         ))
 
-        sp_entry = genome_dataset.get(species, {})
+        sp_entry = lookup_species_gcsize(species, genome_dataset)
         size_entry = sp_entry.get(endo_id) or sp_entry.get(file_value)
         if size_entry is None:
             skipped["no_size_entry"] += 1
