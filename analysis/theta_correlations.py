@@ -125,6 +125,7 @@ def build_table():
         size_entry = sp_entry.get(endo_id) or sp_entry.get(file_value)
         if size_entry is None:
             skipped["no_size_entry"] += 1
+            mismatches.append(("no_size_entry", species, file_value, endo_id))
             print(f"  no size: {species} / {endo_id}")
             continue
 
