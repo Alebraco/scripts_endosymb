@@ -6,13 +6,9 @@
 #BSUB -R "rusage[mem=2GB] span[hosts=1]"
 #BSUB -n 1
 
-# Wrapper: builds a species list from atb_bacteria/annotations/, then submits
-# LSF array chunks where each task unpacks one species' Bakta JSONs into the
-# feature-pipeline layout. Chunks are submitted one at a time; the script
-# waits when pending jobs are at or above MAX_PENDING to avoid hitting the
-# per-user pending job threshold.
-#
-# Run after submit_atb_assemblies.sh and submit_atb_bakta.sh have both finished.
+# Wrapper: builds a species list from atb_bacteria/annotations/, submits
+# LSF array chunks where to unpack Bakta JSON outputs.
+# Chunks are submitted one at a time to avoid overloading the cluster.
 
 OUTDIR="/rsstu/users/l/ljbobay/recombination/asoneto/atb_bacteria"
 SCRIPT_DIR="/rs1/researchers/l/ljbobay/asoneto/endosymb/scripts_endosymb/data"
