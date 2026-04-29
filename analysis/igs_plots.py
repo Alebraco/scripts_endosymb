@@ -9,6 +9,7 @@ import numpy as np
 from scipy import stats
 from delta_matrix import delta_matrix
 from gcsize_dict import genome_gcsize
+from sequence_features import collect_codon_stats
 from utils import files_dir, genome_gcsize_json_path, load_or_compute, group_names
 
 plot_dir = os.path.join('plots', 'igs_lengths')
@@ -215,6 +216,8 @@ def build_corr_df(summary_df):
     genome_data = load_or_compute(genome_json_path, genome_gcsize, 'endosymb+relatives')
     delta_df = delta_matrix(genome_data, mat_type='gc_genome')
     transposase = pd.read_csv(os.path.join(files_dir, 'median_transposases_species.csv'))
+    gc4_df = pd.read_csv(os.path.join(files_dir, 'fourfold_gc_content.csv'))
+    gc4_df = gc4_df[gc4_df['group'] == 'Endosymbionts']
 
     data_list = []
     for species, matrix in delta_df.items():
@@ -257,32 +260,137 @@ def build_corr_df(summary_df):
 
         transposases = transposase[transposase['Species'] == sp_name]['Median_Transposases'].values[0]
         delta_gc_value = np.median(dist_list)
+        gc4_row = gc4_df[gc4_df['species'] == sp_name]
+        gc4_value = gc4_row['overall_gc4'].iloc[0] if not gc4_row.empty else np.nan
         data_list.append({'species': sp_name, 'mean_IGS': igs_size, 'DeltaGC': delta_gc_value,
-                          'genome_gc': gc_value, 'genome_size': size, 'transposases': transposases})
+                          'genome_gc': gc_value, 'genome_size': size, 'transposases': transposases,
+                          'gc4': gc4_value})
 
     return pd.DataFrame(data_list)
 
 
-def scatterplot(corr_df, x_col):
-    labels = {
-        'DeltaGC': 'Delta GC%',
-        'genome_gc': 'Genome GC%',
+CORR_X_COLS = ['DeltaGC', 'gc4', 'genome_gc', 'genome_size', 'transposases']
+
+CORR_LABELS = {
+    'species': {
+        'DeltaGC':     'Delta GC% (median |Δ| over pairs)',
+        'gc4':         'GC4 (4-fold-degenerate site GC%)',
+        'genome_gc':   'Genome GC%',
         'genome_size': 'Genome Size (bp)',
-        'transposases': 'Median Number of Transposases',
-    }
-    plt.figure(figsize=(6, 6))
-    sns.scatterplot(data=corr_df, x=x_col, y='mean_IGS', alpha=0.6)
-    plt.xlabel(labels[x_col])
-    plt.ylabel('Mean IGS Size (bp)')
-    plt.title(f'IGS Size and {labels[x_col]} in Endosymbionts')
-    plt.tight_layout()
-    plt.savefig(os.path.join(plot_dir, f'IGS_vs_{x_col}_endosymb.pdf'))
-    plt.close()
+        'transposases':'Median Number of Transposases',
+    },
+    'genome': {
+        'DeltaGC':     'Delta GC% (|genome GC − median relative GC|)',
+        'gc4':         'GC4 (4-fold-degenerate site GC%)',
+        'genome_gc':   'Genome GC%',
+        'genome_size': 'Genome Size (bp)',
+        'transposases':'Total Transposases',
+    },
+}
 
 
-def plot_igs_correlations(corr_df):
-    for x_col in ['DeltaGC', 'genome_gc', 'genome_size', 'transposases']:
-        scatterplot(corr_df, x_col)
+def plot_igs_correlation_panel(corr_df, level, output_name):
+    """
+    Render all IGS-vs-metric scatterplots in a single 2x3 panel PDF.
+    `level` is 'species' or 'genome' and selects axis labels / panel title.
+    """
+    labels = CORR_LABELS[level]
+    fig, axes = plt.subplots(2, 3, figsize=(16, 10))
+    axes_flat = axes.flatten()
+
+    for ax, x_col in zip(axes_flat, CORR_X_COLS):
+        sub = corr_df.dropna(subset=[x_col, 'mean_IGS'])
+        sns.scatterplot(data=sub, x=x_col, y='mean_IGS', alpha=0.6, ax=ax)
+        ax.set_xlabel(labels[x_col])
+        ax.set_ylabel('Mean IGS Size (bp)')
+        ax.set_title(labels[x_col])
+
+    # Hide any unused axes (we have 5 metrics in a 6-cell grid)
+    for ax in axes_flat[len(CORR_X_COLS):]:
+        ax.set_visible(False)
+
+    suptitle_suffix = 'per species' if level == 'species' else 'per genome'
+    fig.suptitle(f'IGS Size vs Genomic Metrics in Endosymbionts ({suptitle_suffix})',
+                 fontsize=16, fontweight='bold')
+    fig.tight_layout(rect=[0, 0, 1, 0.96])
+    fig.savefig(os.path.join(plot_dir, output_name))
+    plt.close(fig)
+
+
+def build_genome_corr_df():
+    """
+    Build a per-endosymbiont-genome dataframe with one row per genome.
+    Columns: species, file, mean_IGS, gc4, DeltaGC, genome_gc, genome_size, transposases.
+    DeltaGC = |genome_gc - median(GC of matched relatives in same species group)|.
+    GC4 is computed per genome from analysis/sequence_features.collect_codon_stats.
+    Transposases come from files/transposase_summary.csv (Total_Transposases per File).
+    """
+    # Per-genome IGS
+    igs_df = pd.read_csv(os.path.join(files_dir, 'genome_IGS.csv'))
+    igs_df = igs_df[igs_df['Group'] == 'endosymb_only'].copy()
+
+    # Per-accession genome GC, size + matched-relatives median GC
+    genome_data = load_or_compute(
+        genome_gcsize_json_path('endosymb+relatives'),
+        genome_gcsize, 'endosymb+relatives'
+    )
+    rel_median_by_species = {}      # sp_name -> median GC of relatives
+    endo_gc_by_file = {}            # file -> endosymb genome GC
+    endo_size_by_file = {}          # file -> endosymb genome size
+    for species, accessions in genome_data.items():
+        sp_name = species.replace('_endosymbiont', '').replace('_', ' ')
+        if not isinstance(accessions, dict):
+            continue
+        rel_gcs = [a.get('gc_genome') for gid, a in accessions.items()
+                   if '_genomic' in gid and isinstance(a, dict)]
+        rel_gcs = [g for g in rel_gcs if g is not None]
+        if rel_gcs:
+            rel_median_by_species[sp_name] = float(np.median(rel_gcs))
+        for gid, a in accessions.items():
+            if '_genomic' not in gid and isinstance(a, dict):
+                if a.get('gc_genome') is not None:
+                    endo_gc_by_file[gid] = a['gc_genome']
+                if a.get('size') is not None:
+                    endo_size_by_file[gid] = a['size']
+
+    # Per-genome GC4 (cached because it walks every GFF + FASTA)
+    gc4_cache = os.path.join(files_dir, 'codon_stats_endosymb_only.csv')
+    if os.path.isfile(gc4_cache):
+        codon_df = pd.read_csv(gc4_cache)
+    else:
+        codon_df = collect_codon_stats('endosymb_only', group_label='endosymb_only')
+        os.makedirs(files_dir, exist_ok=True)
+        codon_df.to_csv(gc4_cache, index=False)
+    gc4_by_file = dict(zip(codon_df['File'], codon_df['GC4']))
+
+    # Per-genome transposase counts
+    transposase_by_file = {}
+    transposase_path = os.path.join(files_dir, 'transposase_summary.csv')
+    if os.path.exists(transposase_path):
+        tdf = pd.read_csv(transposase_path)
+        tdf = tdf[tdf['Group'] == 'endosymb_only']
+        transposase_by_file = dict(zip(tdf['File'], tdf['Total_Transposases']))
+    else:
+        print(f'Warning: {transposase_path} not found; transposase column will be NaN.')
+
+    rows = []
+    for _, row in igs_df.iterrows():
+        sp_name = row['Species']
+        f = row['File']
+        endo_gc = endo_gc_by_file.get(f)
+        rel_med = rel_median_by_species.get(sp_name)
+        delta_gc = abs(endo_gc - rel_med) if (endo_gc is not None and rel_med is not None) else np.nan
+        rows.append({
+            'species': sp_name,
+            'file': f,
+            'mean_IGS': row['mean_IGS'],
+            'gc4': gc4_by_file.get(f, np.nan),
+            'DeltaGC': delta_gc,
+            'genome_gc': endo_gc if endo_gc is not None else np.nan,
+            'genome_size': endo_size_by_file.get(f, np.nan),
+            'transposases': transposase_by_file.get(f, np.nan),
+        })
+    return pd.DataFrame(rows)
 
 
 def load_summary_df():
@@ -303,4 +411,8 @@ if __name__ == '__main__':
     plot_igs_std_species_boxplot()
     plot_igs_scatterplot(summary_df)
     corr_df = build_corr_df(summary_df)
-    plot_igs_correlations(corr_df)
+    plot_igs_correlation_panel(corr_df, level='species',
+                               output_name='IGS_correlations_endosymb_species.pdf')
+    genome_corr_df = build_genome_corr_df()
+    plot_igs_correlation_panel(genome_corr_df, level='genome',
+                               output_name='IGS_correlations_endosymb_genome.pdf')
