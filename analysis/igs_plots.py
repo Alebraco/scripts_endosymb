@@ -303,7 +303,12 @@ def plot_igs_correlation_panel(corr_df, level, output_name):
         sns.scatterplot(data=sub, x=x_col, y='mean_IGS', alpha=0.6, ax=ax)
         ax.set_xlabel(labels[x_col])
         ax.set_ylabel('Mean IGS Size (bp)')
-        ax.set_title(labels[x_col])
+        if len(sub) >= 3:
+            rho, pval = stats.spearmanr(sub[x_col], sub['mean_IGS'])
+            stat_str = f'Spearman ρ = {rho:.2f}, p = {pval:.2g} (n={len(sub)})'
+        else:
+            stat_str = f'Spearman ρ = n/a (n={len(sub)})'
+        ax.set_title(f'{labels[x_col]}\n{stat_str}', fontsize=10)
 
     # Hide any unused axes (we have 5 metrics in a 6-cell grid)
     for ax in axes_flat[len(CORR_X_COLS):]:
