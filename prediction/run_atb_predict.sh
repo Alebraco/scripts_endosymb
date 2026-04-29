@@ -18,7 +18,7 @@
 source ~/.bashrc
 conda activate /usr/local/usrapps/metastrain/asoneto/annotation
 
-BASE_PATH="atb_bacteria"
+BASE_PATH="/rsstu/users/l/ljbobay/recombination/asoneto/atb_bacteria"
 
 # Stage 1: transposase BLAST + feature collection (chunked submission).
 bash scripts_endosymb/prediction/run_ncbi_features.sh "$BASE_PATH"
