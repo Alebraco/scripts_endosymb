@@ -61,11 +61,11 @@ def main():
     df = pd.read_csv(args.features_csv)
 
     X = df[feature_columns]
-    X_scaled = scaler.transform(X)
+    X_scaled = pd.DataFrame(scaler.transform(X), columns=feature_columns)
 
     probs = rf.predict_proba(X_scaled)
     preds = le.inverse_transform(rf.predict(X_scaled))
-    endosymb_idx = list(le.classes_).index('endosymb_only')
+    endosymb_idx = list(le.classes_).index('Endosymbionts')
     endosymb_prob = probs[:, endosymb_idx]
 
     results = pd.DataFrame({
@@ -75,7 +75,7 @@ def main():
         'Endosymb_Probability': endosymb_prob,
         'Confidence': [max(p, 1 - p) for p in endosymb_prob],
         'High_Conf_Endosymb': (
-            (preds == 'endosymb_only') & (endosymb_prob >= args.prob_threshold)
+            (preds == 'Endosymbionts') & (endosymb_prob >= args.prob_threshold)
         ),
     })
 
