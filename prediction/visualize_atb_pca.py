@@ -143,17 +143,21 @@ def plot_feature_distributions(train_df, train_X_raw, atb_df, atb_X_raw, outdir)
 def print_feature_summary(train_df, train_X_raw, atb_df, atb_X_raw):
     high_conf = atb_df['High_Conf_Endosymb'].fillna(False)
     endo_mask = train_df['Group'].values == 'Endosymbionts'
+    rel_mask  = train_df['Group'].values == 'Free-Living Relatives'
     hc_mask   = high_conf.values
 
-    print(f'\n{"Feature":<25} {"Train Endosymb (mean±std)":<30} {"ATB High-Conf (mean±std)"}')
-    print('-' * 85)
+    def fmt(arr):
+        return f'{arr.mean():.3f} ± {arr.std():.3f}  [{arr.min():.3f}, {arr.max():.3f}]'
+
+    col = 32
+    print(f'\n{"Feature":<25} {"Train Endosymb (mean±SD)":<{col}} {"Train Free-Living (mean±SD)":<{col}} {"ATB High-Conf (mean±SD)"}')
+    print('-' * (25 + col * 2 + 30))
     for feat in feature_columns:
         te = train_X_raw[feat].values[endo_mask]
+        fl = train_X_raw[feat].values[rel_mask]
         ah = atb_X_raw[feat].values[hc_mask]
-        te_str = f'{te.mean():.3f} ± {te.std():.3f}  [{te.min():.3f}, {te.max():.3f}]'
-        ah_str = (f'{ah.mean():.3f} ± {ah.std():.3f}  [{ah.min():.3f}, {ah.max():.3f}]'
-                  if hc_mask.any() else 'n/a')
-        print(f'{feat:<25} {te_str:<30} {ah_str}')
+        ah_str = fmt(ah) if hc_mask.any() else 'n/a'
+        print(f'{feat:<25} {fmt(te):<{col}} {fmt(fl):<{col}} {ah_str}')
 
     print(f'\nTotal ATB genomes: {len(atb_df)}')
     print(f'High-confidence endosymbiont predictions: {hc_mask.sum()}')

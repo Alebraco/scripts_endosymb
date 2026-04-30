@@ -21,7 +21,11 @@ conda activate /usr/local/usrapps/metastrain/asoneto/annotation
 BASE_PATH="/rsstu/users/l/ljbobay/recombination/asoneto/atb_bacteria"
 
 # Stage 1: transposase BLAST + feature collection (chunked submission).
-bash scripts_endosymb/prediction/run_ncbi_features.sh "$BASE_PATH"
+if [[ ! -f $BASE_PATH/feature_files/combined_features.csv ]]; then
+    echo "$BASE_PATH/feature_files/combined_features.csv not found. \
+    Running the feature extraction pipeline first."
+    bash scripts_endosymb/prediction/run_ncbi_features.sh "$BASE_PATH"
+fi
 
 # Stage 2: apply trained RF model to the resulting features.
 python -u scripts_endosymb/prediction/predict_atb.py \
