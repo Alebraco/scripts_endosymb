@@ -10,4 +10,4 @@
 source ~/.bashrc
 conda activate /usr/local/usrapps/metastrain/asoneto/annotation
 
-python -u scripts_endosymb/analysis/visualize_atb_pca.py
+python -u scripts_endosymb/prediction/visualize_atb_pca.py
