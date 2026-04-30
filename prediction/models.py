@@ -329,4 +329,4 @@ if __name__ == "__main__":
     # Serialize the model
     model_path = os.path.join('files', 'rf_model.joblib')
     os.makedirs('files', exist_ok=True)
-    dump((rf_model, None, le), model_path)
+    dump((rf_model, scaler, le), model_path)
