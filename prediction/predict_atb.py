@@ -61,10 +61,8 @@ def main():
     df = pd.read_csv(args.features_csv)
 
     X = df[feature_columns]
-    X_scaled = pd.DataFrame(scaler.transform(X), columns=feature_columns)
-
-    probs = rf.predict_proba(X_scaled)
-    preds = le.inverse_transform(rf.predict(X_scaled))
+    probs = rf.predict_proba(X)
+    preds = le.inverse_transform(rf.predict(X))
     endosymb_idx = list(le.classes_).index('Endosymbionts')
     endosymb_prob = probs[:, endosymb_idx]
 

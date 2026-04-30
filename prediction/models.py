@@ -11,7 +11,7 @@ from sklearn.metrics import confusion_matrix, classification_report, accuracy_sc
 from sklearn.inspection import permutation_importance
 import plotly.express as px
 import numpy as np
-from joblib import dump, load
+from joblib import dump
 import sys
 import os
 
@@ -329,26 +329,4 @@ if __name__ == "__main__":
     # Serialize the model
     model_path = os.path.join('files', 'rf_model.joblib')
     os.makedirs('files', exist_ok=True)
-    dump((rf_model, scaler, le), model_path)
-
-    # Use on new genomes
-    infer_path = os.path.join('ncbi_query', feature_dir, features_df)
-    if os.path.exists(infer_path):
-        rf_infer, scaler_infer, le_infer = load(model_path)
-        unknown_df = pd.read_csv(infer_path)
-        X_unk = unknown_df[feature_columns]
-        X_unk_scaled = scaler_infer.transform(X_unk)
-        probs = rf_infer.predict_proba(X_unk_scaled)
-        preds = le_infer.inverse_transform(rf_infer.predict(X_unk_scaled))
-        endosymb_idx = list(le_infer.classes_).index('endosymb_only')
-        results_df = pd.DataFrame({
-            'Species': unknown_df['Species'],
-            'File': unknown_df['File'],
-            'Predicted_Label': preds,
-            'Endosymb_Probability': probs[:, endosymb_idx],
-            'Confidence': [max(p, 1 - p) for p in probs[:, endosymb_idx]],
-            'Low_Confidence': [max(p, 1 - p) < 0.6 for p in probs[:, endosymb_idx]],
-        })
-        results_path = os.path.join('ncbi_query', feature_dir, 'rf_predictions.csv')
-        results_df.to_csv(results_path, index=False)
-        print(f"Predictions for new genomes saved to {results_path}")
+    dump((rf_model, None, le), model_path)
