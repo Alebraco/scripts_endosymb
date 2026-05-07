@@ -50,8 +50,10 @@ def main():
         print('No IGS or gene records found. Exiting.')
         return
 
-    igs_df = pd.DataFrame(igs_data).groupby(['Group', 'Species', 'File'])['IGS_Size'].mean().reset_index()
-    igs_df = igs_df.rename(columns={'IGS_Size': 'Mean_IGS_Size'})
+    igs_df = pd.DataFrame(igs_data).groupby(['Group', 'Species', 'File']).agg(
+        Mean_IGS_Size=('IGS_Size', 'mean'),
+        Num_Contigs=('Num_Contigs', 'first'),
+    ).reset_index()
     print('Done with IGS analysis.')
 
     gene_df = pd.DataFrame(gene_data)
@@ -69,6 +71,16 @@ def main():
     merged_df = pd.merge(merged_df, codon_stats_df, on=['Group', 'Species', 'File'], how='inner')
 
     merged_df = merged_df[merged_df['Gene_Count'] > 0]
+
+    n_before = len(merged_df)
+    fragmented = merged_df[merged_df['Num_Contigs'] > 50]
+    if not fragmented.empty:
+        print(f'Dropping {len(fragmented)} fragmented assemblies (Num_Contigs > 50):')
+        for f in fragmented['File'].tolist():
+            print(f'  {f}')
+    merged_df = merged_df[merged_df['Num_Contigs'] <= 50]
+    print(f'After Num_Contigs <= 50 filter: {len(merged_df)}/{n_before} rows kept.')
+
     merged_df['Transposase_Per_Gene'] = merged_df['Total_Transposases'] / merged_df['Gene_Count']
     merged_df['Delta_GC2_4'] = merged_df['GC2'] - merged_df['GC4']
 
