@@ -69,14 +69,16 @@ def gff_features(file_path):
     final_lengths = gene_lengths if gene_lengths else cds_lengths
     final_coords  = gene_coords  if gene_coords  else cds_coords
 
-    return IGS_sizes, final_lengths, final_coords
+    n_contigs = len(seqs)
+
+    return IGS_sizes, final_lengths, final_coords, n_contigs
 
 
 def _process_single_gff(file_path, sp_name, auto_classify, default_group):
 
     filename = os.path.basename(file_path).replace('.gff', '')
 
-    IGS_sizes, gene_lengths, _ = gff_features(file_path)
+    IGS_sizes, gene_lengths, _, n_contigs = gff_features(file_path)
 
     if auto_classify:
         current_group = 'relatives_only' if '_genomic' in filename else 'endosymb_only'
@@ -84,11 +86,11 @@ def _process_single_gff(file_path, sp_name, auto_classify, default_group):
         current_group = default_group
 
     igs_rows = [
-        {'Group': current_group, 'Species': sp_name, 'IGS_Size': size, 'File': filename}
+        {'Group': current_group, 'Species': sp_name, 'IGS_Size': size, 'File': filename, 'Num_Contigs': n_contigs}
         for size in IGS_sizes
     ]
     gene_rows = [
-        {'Group': current_group, 'Species': sp_name, 'Gene_Length': length, 'File': filename}
+        {'Group': current_group, 'Species': sp_name, 'Gene_Length': length, 'File': filename, 'Num_Contigs': n_contigs}
         for length in gene_lengths
     ]
     return igs_rows, gene_rows
@@ -145,8 +147,10 @@ def save_summary_stats(all_igs_data, all_gene_data, prefix=''):
     if all_igs_data:
         df = pd.DataFrame(all_igs_data)
 
-        genome_stats = df.groupby(['Group', 'Species', 'File'])['IGS_Size'].agg(
-            mean_IGS='mean', std_IGS='std'
+        genome_stats = df.groupby(['Group', 'Species', 'File']).agg(
+            mean_IGS=('IGS_Size', 'mean'),
+            std_IGS=('IGS_Size', 'std'),
+            num_contigs=('Num_Contigs', 'first'),
         ).reset_index()
         std_name = f'{prefix}genome_IGS.csv' if prefix else 'genome_IGS.csv'
         genome_stats.to_csv(os.path.join(files_dir, std_name), index=False)
@@ -166,7 +170,10 @@ def save_summary_stats(all_igs_data, all_gene_data, prefix=''):
     if all_gene_data:
         df_gene = pd.DataFrame(all_gene_data)
 
-        gene_counts = df_gene.groupby(['Group', 'Species', 'File']).size().reset_index(name='Gene_Count')
+        gene_counts = df_gene.groupby(['Group', 'Species', 'File']).agg(
+            Gene_Count=('Gene_Length', 'size'),
+            Num_Contigs=('Num_Contigs', 'first'),
+        ).reset_index()
         count_name = f'{prefix}gene_counts.csv' if prefix else 'gene_counts.csv'
         gene_counts.to_csv(os.path.join(files_dir, count_name), index = False)
 
