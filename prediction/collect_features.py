@@ -7,8 +7,7 @@ import pandas as pd
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'analysis'))
 from transposase_analysis import processing_transposase
-from sequence_features import collect_codon_stats
-from igs_lengths import collect_gff_stats
+from sequence_features import collect_all_stats
 
 def main():
     parser = argparse.ArgumentParser(description='Collect and merge genome features.')
@@ -45,26 +44,21 @@ def main():
     transposase_df = transposase_df.rename(columns={'Total': 'Total_Transposases'})
     print('Done with transposase analysis.')
 
-    igs_data, gene_data = collect_gff_stats(path, auto_classify=classify_flag)
-    if not igs_data or not gene_data:
-        print('No IGS or gene records found. Exiting.')
+    igs_data, gene_data, codon_stats_df = collect_all_stats(path, auto_classify=classify_flag)
+    if not igs_data or not gene_data or codon_stats_df.empty:
+        print('No GFF or codon records found. Exiting.')
         return
+    print('Done with IGS, gene length, and codon analysis.')
 
     igs_df = pd.DataFrame(igs_data).groupby(['Group', 'Species', 'File']).agg(
         Mean_IGS_Size=('IGS_Size', 'mean'),
         Num_Contigs=('Num_Contigs', 'first'),
     ).reset_index()
-    print('Done with IGS analysis.')
 
     gene_df = pd.DataFrame(gene_data)
     gene_count_df = gene_df.groupby(['Group', 'Species', 'File']).size().reset_index(name='Gene_Count')
     gene_length_df = gene_df.groupby(['Group', 'Species', 'File'])['Gene_Length'].mean().reset_index(name='mean_gene_length')
     gene_df = pd.merge(gene_count_df, gene_length_df, on=['Group', 'Species', 'File'])
-
-    print('Done with gene length and count analysis.')
-
-    codon_stats_df = collect_codon_stats(path, auto_classify=classify_flag)
-    print('Done with GC metrics.')
 
     merged_df = pd.merge(transposase_df, igs_df, on=['Group', 'Species', 'File'], how='inner')
     merged_df = pd.merge(merged_df, gene_df, on=['Group', 'Species', 'File'], how='inner')
