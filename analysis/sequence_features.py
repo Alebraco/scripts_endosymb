@@ -78,6 +78,94 @@ def _process_single_genome(gff_path, sp_name, auto_classify, default_group):
     }
 
 
+def _process_single_file(gff_path, sp_name, auto_classify, default_group):
+    """Parse one GFF+FNA pair and return IGS rows, gene rows, and codon stats in one pass."""
+    filename = os.path.basename(gff_path)
+    clean_filename = filename.replace('.gff', '')
+    fna_path = gff_path.replace('.gff', '.fna')
+
+    if not os.path.exists(fna_path):
+        print(f'Warning: .fna file not found for {gff_path}.')
+        return None
+
+    IGS_sizes, gene_lengths, coordinates, n_contigs = gff_features(gff_path)
+
+    if auto_classify:
+        current_group = 'relatives_only' if '_genomic' in filename else 'endosymb_only'
+    else:
+        current_group = default_group
+
+    print(f'Processing {gff_path}')
+
+    igs_rows = [
+        {'Group': current_group, 'Species': sp_name, 'IGS_Size': size, 'File': clean_filename, 'Num_Contigs': n_contigs}
+        for size in IGS_sizes
+    ]
+    gene_rows = [
+        {'Group': current_group, 'Species': sp_name, 'Gene_Length': length, 'File': clean_filename, 'Num_Contigs': n_contigs}
+        for length in gene_lengths
+    ]
+
+    seq_dict = parse_fna(fna_path)
+    gc2, gc4, aa_gc4_dict = compute_gc_metrics(coordinates, seq_dict)
+
+    AV_bias   = sum(aa_gc4_dict[aa]['bias'] for aa in ['Val', 'Ala'] if aa in aa_gc4_dict) / 2
+    rest_bias = sum(aa_gc4_dict[aa]['bias'] for aa in aa_gc4_dict if aa not in ['Val', 'Ala']) / 6
+
+    codon_row = {
+        'Group':     current_group,
+        'Species':   sp_name,
+        'File':      clean_filename,
+        'GC2':       gc2,
+        'GC4':       gc4,
+        'AV_Bias':   AV_bias,
+        'Rest_Bias': rest_bias,
+    }
+
+    return igs_rows, gene_rows, codon_row
+
+
+def collect_all_stats(path, group_label=None, auto_classify=False, n_jobs=-1):
+    """Single-pass version of collect_gff_stats + collect_codon_stats for use in collect_features."""
+    default_group = group_label if group_label else 'Unknown'
+    target_dir = os.path.join(path, 'genomes')
+
+    if not os.path.exists(target_dir):
+        print(f'Warning: Genomes directory not found at {target_dir}.')
+        target_dir = path
+
+    tasks = []
+    for roots, dirs, files in os.walk(target_dir):
+        for filename in files:
+            if filename.endswith('.gff'):
+                rel_path = os.path.relpath(roots, target_dir)
+                sp_name = 'Unknown' if rel_path == '.' else rel_path.replace('_endosymbiont', '').replace('_', ' ')
+                tasks.append((os.path.join(roots, filename), sp_name))
+
+    if not tasks:
+        return [], [], pd.DataFrame()
+
+    print(f'  Found {len(tasks)} GFF files to process.')
+
+    results = Parallel(n_jobs=n_jobs, backend='loky')(
+        delayed(_process_single_file)(gff_path, sp_name, auto_classify, default_group)
+        for gff_path, sp_name in tasks
+    )
+
+    all_igs_data  = []
+    all_gene_data = []
+    codon_records = []
+    for r in results:
+        if r is None:
+            continue
+        igs_rows, gene_rows, codon_row = r
+        all_igs_data.extend(igs_rows)
+        all_gene_data.extend(gene_rows)
+        codon_records.append(codon_row)
+
+    return all_igs_data, all_gene_data, pd.DataFrame(codon_records)
+
+
 def collect_codon_stats(path, group_label=None, auto_classify=False, n_jobs=-1):
 
     default_group = group_label if group_label else 'Unknown'
