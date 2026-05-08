@@ -21,7 +21,7 @@ TRANS_DB="files/IS_db_fixed.dmnd"
 
 expected_outfile() {
     local faa="$1"
-    # Remove base path prefix - get relative path
+    # Remove base path prefix: get relative path
     local rel="${faa#$BASE_PATH/proteins/}"
     # Get directory name
     local sp_name=$(dirname "$rel")
