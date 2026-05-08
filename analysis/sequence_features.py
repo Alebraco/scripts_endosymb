@@ -60,7 +60,7 @@ def _process_single_genome(gff_path, sp_name, auto_classify, default_group):
         current_group = default_group
 
     print(f'Processing {gff_path}')
-    _, _, coordinates = gff_features(gff_path)
+    _, _, coordinates, _ = gff_features(gff_path)
     seq_dict = parse_fna(fna_path)
     gc2, gc4, aa_gc4_dict = compute_gc_metrics(coordinates, seq_dict)
 
