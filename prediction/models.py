@@ -76,7 +76,15 @@ def plot_feature_distributions(X, y, outpath):
                       alpha=0.6, jitter=True, hue='Group', legend=False,
                       palette={'Endosymbionts': '#FC8D62', 'Free-Living Relatives': '#66C2A5'}, ax=ax)
         
-        ax.set_title(f'{feature}', fontweight='bold')
+        label_map = {
+            'Delta_GC2_4':          'ΔGC2–4',
+            'GC4':                  'GC4 Content',
+            'AV_Bias':              'Ala/Val Bias',
+            'Rest_Bias':            'Rest AA Bias',
+            'Transposase_Per_Gene': 'Transposase / Gene',
+            'Mean_IGS_Size':        'Mean IGS Size',
+        }
+        ax.set_title(label_map.get(feature, feature), fontweight='bold')
         ax.set_xlabel('')
 
     plt.tight_layout()    
