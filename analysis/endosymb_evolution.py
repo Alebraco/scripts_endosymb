@@ -95,8 +95,7 @@ def seg_plot(df, seq_type='protein', no_decorations=False):
         linewidths = 0.5
         )
     cbar = plt.colorbar(scatter)
-    if not no_decorations:
-        cbar.set_label('GC Content (%)', fontsize=18, fontweight='bold')
+    cbar.set_label('GC Content (%)', fontsize=18, fontweight='bold')
     cbar.ax.tick_params(labelsize=14)
 
     plt.xlabel('Median Evolutionary Distance', fontsize=20, fontweight='bold')
