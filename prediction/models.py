@@ -61,34 +61,44 @@ def plot_correlation(csv_path, outpath):
 
 
 def plot_feature_distributions(X, y, outpath):
-    plot_df = X.copy()
-    plot_df['Group'] = y['Group'].values
+    label_map = {
+        'Delta_GC2_4':          'ΔGC2–4',
+        'GC4':                  'GC4 Content',
+        'AV_Bias':              'Ala/Val Bias',
+        'Rest_Bias':            'Rest AA Bias',
+        'Transposase_Per_Gene': 'Transposase / Gene',
+        'Mean_IGS_Size':        'Mean IGS Size',
+    }
+
+    groups_order = ['Endosymbionts', 'Free-Living Relatives']
+    colors = ['#FC8D62', '#66C2A5']
+    group_vals = y['Group'].values
 
     fig, axes = plt.subplots(2, 3, figsize=(15, 10))
     axes = axes.flatten()
-    for i, feature in enumerate(feature_columns):
-        ax = axes[i]
-        
-        sns.boxplot(data=plot_df, x='Group', y=feature, 
-                    color='white', width=0.5, fliersize=0, ax=ax)
-        
-        sns.stripplot(data=plot_df, x='Group', y=feature, 
-                      alpha=0.6, jitter=True, hue='Group', legend=False,
-                      palette={'Endosymbionts': '#FC8D62', 'Free-Living Relatives': '#66C2A5'}, ax=ax)
-        
-        label_map = {
-            'Delta_GC2_4':          'ΔGC2–4',
-            'GC4':                  'GC4 Content',
-            'AV_Bias':              'Ala/Val Bias',
-            'Rest_Bias':            'Rest AA Bias',
-            'Transposase_Per_Gene': 'Transposase / Gene',
-            'Mean_IGS_Size':        'Mean IGS Size',
-        }
-        ax.set_title(label_map.get(feature, feature), fontweight='bold')
+
+    for ax, feat in zip(axes, feature_columns):
+        data = [X[feat].values[group_vals == g] for g in groups_order]
+
+        bp = ax.boxplot(
+            data,
+            positions=range(1, len(groups_order) + 1),
+            patch_artist=True,
+            widths=0.5,
+            flierprops=dict(marker='.', markersize=3, alpha=0.4),
+            medianprops=dict(color='black', linewidth=1.5),
+        )
+        for patch, color in zip(bp['boxes'], colors):
+            patch.set_facecolor(color)
+            patch.set_alpha(0.7)
+
+        ax.set_xticks(range(1, len(groups_order) + 1))
+        ax.set_xticklabels(groups_order, fontsize=9)
+        ax.set_title(label_map.get(feat, feat), fontweight='bold')
         ax.set_xlabel('')
 
-    plt.tight_layout()    
-    fig.savefig(os.path.join(outpath, f'feature_distributions_grid.pdf'))
+    plt.tight_layout()
+    fig.savefig(os.path.join(outpath, 'feature_distributions_grid.pdf'))
     plt.close(fig)
     print("Feature distribution plots saved.")
 
