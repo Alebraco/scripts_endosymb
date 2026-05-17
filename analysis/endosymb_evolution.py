@@ -82,30 +82,33 @@ def sge_data(mode='mean', seq_type='protein'):
     df.to_csv(os.path.join(files_dir, f'endosymb_evolution_data{suffix}.csv'), index=False)
     return df
 
-def seg_plot(df, seq_type='protein'):
+def seg_plot(df, seq_type='protein', no_decorations=False):
     suffix = f'_{seq_type}' if seq_type != 'dna' else ''
     plt.figure(figsize=(12,8))
     scatter = plt.scatter(
-        x = df['distance'],         
-        y = df['size'],  
+        x = df['distance'],
+        y = df['size'],
         c = df['gc'],
-        cmap = 'viridis', 
-        s = 150, 
+        cmap = 'viridis',
+        s = 150,
         edgecolors = 'black',
         linewidths = 0.5
         )
     cbar = plt.colorbar(scatter)
-    cbar.set_label('GC Content (%)', fontsize=18, fontweight='bold')
+    if not no_decorations:
+        cbar.set_label('GC Content (%)', fontsize=18, fontweight='bold')
     cbar.ax.tick_params(labelsize=14)
 
     plt.xlabel('Median Evolutionary Distance', fontsize=20, fontweight='bold')
     plt.ylabel('Genome Size (Mb)' , fontsize=20, fontweight='bold')
     plt.tick_params(axis='both', labelsize=14)
-    plt.title('The Evolution of Endosymbionts\nGenome Size, GC Content, and Evolutionary Distance', fontsize=22, fontweight='bold')
+    if not no_decorations:
+        plt.title('The Evolution of Endosymbionts\nGenome Size, GC Content, and Evolutionary Distance', fontsize=22, fontweight='bold')
     plt.gca().yaxis.set_major_formatter(plt.FuncFormatter(lambda x, p: f'{x/1e6:.1f} Mb'))
 
     plt.tight_layout()
-    plt.savefig(os.path.join(plot_dir, f'endosymb_evolution{suffix}.pdf'))
+    fname = f'endosymb_evolution{suffix}{"_notitle" if no_decorations else ""}.pdf'
+    plt.savefig(os.path.join(plot_dir, fname))
     plt.close()
 
 if __name__ == '__main__':
@@ -123,6 +126,7 @@ if __name__ == '__main__':
         print('Computing data.')
         df = sge_data(mode='mean', seq_type=args.seq_type)
     seg_plot(df, seq_type=args.seq_type)
+    seg_plot(df, seq_type=args.seq_type, no_decorations=True)
     print('Plot saved.')
 
 

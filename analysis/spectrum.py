@@ -732,7 +732,7 @@ def gc_equilibrium(df):
     print(f'Saved {outpath}')
 
 
-def combined_sites_boxplot(strip=False):
+def combined_sites_boxplot(strip=False, no_decorations=False):
     """
     Combined faceted boxplots comparing mutation rates across sites
     for the two control groups: Endosymbiont Control Pairs and Free-Living Control Pairs.
@@ -851,7 +851,9 @@ def combined_sites_boxplot(strip=False):
                         legend=False,
                         ax = ax
                         )
-        plt.title(f'{mut.replace("r","")} Substitution Frequency by Site', fontsize=30, fontweight='bold')
+        is_gc_at = (mut == 'rGC→AT')
+        if not (no_decorations and is_gc_at):
+            plt.title(f'{mut.replace("r","")} Substitution Frequency by Site', fontsize=30, fontweight='bold')
         plt.xlabel('Codon Site', fontsize=26, fontweight='bold')
         plt.xticks([0,1,2], display_labels, fontsize=24)
 
@@ -862,9 +864,15 @@ def combined_sites_boxplot(strip=False):
         plt.grid(True, which="major", axis="y", ls="-", alpha=0.5)
         plt.grid(True, which="minor", axis="y", ls=":", alpha=0.2)
 
-        plt.legend(title='Group', fontsize = 22, title_fontsize = 24)
+        if not (no_decorations and is_gc_at):
+            plt.legend(title='Group', fontsize = 22, title_fontsize = 24)
+        else:
+            legend = plt.gca().get_legend()
+            if legend:
+                legend.remove()
         mut_file = mut.replace('→', '_').replace('r', '')
-        outpath_single = os.path.join(plot_dir, f'{mut_file}_sites_boxplot.pdf')
+        notitle_suffix = '_notitle' if (no_decorations and is_gc_at) else ''
+        outpath_single = os.path.join(plot_dir, f'{mut_file}_sites_boxplot{notitle_suffix}.pdf')
 
         plt.tight_layout()
 
@@ -907,3 +915,4 @@ if __name__ == '__main__':
             plot_separated_group_boxplots(df, position)
             gc_equilibrium(df)
             combined_sites_boxplot()
+            combined_sites_boxplot(no_decorations=True)

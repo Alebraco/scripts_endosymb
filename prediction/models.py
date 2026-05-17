@@ -102,8 +102,8 @@ def plot_feature_distributions(X, y, outpath):
     plt.close(fig)
     print("Feature distribution plots saved.")
 
-def run_pca(csv_path, outpath, label_recent=False, interactive=False):
-    plot_path = os.path.join(outpath, 'pca_plot.pdf')
+def run_pca(csv_path, outpath, label_recent=False, interactive=False, no_decorations=False):
+    plot_path = os.path.join(outpath, 'pca_plot_notitle.pdf' if (no_decorations and not label_recent) else 'pca_plot.pdf')
     interactive_path = os.path.join(outpath, 'pca_plot.html')
     loadings_path = os.path.join(outpath, 'pca_loadings.csv')
     df = pd.read_csv(csv_path)
@@ -184,7 +184,12 @@ def run_pca(csv_path, outpath, label_recent=False, interactive=False):
 
         plt.legend(clean_handles, clean_labels, loc='best', title='Species/Group')
 
-    plt.title('PCA of Genomic Features', fontsize=16, fontweight='bold')
+    if not (no_decorations and not label_recent):
+        plt.title('PCA of Genomic Features', fontsize=16, fontweight='bold')
+    if no_decorations and not label_recent:
+        legend = plt.gca().get_legend()
+        if legend:
+            legend.remove()
     plt.xlabel(f'Principal Component 1 ({var_explained[0]*100:.1f}%)')
     plt.ylabel(f'Principal Component 2 ({var_explained[1]*100:.1f}%)')
 
@@ -334,6 +339,7 @@ if __name__ == "__main__":
     plot_correlation(input_path, outpath)
 
     X, y, scaler = run_pca(input_path, outpath)
+    run_pca(input_path, outpath, no_decorations=True)
 
     plot_feature_distributions(X, y, outpath)
 
