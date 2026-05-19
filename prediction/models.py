@@ -345,6 +345,35 @@ def run_random_forest(X, y_encoded, groups, le, outpath, n_splits=5, suffix=''):
         print(high_conf_errors[['Species', 'File', 'True_Label', 'Predicted_Label', 'Endosymb_Probability', 'Confidence']].to_string(index=False))
     print(f"High-confidence misclassifications saved to {error_path}")
 
+    # Cross-check false negatives against endosymbiont evolutionary stage
+    fn_df = prob_df[
+        (prob_df['True_Label'] == 'Endosymbionts') &
+        (prob_df['Predicted_Label'] != 'Endosymbionts')
+    ].copy()
+    cluster_csv = os.path.join(files_dir, 'endosymbiont_clusters.csv')
+    print(f"\nFalse-Negative Stage Analysis (n={len(fn_df)} FNs)")
+    if fn_df.empty:
+        print("  No false negatives.")
+    elif not os.path.exists(cluster_csv):
+        print(f"  Skipped: {cluster_csv} not found.")
+    else:
+        clusters = (
+            pd.read_csv(cluster_csv)[['File', 'bgmm_prob', 'stage']]
+            .dropna()
+            .sort_values('bgmm_prob', ascending=False)
+            .drop_duplicates(subset='File')
+            [['File', 'stage']]
+        )
+        merged = fn_df.merge(clusters, on='File', how='left')
+        stage_counts = merged['stage'].value_counts(dropna=False)
+        stage_pct = (stage_counts / len(merged) * 100).round(1)
+        summary = pd.DataFrame({'count': stage_counts, '%': stage_pct})
+        summary.index.name = 'stage'
+        print(summary.to_string())
+        unmatched = merged['stage'].isna().sum()
+        if unmatched:
+            print(f"  ({unmatched} FN(s) had no stage match in cluster CSV)")
+
     # Fit on full data for importance
     rf.fit(X, y_encoded)
     # Gini importances
