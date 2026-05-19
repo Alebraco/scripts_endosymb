@@ -66,8 +66,8 @@ def plot_feature_distributions(X, y, outpath):
         'GC4':                  'GC4 Content',
         'AV_Bias':              'Codon usage bias (A/V)',
         'Rest_Bias':            'Codon usage bias (P/T/G/L/R/S)',
-        'Transposase_Per_Gene': 'Transposase / Gene',
-        'Mean_IGS_Size':        'Mean IGS Size',
+        'Transposase_Per_Gene': 'Transposase Density',
+        'Mean_IGS_Size':        'Mean IGS Length',
     }
 
     groups_order = ['Endosymbionts', 'Free-Living Relatives']
