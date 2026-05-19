@@ -77,6 +77,7 @@ def plot_feature_distributions(X, y, outpath):
     def _draw(figsize, xtick_fs):
         fig, axes = plt.subplots(2, 3, figsize=figsize)
         axes = axes.flatten()
+        legend_handles = None
         for ax, feat in zip(axes, feature_columns):
             data = [X[feat].values[group_vals == g] for g in groups_order]
             bp = ax.boxplot(
@@ -90,6 +91,8 @@ def plot_feature_distributions(X, y, outpath):
             for patch, color in zip(bp['boxes'], colors):
                 patch.set_facecolor(color)
                 patch.set_alpha(0.7)
+            if legend_handles is None:
+                legend_handles = bp['boxes']
             ax.set_xticks(range(1, len(groups_order) + 1))
             if xtick_fs is not None:
                 ax.set_xticklabels(groups_order, fontsize=xtick_fs)
@@ -97,7 +100,10 @@ def plot_feature_distributions(X, y, outpath):
                 ax.set_xticklabels(groups_order)
             ax.set_title(label_map.get(feat, feat), fontweight='bold')
             ax.set_xlabel('')
-        plt.tight_layout()
+        fig.legend(handles=legend_handles, labels=groups_order,
+                   loc='lower center', ncol=2, frameon=True,
+                   bbox_to_anchor=(0.5, 0))
+        plt.tight_layout(rect=[0, 0.07, 1, 1])
         return fig
 
     fig = _draw(figsize=(15, 10), xtick_fs=9)
