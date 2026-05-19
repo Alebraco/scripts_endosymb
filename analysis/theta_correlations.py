@@ -337,12 +337,8 @@ def make_cluster_plots(df, results):
             plt.FuncFormatter(lambda x, _p: f"{x/1e6:.1f} Mb")
         )
         ax.legend(title="Stage")
-        ax.set_xlabel(r"Posterior mean $\theta$")
+        ax.set_xlabel(r"Posterior mean $\theta$ (transition score)")
         ax.set_ylabel("Genome size")
-        ax.set_title(
-            rf"$\theta$ vs Genome Size  "
-            rf"(Spearman $\rho={rho:.3f}$, p={p:.2e}, n={len(merged)})"
-        )
         ax.text(
             0.02, 0.98, "Genome size not used in training",
             transform=ax.transAxes, va="top", ha="left",
