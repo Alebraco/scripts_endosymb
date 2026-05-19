@@ -9,7 +9,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'analysis'))
 from utils import POSTER_RCPARAMS
 
 files_dir = 'files'
-clusters_path = os.path.join(files_dir, 'endosymb_clusters.csv')
+clusters_path = os.path.join(files_dir, 'endosymbiont_clusters.csv')
 
 if os.path.exists(clusters_path):
     endo_rows = pd.read_csv(clusters_path)
