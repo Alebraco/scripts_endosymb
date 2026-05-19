@@ -120,10 +120,6 @@ def build_table():
             continue
 
         relatives = [idx for idx in matrix.index if "_genomic" in idx]
-        if not relatives:
-            skipped["no_relatives"] += 1
-            mismatches.append(("no_relatives", species, file_value, ""))
-            continue
 
         endo_id = resolve_endo_id(file_value, matrix.index)
         if endo_id is None:
@@ -134,9 +130,14 @@ def build_table():
             print(f"  unresolved: {species} / {file_value}")
             continue
 
-        median_distance = float(np.median(
-            [matrix.loc[endo_id, rel_id] for rel_id in relatives]
-        ))
+        if not relatives:
+            skipped["no_relatives"] += 1
+            mismatches.append(("no_relatives", species, file_value, ""))
+            median_distance = None
+        else:
+            median_distance = float(np.median(
+                [matrix.loc[endo_id, rel_id] for rel_id in relatives]
+            ))
 
         sp_entry = lookup_species_gcsize(species, genome_dataset)
         size_entry = sp_entry.get(endo_id) or sp_entry.get(file_value)
