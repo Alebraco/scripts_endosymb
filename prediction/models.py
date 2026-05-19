@@ -16,7 +16,7 @@ import sys
 import os
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'analysis'))
-from utils import feature_columns
+from utils import feature_columns, POSTER_RCPARAMS, files_dir
 
 
 feature_dir = 'feature_files'
@@ -64,8 +64,8 @@ def plot_feature_distributions(X, y, outpath):
     label_map = {
         'Delta_GC2_4':          'ΔGC2–4',
         'GC4':                  'GC4 Content',
-        'AV_Bias':              'Ala/Val Bias',
-        'Rest_Bias':            'Rest AA Bias',
+        'AV_Bias':              'Codon usage bias (A/V)',
+        'Rest_Bias':            'Codon usage bias (P/T/G/L/R/S)',
         'Transposase_Per_Gene': 'Transposase / Gene',
         'Mean_IGS_Size':        'Mean IGS Size',
     }
@@ -74,35 +74,44 @@ def plot_feature_distributions(X, y, outpath):
     colors = ['#FC8D62', '#66C2A5']
     group_vals = y['Group'].values
 
-    fig, axes = plt.subplots(2, 3, figsize=(15, 10))
-    axes = axes.flatten()
+    def _draw(figsize, xtick_fs):
+        fig, axes = plt.subplots(2, 3, figsize=figsize)
+        axes = axes.flatten()
+        for ax, feat in zip(axes, feature_columns):
+            data = [X[feat].values[group_vals == g] for g in groups_order]
+            bp = ax.boxplot(
+                data,
+                positions=range(1, len(groups_order) + 1),
+                patch_artist=True,
+                widths=0.5,
+                flierprops=dict(marker='.', markersize=3, alpha=0.4),
+                medianprops=dict(color='black', linewidth=1.5),
+            )
+            for patch, color in zip(bp['boxes'], colors):
+                patch.set_facecolor(color)
+                patch.set_alpha(0.7)
+            ax.set_xticks(range(1, len(groups_order) + 1))
+            if xtick_fs is not None:
+                ax.set_xticklabels(groups_order, fontsize=xtick_fs)
+            else:
+                ax.set_xticklabels(groups_order)
+            ax.set_title(label_map.get(feat, feat), fontweight='bold')
+            ax.set_xlabel('')
+        plt.tight_layout()
+        return fig
 
-    for ax, feat in zip(axes, feature_columns):
-        data = [X[feat].values[group_vals == g] for g in groups_order]
-
-        bp = ax.boxplot(
-            data,
-            positions=range(1, len(groups_order) + 1),
-            patch_artist=True,
-            widths=0.5,
-            flierprops=dict(marker='.', markersize=3, alpha=0.4),
-            medianprops=dict(color='black', linewidth=1.5),
-        )
-        for patch, color in zip(bp['boxes'], colors):
-            patch.set_facecolor(color)
-            patch.set_alpha(0.7)
-
-        ax.set_xticks(range(1, len(groups_order) + 1))
-        ax.set_xticklabels(groups_order, fontsize=9)
-        ax.set_title(label_map.get(feat, feat), fontweight='bold')
-        ax.set_xlabel('')
-
-    plt.tight_layout()
+    fig = _draw(figsize=(15, 10), xtick_fs=9)
     fig.savefig(os.path.join(outpath, 'feature_distributions_grid.pdf'))
     plt.close(fig)
+
+    with plt.rc_context(POSTER_RCPARAMS):
+        fig = _draw(figsize=(18, 11), xtick_fs=None)
+        fig.savefig(os.path.join(outpath, 'fig_B_feature_boxplots.png'))
+        plt.close(fig)
+
     print("Feature distribution plots saved.")
 
-def run_pca(csv_path, outpath, label_recent=False, interactive=False, no_decorations=False):
+def run_pca(csv_path, outpath, label_recent=False, interactive=False, no_decorations=False, poster=False):
     plot_path = os.path.join(outpath, 'pca_plot_notitle.pdf' if (no_decorations and not label_recent) else 'pca_plot.pdf')
     interactive_path = os.path.join(outpath, 'pca_plot.html')
     loadings_path = os.path.join(outpath, 'pca_loadings.csv')
@@ -218,6 +227,52 @@ def run_pca(csv_path, outpath, label_recent=False, interactive=False, no_decorat
     loadings_df.to_csv(loadings_path)
     print(f"PCA loadings saved to {loadings_path}")
 
+    if poster:
+        cluster_csv = os.path.join(files_dir, 'endosymbiont_clusters.csv')
+        if not os.path.exists(cluster_csv):
+            print(f"  Skipping fig_F: {cluster_csv} not found.")
+        else:
+            clusters = (
+                pd.read_csv(cluster_csv)[['File', 'bgmm_prob', 'stage']]
+                .dropna()
+                .sort_values('bgmm_prob', ascending=False)
+                .drop_duplicates(subset='File')
+                [['File', 'stage']]
+            )
+            poster_df = pca_df.merge(clusters, on='File', how='left')
+            poster_df.loc[poster_df['Group'] == 'Free-Living Relatives', 'stage'] = 'free-living'
+            poster_df['Category'] = poster_df['stage'].fillna('free-living').str.capitalize()
+
+            stage_viridis = plt.cm.viridis(np.linspace(0.2, 0.9, 4))
+            palette = {
+                'Recent':       stage_viridis[0],
+                'Transitional': stage_viridis[1],
+                'Reduced':      stage_viridis[2],
+                'Ancient':      stage_viridis[3],
+                'Free-living':  '#95A5A6',
+            }
+            draw_order = ['Free-living', 'Recent', 'Transitional', 'Reduced', 'Ancient']
+            alpha_map = {'Free-living': 0.5}
+
+            with plt.rc_context(POSTER_RCPARAMS):
+                fig, ax = plt.subplots(figsize=(10, 8))
+                for cat in draw_order:
+                    sub = poster_df[poster_df['Category'] == cat]
+                    if sub.empty:
+                        continue
+                    ax.scatter(
+                        sub['PC1'], sub['PC2'],
+                        color=palette[cat], label=cat,
+                        s=70, alpha=alpha_map.get(cat, 0.85),
+                        edgecolor='k', linewidths=0.3,
+                    )
+                ax.set_xlabel(f'Principal Component 1 ({var_explained[0]*100:.1f}%)')
+                ax.set_ylabel(f'Principal Component 2 ({var_explained[1]*100:.1f}%)')
+                ax.legend(loc='best')
+                plt.tight_layout()
+                fig.savefig(os.path.join(outpath, 'fig_F_pca_unified.png'))
+                plt.close(fig)
+
     return X, df[y], scaler
 
 def run_random_forest(X, y_encoded, groups, le, outpath, n_splits=5, suffix=''):
@@ -292,7 +347,7 @@ def run_random_forest(X, y_encoded, groups, le, outpath, n_splits=5, suffix=''):
         'GC4':         'GC4 Content',
         'AV_Bias':     'Ala/Val Bias',
         'Rest_Bias':   'Rest of AA Bias',
-        'Transposase_Per_Gene': 'Transposase Density',
+        'Transposase_Per_Gene': 'Transposase\nDensity',
         'Mean_IGS_Size': 'Mean IGS Size',
     }
     imp = pd.DataFrame({
@@ -308,6 +363,28 @@ def run_random_forest(X, y_encoded, groups, le, outpath, n_splits=5, suffix=''):
     plt.tight_layout()
     fig.savefig(os.path.join(outpath, f'rf_feature_importance{suffix}.pdf'))
     plt.close(fig)
+
+    # Poster composite: confusion matrix + feature importance side-by-side
+    if suffix == '':
+        with plt.rc_context(POSTER_RCPARAMS):
+            fig, (ax_cm, ax_fi) = plt.subplots(1, 2, figsize=(16, 6))
+            disp = ConfusionMatrixDisplay(cm, display_labels=class_names)
+            disp.plot(ax=ax_cm, cmap='Blues', colorbar=False)
+            for t in disp.text_.ravel():
+                t.set_fontsize(26)
+            ax_cm.set_title(f'Confusion Matrix (CV Accuracy: {round(acc, 2)})',
+                            fontweight='bold')
+            ax_cm.set_xlabel('Predicted Label', fontweight='bold')
+            ax_cm.set_ylabel('True Label', fontweight='bold')
+
+            ax_fi.barh(imp['feature'], imp['importance'])
+            ax_fi.set_xlabel('Gini Importance (Model Contribution)',
+                             fontweight='bold')
+            ax_fi.set_title('Feature Importance (Gini)', fontweight='bold')
+
+            plt.tight_layout()
+            fig.savefig(os.path.join(outpath, 'fig_C_rf_classifier.png'))
+            plt.close(fig)
 
     # Permutation importances
     perm = permutation_importance(rf, X, y_encoded, n_repeats=30,
@@ -338,7 +415,7 @@ if __name__ == "__main__":
 
     plot_correlation(input_path, outpath)
 
-    X, y, scaler = run_pca(input_path, outpath)
+    X, y, scaler = run_pca(input_path, outpath, poster=True)
     run_pca(input_path, outpath, no_decorations=True)
 
     plot_feature_distributions(X, y, outpath)

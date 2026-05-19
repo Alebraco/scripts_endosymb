@@ -14,7 +14,8 @@ from utils import (
     load_or_compute,
     load_or_compute_pickle,
     genome_gcsize_json_path,
-    files_dir
+    files_dir,
+    POSTER_RCPARAMS,
 )
 
 plot_dir = os.path.join('plots', 'endosymb_evolution')
@@ -109,6 +110,26 @@ def seg_plot(df, seq_type='protein', no_decorations=False):
     fname = f'endosymb_evolution{suffix}{"_notitle" if no_decorations else ""}.pdf'
     plt.savefig(os.path.join(plot_dir, fname))
     plt.close()
+
+    with plt.rc_context(POSTER_RCPARAMS):
+        fig, ax = plt.subplots(figsize=(12, 8))
+        sc = ax.scatter(
+            x=df['distance'],
+            y=df['size'],
+            c=df['gc'],
+            cmap='viridis',
+            s=250,
+            edgecolors='black',
+            linewidths=0.5,
+        )
+        cbar = plt.colorbar(sc, ax=ax)
+        cbar.set_label('GC Content (%)')
+        ax.set_xlabel('Median Evolutionary Distance')
+        ax.set_ylabel('Genome Size (Mb)')
+        ax.yaxis.set_major_formatter(plt.FuncFormatter(lambda x, p: f'{x/1e6:.1f} Mb'))
+        plt.tight_layout()
+        fig.savefig(os.path.join(plot_dir, 'fig_A_genome_decay.png'))
+        plt.close(fig)
 
 if __name__ == '__main__':
     ap = argparse.ArgumentParser()

@@ -1,8 +1,13 @@
+import os
+import sys
 import pandas as pd
 import arviz as az
 import matplotlib.pyplot as plt
 import numpy as np
 from sklearn.mixture import BayesianGaussianMixture
+
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'analysis'))
+from utils import POSTER_RCPARAMS 
 
 # Load
 df = pd.read_csv('endosymb+relatives/feature_files/processed/processed_bayesian_data.csv')
@@ -128,6 +133,23 @@ for cluster_coloring in [True, False]:
     plt.tight_layout()
     plt.savefig(f'figure1_theta_continuum_{suffix}.png', dpi=300)
     plt.close()
+
+    if cluster_coloring:
+        with plt.rc_context(POSTER_RCPARAMS):
+            fig, ax = plt.subplots(figsize=(11, 6))
+            for stage, color in color_map.items():
+                subset = endo_rows[endo_rows['stage'] == stage]
+                ax.hist(subset['theta_mean'], bins=30, alpha=0.7,
+                        label=f"{stage.capitalize()} (n={len(subset)})",
+                        color=color)
+            ax.legend(loc='upper right')
+            ax.set_xlabel('Posterior mean θ (transition score)')
+            ax.set_ylabel('Count')
+            ax.set_title('Endosymbiont Transition Continuum',
+                         fontweight='bold')
+            plt.tight_layout()
+            plt.savefig('fig_D_theta_continuum.png')
+            plt.close()
 
     # Figure 2: Inverted-U
     fig, ax = plt.subplots(figsize=(8, 6))

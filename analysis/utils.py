@@ -20,6 +20,18 @@ files_dir = "files"
 
 feature_columns = ['Delta_GC2_4', 'GC4', 'AV_Bias', 'Rest_Bias', 'Transposase_Per_Gene', 'Mean_IGS_Size']
 
+POSTER_RCPARAMS = {
+    'axes.labelsize':  20,
+    'axes.titlesize':  22,
+    'xtick.labelsize': 18,
+    'ytick.labelsize': 18,
+    'legend.fontsize': 18,
+    'figure.facecolor': 'white',
+    'savefig.facecolor': 'white',
+    'savefig.dpi': 300,
+    'savefig.bbox': 'tight',
+}
+
 titles = {
     "distance": "Patristic Distance",
     "size": "ΔGenome Size",

@@ -25,6 +25,7 @@ from utils import (
     load_or_compute_pickle,
     files_dir,
     genome_gcsize_json_path,
+    POSTER_RCPARAMS,
 )
 
 THETA_CSV = os.path.join("files", "theta_all_genomes.csv")
@@ -317,6 +318,40 @@ def make_cluster_plots(df, results):
     plt.tight_layout()
     plt.savefig(os.path.join(PLOT_DIR, "theta_vs_size_clusters.pdf"))
     plt.close()
+
+    # Poster variant of theta vs genome size
+    with plt.rc_context(POSTER_RCPARAMS):
+        fig, ax = plt.subplots(figsize=(10, 8))
+        for stage in stages_present:
+            sub = merged[merged["stage"] == stage]
+            ax.scatter(
+                sub["theta_mean"], sub["genome_size"],
+                color=STAGE_COLORS[stage], label=stage.capitalize(),
+                s=80, edgecolors="black", linewidths=0.3, alpha=0.85,
+            )
+        m, b = np.polyfit(merged["theta_mean"], merged["genome_size"], 1)
+        x_line = np.linspace(merged["theta_mean"].min(),
+                             merged["theta_mean"].max(), 200)
+        ax.plot(x_line, m * x_line + b, color="gray", linewidth=1.5, zorder=5)
+        ax.yaxis.set_major_formatter(
+            plt.FuncFormatter(lambda x, _p: f"{x/1e6:.1f} Mb")
+        )
+        ax.legend(title="Stage")
+        ax.set_xlabel(r"Posterior mean $\theta$")
+        ax.set_ylabel("Genome size")
+        ax.set_title(
+            rf"$\theta$ vs Genome Size  "
+            rf"(Spearman $\rho={rho:.3f}$, p={p:.2e}, n={len(merged)})"
+        )
+        ax.text(
+            0.02, 0.98, "Genome size not used in training",
+            transform=ax.transAxes, va="top", ha="left",
+            fontsize=16, style="italic",
+        )
+        plt.tight_layout()
+        plt.savefig(os.path.join(PLOT_DIR, "fig_E_theta_vs_genome_size.png"))
+        plt.close()
+
     print(f"Cluster plots written to {PLOT_DIR}/")
 
 
