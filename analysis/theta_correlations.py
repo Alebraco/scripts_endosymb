@@ -103,6 +103,17 @@ def build_table():
     genome_dataset = load_or_compute(
         genome_gcsize_json_path(GROUP), genome_gcsize, GROUP
     )
+    genome_dataset_endo = load_or_compute(
+        genome_gcsize_json_path("endosymb_only"), genome_gcsize, "endosymb_only"
+    )
+
+    def lookup_size(species, endo_id, file_value):
+        for dataset in (genome_dataset, genome_dataset_endo):
+            sp_entry = lookup_species_gcsize(species, dataset)
+            entry = (sp_entry.get(endo_id) if endo_id else None) or sp_entry.get(file_value)
+            if entry is not None:
+                return entry
+        return None
 
     rows = []
     skipped = {"no_species_matrix": 0, "no_relatives": 0,
@@ -117,6 +128,19 @@ def build_table():
         if matrix is None:
             skipped["no_species_matrix"] += 1
             mismatches.append(("no_species_matrix", species, file_value, ""))
+            size_entry = lookup_size(species, None, file_value)
+            if size_entry is None:
+                skipped["no_size_entry"] += 1
+                continue
+            rows.append({
+                "Species": species,
+                "File": file_value,
+                "matrix_id": None,
+                "theta_mean": row["theta_mean"],
+                "theta_sd": row["theta_sd"],
+                "median_distance": None,
+                "genome_size": int(size_entry["size"]),
+            })
             continue
 
         relatives = [idx for idx in matrix.index if "_genomic" in idx]
@@ -139,8 +163,7 @@ def build_table():
                 [matrix.loc[endo_id, rel_id] for rel_id in relatives]
             ))
 
-        sp_entry = lookup_species_gcsize(species, genome_dataset)
-        size_entry = sp_entry.get(endo_id) or sp_entry.get(file_value)
+        size_entry = lookup_size(species, endo_id, file_value)
         if size_entry is None:
             skipped["no_size_entry"] += 1
             mismatches.append(("no_size_entry", species, file_value, endo_id))
@@ -340,11 +363,6 @@ def make_cluster_plots(df, results):
         ax.legend(title="Stage")
         ax.set_xlabel(r"Posterior mean $\theta$ (transition score)")
         ax.set_ylabel("Genome size")
-        ax.text(
-            0.02, 0.98, "Genome size not used in training",
-            transform=ax.transAxes, va="top", ha="left",
-            fontsize=16, style="italic",
-        )
         plt.tight_layout()
         plt.savefig(os.path.join(PLOT_DIR, "fig_E_theta_vs_genome_size.png"))
         plt.close()
