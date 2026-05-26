@@ -9,7 +9,7 @@
 # Usage: bash organize_bakta_outputs.sh [base_dir]
 #   Defaults to ncbi_bacteria if no argument given.
 
-BASE="ncbi_bacteria"
+BASE="${1:-ncbi_bacteria}"
 BAKTA_DIR="$BASE/bakta_results/genomes"
 GENOMES_DIR="$BASE/genomes"
 PROTEINS_DIR="$BASE/proteins"

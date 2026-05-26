@@ -14,7 +14,7 @@ for ((i=start_index; i<=end_index && i<${#all_files[@]}; i++)); do
     subpath=${genome#$INPUT_DIR/}
     subpath=${subpath%.fna}
 
-    scratch_out="/share/metastrain/asoneto/endosymb/bakta_results/$subpath"
+    scratch_out="/share/metastrain/asoneto/endosymb/$OUTDIR/$subpath"
     dest="$WORKDIR/$OUTDIR/$subpath"
     mkdir -p $scratch_out
     mkdir -p $dest
