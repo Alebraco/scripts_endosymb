@@ -8,9 +8,13 @@
 #BSUB -n 1
 
 WORKDIR="/rs1/researchers/l/ljbobay/asoneto/endosymb"
-INPUT_DIR="ncbi_bacteria"
-OUTDIR="bakta_results"
-GENOME_LIST="$WORKDIR/bakta_genome_list.txt"
+# Input base dir (relative to WORKDIR) and output dir are overridable so the same
+# pipeline can annotate other genome sets, e.g.:
+#   bash submit_bakta.sh marine_free_livers marine_free_livers/bakta_results
+# Defaults preserve the original ncbi_bacteria behavior.
+INPUT_DIR="${1:-ncbi_bacteria}"
+OUTDIR="${2:-bakta_results}"
+GENOME_LIST="$WORKDIR/bakta_genome_list_${INPUT_DIR//\//_}.txt"
 
 if [ ! -f "$GENOME_LIST" ]; then
     find "$WORKDIR/$INPUT_DIR" -type f -name "*.fna" | sort > "$GENOME_LIST"
