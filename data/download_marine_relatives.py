@@ -24,8 +24,8 @@ import zipfile
 TARGETS = [
     ("Pelagibacter ubique HTCC1062", 1),
     ("Pelagibacter sp. HTCC7211", 1),
-    ("Pelagibacter ubique IMCC9063", 1),
-    ("Prochlorococcus marinus str. MED4", 1),
+    ("Pelagibacter sp. IMCC9063", 1),
+    ("Prochlorococcus marinus", 1),
     ("Polaribacter", 3),
     ("Dokdonia", 3),
     ("Croceibacter", 2),
@@ -55,7 +55,7 @@ def query_and_select(taxon, max_n):
             capture_output=True, text=True, check=True,
         )
     except (subprocess.CalledProcessError, FileNotFoundError) as exc:
-        print(f"  ! summary failed for '{taxon}': {exc}", file=sys.stderr)
+        print(f"  Summary failed for '{taxon}': {exc}", file=sys.stderr)
         return [], []
     reports = []
     for line in proc.stdout.splitlines():
