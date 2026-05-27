@@ -3,7 +3,7 @@
 source ~/.bashrc
 conda activate /usr/local/usrapps/metastrain/asoneto/annotation/
 
-BAKTA_DB="/rs1/researchers/l/ljbobay/asoneto/endosymb/bakta_db/db/"
+BAKTA_DB="/rs1/researchers/l/ljbobay/asoneto/endosymb/archived/bakta_db/db/"
 all_files=($(cat "$GENOME_LIST"))
 start_index=$((($LSB_JOBINDEX - 1) * 100))
 end_index=$(($start_index + 99))
