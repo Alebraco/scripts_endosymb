@@ -64,6 +64,10 @@ def _process_single_genome(gff_path, sp_name, auto_classify, default_group):
     seq_dict = parse_fna(fna_path)
     gc2, gc4, aa_gc4_dict = compute_gc_metrics(coordinates, seq_dict)
 
+    if aa_gc4_dict is None:
+        print(f'Warning: No fourfold degenerate codons found in {gff_path}, skipping.')
+        return None
+
     AV_bias   = sum(aa_gc4_dict[aa]['bias'] for aa in ['Val', 'Ala'] if aa in aa_gc4_dict) / 2
     rest_bias = sum(aa_gc4_dict[aa]['bias'] for aa in aa_gc4_dict if aa not in ['Val', 'Ala']) / 6
 
@@ -108,6 +112,10 @@ def _process_single_file(gff_path, sp_name, auto_classify, default_group):
 
     seq_dict = parse_fna(fna_path)
     gc2, gc4, aa_gc4_dict = compute_gc_metrics(coordinates, seq_dict)
+
+    if aa_gc4_dict is None:
+        print(f'Warning: No fourfold degenerate codons found in {gff_path}, skipping.')
+        return None
 
     AV_bias   = sum(aa_gc4_dict[aa]['bias'] for aa in ['Val', 'Ala'] if aa in aa_gc4_dict) / 2
     rest_bias = sum(aa_gc4_dict[aa]['bias'] for aa in aa_gc4_dict if aa not in ['Val', 'Ala']) / 6
