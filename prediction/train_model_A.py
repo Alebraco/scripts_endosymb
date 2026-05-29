@@ -39,6 +39,7 @@ RF_PARAMS = dict(
     class_weight='balanced',
     random_state=28,
     n_jobs=-1,
+    oob_score=True,
 )
 
 TRAIN_PATH = os.path.join(files_dir, 'training_set.csv')
@@ -118,6 +119,7 @@ def main():
     lines.append(f'Recall   : {rec:.4f}')
     lines.append(f'F1       : {f1:.4f}')
     lines.append(f'ROC-AUC  : {auc:.4f}')
+    lines.append(f'OOB error: {1.0 - rf.oob_score_:.4f}')
     lines.append('')
     lines.append('Confusion matrix (rows=true, cols=pred, label order = classes above):')
     lines.append(np.array2string(cm))
