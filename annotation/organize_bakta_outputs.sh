@@ -20,6 +20,7 @@ if [ ! -d "$BAKTA_DIR" ]; then
 fi
 
 n_gff=0
+n_fna=0
 n_faa=0
 
 for sp_dir in "$BAKTA_DIR"/*/; do                  # iterate over each species subdirectory
@@ -29,13 +30,22 @@ for sp_dir in "$BAKTA_DIR"/*/; do                  # iterate over each species s
     for accession_dir in "$sp_dir"/*/; do          # iterate over each accession subdirectory within the species
         for gff_file in "$accession_dir"/*.gff3; do
             [ -f "$gff_file" ] || continue             # skip if no match
-            dest="$GENOMES_DIR/$sp_name/$(basename "${gff_file%.gff3}.gff")"  
+            dest="$GENOMES_DIR/$sp_name/$(basename "${gff_file%.gff3}.gff")"
             cp "$gff_file" "$dest"                     # copy the annotation file
             n_gff=$((n_gff + 1))                       # increment counter
         done
 
+        # Copy Bakta output .fna (uses Bakta's contig IDs, matching the GFF) into genomes/.
+        # Bakta sometimes renames contig IDs (e.g. contig_1) from the original NCBI IDs;
+        # using the Bakta .fna ensures the sequence IDs always match the GFF seqids.
+        for fna_file in "$accession_dir"/*.fna; do
+            [ -f "$fna_file" ] || continue
+            cp "$fna_file" "$GENOMES_DIR/$sp_name/"
+            n_fna=$((n_fna + 1))
+        done
+
         # Copy .faa into proteins/
-        for faa_file in "$accession_dir"/*.faa; do     
+        for faa_file in "$accession_dir"/*.faa; do
             [ -f "$faa_file" ] || continue             # skip if no match
             cp "$faa_file" "$PROTEINS_DIR/$sp_name/"   # copy the protein file
             n_faa=$((n_faa + 1))                       # increment counter
@@ -44,4 +54,5 @@ for sp_dir in "$BAKTA_DIR"/*/; do                  # iterate over each species s
 done
 
 echo "Copied $n_gff GFF files into $GENOMES_DIR/"   # total GFF files moved
+echo "Copied $n_fna FNA files into $GENOMES_DIR/"   # total FNA files moved
 echo "Copied $n_faa FAA files into $PROTEINS_DIR/"  # total FAA files moved
