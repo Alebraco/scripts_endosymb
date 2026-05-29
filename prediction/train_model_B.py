@@ -21,7 +21,7 @@ from sklearn.preprocessing import LabelEncoder
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'analysis'))
 from utils import files_dir
-from _model_eval import evaluate_and_save
+from model_eval import evaluate_and_save
 
 # Model B: 5 features (Transposase_Per_Gene dropped). Local constant on purpose;
 # utils.feature_columns is the 6-feature list Model A depends on - leave it alone.

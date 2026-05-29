@@ -17,7 +17,7 @@ from sklearn.preprocessing import LabelEncoder
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'analysis'))
 from utils import feature_columns, files_dir
-from _model_eval import evaluate_and_save
+from model_eval import evaluate_and_save
 
 RF_PARAMS = dict(
     n_estimators=500,
