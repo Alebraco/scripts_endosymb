@@ -14,37 +14,41 @@ conda activate /usr/local/usrapps/metastrain/asoneto/annotation
 BASE="marine_free_livers"
 OUTDIR="$BASE/bakta_results"
 
-# Bakta array
-SUBMIT_OUT=$(bash scripts_endosymb/annotation/submit_bakta.sh "$BASE" "$OUTDIR")
-echo "$SUBMIT_OUT"
-BAKTA_JOB=$(echo "$SUBMIT_OUT" | grep -oP '(?<=<)\d+(?=>)' | head -n1)
-if [ -z "$BAKTA_JOB" ]; then
-    echo "Could not parse bakta array job ID from submit_bakta.sh output."
-    exit 1
-fi
-echo "Bakta array submitted as job $BAKTA_JOB; waiting..."
-
-# Wait for bakta array to finish
-while true; do
-    job=$(bjobs "$BAKTA_JOB" 2>&1)
-    if echo "$job" | grep -qE 'RUN|PEND'; then
-        sleep 60
-        continue
+N_FAA=$(find "$BASE/proteins" -name "*.faa" 2>/dev/null | wc -l)
+if [ "$N_FAA" -gt 0 ]; then
+    echo "Found $N_FAA .faa files in $BASE/proteins/ — skipping Bakta and organize steps."
+else
+    SUBMIT_OUT=$(bash scripts_endosymb/annotation/submit_bakta.sh "$BASE" "$OUTDIR" 1)
+    echo "$SUBMIT_OUT"
+    BAKTA_JOB=$(echo "$SUBMIT_OUT" | grep -oP '(?<=<)\d+(?=>)' | head -n1)
+    if [ -z "$BAKTA_JOB" ]; then
+        echo "Could not parse bakta array job ID from submit_bakta.sh output."
+        exit 1
     fi
-    if echo "$job" | grep -q 'is not found' || [ -z "$job" ]; then
-        echo "Bakta job $BAKTA_JOB not found; assuming complete."
+    echo "Bakta array submitted as job $BAKTA_JOB; waiting..."
+
+    # Wait for bakta array to finish
+    while true; do
+        job=$(bjobs "$BAKTA_JOB" 2>&1)
+        if echo "$job" | grep -qE 'RUN|PEND'; then
+            sleep 60
+            continue
+        fi
+        if echo "$job" | grep -q 'is not found' || [ -z "$job" ]; then
+            echo "Bakta job $BAKTA_JOB not found; assuming complete."
+            break
+        fi
         break
+    done
+    if bjobs -d "$BAKTA_JOB" 2>/dev/null | grep -q 'EXIT'; then
+        echo "Bakta array job $BAKTA_JOB exited with failures. Check bakta_logs/."
+        exit 1
     fi
-    break
-done
-if bjobs -d "$BAKTA_JOB" 2>/dev/null | grep -q 'EXIT'; then
-    echo "Bakta array job $BAKTA_JOB exited with failures. Check bakta_logs/."
-    exit 1
-fi
-echo "Bakta done."
+    echo "Bakta done."
 
-# Organize bakta outputs
-bash scripts_endosymb/annotation/organize_bakta_outputs.sh "$BASE"
+    # Organize bakta outputs
+    bash scripts_endosymb/annotation/organize_bakta_outputs.sh "$BASE"
+fi
 
 # Collect features
 bash scripts_endosymb/prediction/run_ncbi_features.sh "$BASE"
