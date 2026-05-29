@@ -17,4 +17,4 @@ python -u scripts_endosymb/prediction/build_training_set_B.py
 python -u scripts_endosymb/prediction/train_model_B.py
 python -u scripts_endosymb/prediction/train_model_A.py
 
-echo "Step 2 complete: results/model_B_holdout_metrics.json"
+echo "Step 2 complete: files/model_{A,B}_holdout_metrics.json"
